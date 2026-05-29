@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock E-Commerce Store</title>
+  <script>
+    // Fallback logic to intercept magic link redirects that land on the wrong page
+    // Redirects them directly to the dashboard with the hash intact
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      window.location.href = '/dashboard.html' + window.location.hash;
+    }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px; text-align: center; background-color: #f5f5f5; }
+    .product { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-block; }
+    .add-to-cart { background-color: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; }
+    .add-to-cart:hover { background-color: #2ecc71; }
+  </style>
+</head>
+<body>
+  <div class="product">
+    <h1>Awesome Gadget</h1>
+    <p>The best gadget you'll ever own.</p>
+    <p><strong>$99.99</strong></p>
+    <button id="add-btn" class="add-to-cart" onclick="simulateAddToCart()">Add to Cart</button>
+  </div>
+
+  <script>
+    function simulateAddToCart() {
+      const btn = document.getElementById('add-btn');
+      btn.textContent = 'Added';
+      btn.style.backgroundColor = '#7f8c8d';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = 'Add to Cart';
+        btn.style.backgroundColor = '#27ae60';
+        btn.disabled = false;
+      }, 2000);
+    }
+  </script>
+
+  <!-- Embedding FrictionPulse Widget with a mock site-key for testing locally -->
+  <!-- Note: Replace "sk_test_123" with an actual site key generated from the dashboard -->
+  <script src="./widget.js" data-site-key="sk_test_123"></script>
+</body>
+</html>
