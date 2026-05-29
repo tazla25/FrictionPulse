@@ -689,10 +689,10 @@
           });
         }
 
-        // Load Stats (Use public unauthenticated headers for anonymous tables)
+        // Load Stats (Requires authenticated headers to bypass RLS policies)
         const viewsResponse = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${currentSiteKey}`, {
           method: "GET",
-          headers: getHeaders(false)
+          headers: getHeaders()
         });
         if (viewsResponse.ok) {
           const views = await viewsResponse.json();
@@ -701,7 +701,7 @@
 
         const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=objection_id&site_key=eq.${currentSiteKey}`, {
           method: "GET",
-          headers: getHeaders(false)
+          headers: getHeaders()
         });
         if (votesResponse.ok) {
           const votes = await votesResponse.json();
