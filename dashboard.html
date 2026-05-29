@@ -634,7 +634,7 @@
       document.getElementById("current-site-title").innerText = site.domain;
       document.getElementById("current-site-key").innerText = site.site_key;
 
-      const widgetUrl = window.location.origin + "/widget.js";
+      const widgetUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '') + 'widget.js';
       document.getElementById("embed-code").value = `<script src="${widgetUrl}" data-site-key="${site.site_key}"><\/script>`;
 
       loadSiteData();
