@@ -641,10 +641,10 @@
           });
         }
 
-        // Load Stats
+        // Load Stats (Use public unauthenticated headers for anonymous tables)
         const viewsResponse = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${currentSiteKey}`, {
           method: "GET",
-          headers: getHeaders()
+          headers: getHeaders(false)
         });
         if (viewsResponse.ok) {
           const views = await viewsResponse.json();
@@ -653,7 +653,7 @@
 
         const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=id&site_key=eq.${currentSiteKey}`, {
           method: "GET",
-          headers: getHeaders()
+          headers: getHeaders(false)
         });
         if (votesResponse.ok) {
           const votes = await votesResponse.json();
