@@ -18,6 +18,12 @@
     "Prefer": "return=representation"
   };
 
+  let sessionHash = sessionStorage.getItem('fp_session_hash');
+  if (!sessionHash) {
+    sessionHash = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    sessionStorage.setItem('fp_session_hash', sessionHash);
+  }
+
   let objections = [];
 
   // Create Widget UI
@@ -101,7 +107,8 @@
         headers: headers,
         body: JSON.stringify({
           site_key: siteKey,
-          objection_id: obj.id
+          objection_id: obj.id,
+          session_hash: sessionHash
         })
       });
       if (!response.ok) {
@@ -120,7 +127,8 @@
         method: "POST",
         headers: headers,
         body: JSON.stringify({
-          site_key: siteKey
+          site_key: siteKey,
+          session_hash: sessionHash
         })
       });
       if (!response.ok) {
