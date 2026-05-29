@@ -6,6 +6,7 @@
   <title>FrictionPulse - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
   <script>eruda.init();</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -334,6 +335,11 @@
             <div id="stat-votes" class="stat-value">0</div>
           </div>
         </div>
+
+        <div style="background: #09090b; padding: 24px; border-radius: 12px; border: 1px solid #27272a; margin-top: 30px;">
+          <h4 style="margin-top: 0; margin-bottom: 20px;">Votes by Objection</h4>
+          <canvas id="objectionsChart" style="max-height: 350px;"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -345,6 +351,7 @@
     let currentUser = null;
     let currentSession = null;
     let currentSiteKey = null;
+    let chartInstance = null;
 
     // View Management Logic
     function showView(viewName) {
@@ -637,16 +644,18 @@
       if (!currentSiteKey) return;
 
       try {
+        let loadedObjections = [];
+
         // Load Objections
         const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${currentSiteKey}`, {
           method: "GET",
           headers: getHeaders()
         });
         if (objResponse.ok) {
-          const objections = await objResponse.json();
+          loadedObjections = await objResponse.json();
           const ul = document.getElementById("objections-list");
           ul.innerHTML = "";
-          objections.forEach(obj => {
+          loadedObjections.forEach(obj => {
             const li = document.createElement("li");
             li.style.cssText = "display: flex; justify-content: space-between; align-items: flex-start;";
 
@@ -691,17 +700,74 @@
           document.getElementById("stat-views").innerText = views.length || 0;
         }
 
-        const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=id&site_key=eq.${currentSiteKey}`, {
+        const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=objection_id&site_key=eq.${currentSiteKey}`, {
           method: "GET",
           headers: getHeaders(false)
         });
         if (votesResponse.ok) {
           const votes = await votesResponse.json();
           document.getElementById("stat-votes").innerText = votes.length || 0;
+
+          if (loadedObjections.length > 0) {
+            updateChart(loadedObjections, votes);
+          }
         }
       } catch (err) {
         console.error("Error loading site data", err);
       }
+    }
+
+    function updateChart(objections, votes) {
+      const ctx = document.getElementById('objectionsChart').getContext('2d');
+
+      const voteCounts = {};
+      objections.forEach(obj => voteCounts[obj.id] = 0);
+      votes.forEach(vote => {
+        if (vote.objection_id in voteCounts) {
+          voteCounts[vote.objection_id]++;
+        }
+      });
+
+      const labels = objections.map(obj => obj.label);
+      const data = objections.map(obj => voteCounts[obj.id]);
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Votes',
+            data: data,
+            backgroundColor: 'rgba(167, 139, 250, 0.8)',
+            borderColor: 'rgba(167, 139, 250, 1)',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#a1a1aa' },
+              grid: { color: '#27272a' }
+            },
+            y: {
+              ticks: { color: '#a1a1aa' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
     }
 
     function switchTab(tabName) {
