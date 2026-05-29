@@ -1,10 +1,11 @@
 (function() {
   // FrictionPulse Widget
-  const scriptTag = document.currentScript;
+  // Fallback to querySelector if currentScript is null (e.g. async/defer loading)
+  const scriptTag = document.currentScript || document.querySelector('script[src*="widget.js"]');
   const siteKey = scriptTag ? scriptTag.getAttribute('data-site-key') : null;
 
   if (!siteKey) {
-    console.error("FrictionPulse: Missing data-site-key attribute on script tag.");
+    console.error("FrictionPulse: Missing data-site-key attribute. Ensure the script tag includes data-site-key='YOUR_KEY'.");
     return;
   }
 
