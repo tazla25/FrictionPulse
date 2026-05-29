@@ -25,6 +25,13 @@
     sessionStorage.setItem('fp_session_hash', sessionHash);
   }
 
+  const defaultObjections = [
+    { label: "Price is too high", counter_message: "We offer flexible payment plans and a money-back guarantee." },
+    { label: "Not sure if it works for me", counter_message: "Check out our case studies to see how we've helped similar customers." },
+    { label: "I need to think about it", counter_message: "Don't miss out! This offer might expire soon." },
+    { label: "Missing features I need", counter_message: "Contact our support! We might have a workaround." }
+  ];
+
   let objections = [];
 
   // Create Widget UI
@@ -37,11 +44,11 @@
   button.style.cssText = "width: 50px; height: 50px; border-radius: 25px; background-color: #3498db; color: white; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
 
   const popup = document.createElement('div');
-  popup.style.cssText = "display: none; position: absolute; bottom: 60px; right: 0; width: 300px; background: white; border: 1px solid #ccc; border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);";
+  popup.style.cssText = "display: none; position: absolute; bottom: 60px; right: 0; width: 300px; background: white; border: 1px solid #ccc; border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: #333;";
 
   const title = document.createElement('h3');
   title.innerText = "Any concerns before you buy?";
-  title.style.cssText = "margin-top: 0; font-size: 16px;";
+  title.style.cssText = "margin-top: 0; font-size: 16px; color: #333;";
   popup.appendChild(title);
 
   const objectionsContainer = document.createElement('div');
@@ -75,10 +82,14 @@
       if (!response.ok) throw new Error("Failed to load objections");
 
       objections = await response.json();
+      if (!objections || objections.length === 0) {
+        objections = defaultObjections;
+      }
       renderObjections();
     } catch (err) {
       console.error("FrictionPulse error:", err);
-      objectionsContainer.innerHTML = "Could not load concerns.";
+      objections = defaultObjections;
+      renderObjections();
     }
   }
 
@@ -87,7 +98,7 @@
     objections.forEach(obj => {
       const btn = document.createElement('button');
       btn.innerText = obj.label;
-      btn.style.cssText = "display: block; width: 100%; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; text-align: left;";
+      btn.style.cssText = "display: block; width: 100%; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; text-align: left; color: #333;";
       btn.onclick = () => handleVote(obj);
       objectionsContainer.appendChild(btn);
     });
