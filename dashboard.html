@@ -401,13 +401,12 @@
 
       try {
         const redirectUrl = window.location.href.split('#')[0];
-        const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectUrl)}`, {
           method: "POST",
           headers: getHeaders(false),
           body: JSON.stringify({
             email: email,
-            create_user: true,
-            gotrue_meta_security: { redirect_to: redirectUrl }
+            create_user: true
           })
         });
 
