@@ -7,285 +7,1354 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+    :root {
+      --bg: #050508;
+      --bg-elevated: #0a0a12;
+      --surface: rgba(255, 255, 255, 0.03);
+      --surface-hover: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(6, 182, 212, 0.35);
+      --text: #f0f0f5;
+      --text-secondary: #8a8a9a;
+      --text-muted: #5a5a6a;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #09090b; /* zinc-950 */
-      color: #fafafa; /* zinc-50 */
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    h1, h2, h3, h4 {
-      color: #ffffff;
-      font-weight: 700;
-      margin: 0;
+    /* ---------- AURORA BACKGROUND ---------- */
+    .aurora-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 20% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                  var(--bg);
     }
 
-    a {
-      text-decoration: none;
+    .aurora-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+      animation: aurora-drift 25s ease-in-out infinite;
     }
 
-    .container {
+    .orb-1 {
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--cyan), transparent 70%);
+      top: -15%; left: -10%;
+      animation-duration: 28s;
+    }
+
+    .orb-2 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, var(--emerald), transparent 70%);
+      bottom: -5%; right: -8%;
+      animation-delay: -10s;
+      animation-duration: 32s;
+    }
+
+    .orb-3 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, var(--cyan), transparent 70%);
+      top: 45%; left: 55%;
+      animation-delay: -18s;
+      animation-duration: 22s;
+      opacity: 0.08;
+    }
+
+    @keyframes aurora-drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ---------- NAVIGATION ---------- */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 16px 0;
+      background: rgba(5, 5, 8, 0.7);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 24px;
-    }
-
-    /* Navigation */
-    nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 24px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .logo {
       font-size: 20px;
       font-weight: 800;
       letter-spacing: -0.5px;
+      white-space: nowrap;
+      color: var(--text);
     }
 
     .gradient-text {
-      background: linear-gradient(135deg, #a78bfa, #ec4899);
+      background: linear-gradient(135deg, var(--cyan), var(--emerald));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    /* Buttons */
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      background: linear-gradient(135deg, var(--cyan), var(--emerald));
       color: white;
       border: none;
-      padding: 14px 28px;
-      border-radius: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-weight: 600;
-      font-size: 16px;
+      font-size: 14px;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.25);
+      text-decoration: none;
     }
 
-    .btn:hover { opacity: 0.9; }
-    .btn:active { transform: translateY(1px); }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(6, 182, 212, 0.45);
+    }
+
+    .btn:hover::before { left: 100%; }
+
+    .btn:active { transform: translateY(0) scale(0.97); }
 
     .btn-secondary {
       background: transparent;
-      border: 1px solid #3f3f46;
-      color: #fafafa;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      box-shadow: none;
     }
-    .btn-secondary:hover { background: #27272a; }
 
-    /* Hero Section */
+    .btn-secondary::before { display: none; }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    /* Ultra-sleek mobile nav: single row, no overlap below 600px */
+    @media (max-width: 600px) {
+      nav .container { padding: 0 16px; }
+      .logo { font-size: 16px; letter-spacing: -0.3px; }
+      .nav-actions { gap: 8px; }
+      .nav-actions .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .nav-actions { gap: 6px; }
+      .nav-actions .btn {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+      .logo { font-size: 15px; }
+    }
+
+    /* ---------- HERO ---------- */
     .hero {
-      padding: 120px 0 80px;
-      text-align: center;
       position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 160px 24px 100px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      min-height: 100vh;
     }
 
-    /* Subtle background glow effect */
-    .hero::before {
+    .hero-text h1 {
+      font-size: clamp(40px, 5.5vw, 68px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      font-weight: 800;
+      background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-text p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 480px;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+
+    .hero-text .btn {
+      padding: 16px 32px;
+      font-size: 16px;
+      box-shadow: 0 0 50px rgba(6, 182, 212, 0.35);
+    }
+
+    /* Premium Mock Dashboard */
+    .hero-visual {
+      position: relative;
+      perspective: 1200px;
+    }
+
+    .mock-dashboard {
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.85), rgba(5, 5, 8, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 32px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(6, 182, 212, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      animation: dash-float 8s ease-in-out infinite;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.6s ease;
+    }
+
+    .mock-dashboard:hover {
+      transform: translateY(-6px);
+      box-shadow:
+        0 50px 120px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(6, 182, 212, 0.15),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    @keyframes dash-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dash-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .dash-badge {
+      font-size: 11px;
+      padding: 4px 12px;
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: var(--cyan);
+      border-radius: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dash-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .dash-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .dash-stat:hover {
+      border-color: rgba(6, 182, 212, 0.2);
+      background: var(--surface-hover);
+    }
+
+    .dash-stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--cyan), var(--emerald));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dash-stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .dash-chart {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .dash-chart-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 120px;
+      display: block;
+    }
+
+    .dash-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .dash-widget {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .dash-widget:hover {
+      border-color: rgba(6, 182, 212, 0.15);
+    }
+
+    .widget-header {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .objection-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .objection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px;
+      border-left: 2px solid var(--emerald);
+      transition: all 0.3s ease;
+    }
+
+    .objection-item:hover {
+      background: rgba(255,255,255,0.04);
+      transform: translateX(4px);
+    }
+
+    .objection-count {
+      color: var(--emerald);
+      font-weight: 700;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .pulse-dot::after {
       content: '';
       position: absolute;
-      top: -10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(9, 9, 11, 0) 70%);
-      z-index: -1;
-      pointer-events: none;
+      inset: -4px;
+      border-radius: 50%;
+      background: var(--cyan);
+      opacity: 0.5;
+      animation: pulse 2.5s infinite;
     }
 
-    .hero h1 {
-      font-size: clamp(48px, 6vw, 72px);
-      line-height: 1.1;
-      letter-spacing: -2px;
-      margin-bottom: 24px;
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.5; }
+      100% { transform: scale(2.5); opacity: 0; }
     }
 
-    .hero p {
-      font-size: 20px;
-      color: #a1a1aa;
-      max-width: 600px;
-      margin: 0 auto 40px;
-      line-height: 1.6;
-    }
-
-    /* Features Section */
-    .features {
-      padding: 80px 0;
-      background-color: #18181b; /* zinc-900 */
-      border-top: 1px solid #27272a;
-      border-bottom: 1px solid #27272a;
-    }
-
-    .section-title {
-      text-align: center;
-      font-size: 36px;
-      margin-bottom: 64px;
-      letter-spacing: -1px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 32px;
-    }
-
-    .feature-card {
-      background: #09090b;
-      border: 1px solid #27272a;
-      border-radius: 12px;
-      padding: 32px;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-4px);
-      border-color: #52525b;
-    }
-
-    .feature-icon {
-      font-size: 32px;
-      margin-bottom: 20px;
-      display: inline-block;
-      background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(244, 114, 182, 0.1));
-      padding: 12px;
-      border-radius: 12px;
-    }
-
-    .feature-card h3 {
-      font-size: 20px;
-      margin-bottom: 12px;
-    }
-
-    .feature-card p {
-      color: #a1a1aa;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    /* How it works */
-    .how-it-works {
-      padding: 100px 0;
-    }
-
-    .step-item {
+    .sparkline {
       display: flex;
-      align-items: flex-start;
-      margin-bottom: 40px;
+      align-items: flex-end;
+      gap: 3px;
+      height: 50px;
+      margin-top: 14px;
     }
 
-    .step-number {
-      flex-shrink: 0;
-      width: 48px;
-      height: 48px;
-      border-radius: 24px;
-      background: #27272a;
-      color: #a78bfa;
+    .spark {
+      flex: 1;
+      background: linear-gradient(to top, rgba(6, 182, 212, 0.5), rgba(16, 185, 129, 0.15));
+      border-radius: 2px;
+      transition: all 0.4s ease;
+    }
+
+    .spark:nth-child(1) { height: 25%; }
+    .spark:nth-child(2) { height: 40%; }
+    .spark:nth-child(3) { height: 30%; }
+    .spark:nth-child(4) { height: 55%; }
+    .spark:nth-child(5) { height: 45%; }
+    .spark:nth-child(6) { height: 75%; }
+    .spark:nth-child(7) { height: 65%; }
+    .spark:nth-child(8) { height: 90%; }
+    .spark:nth-child(9) { height: 80%; }
+    .spark:nth-child(10) { height: 100%; }
+
+    .mock-dashboard:hover .spark {
+      background: linear-gradient(to top, rgba(6, 182, 212, 0.7), rgba(16, 185, 129, 0.3));
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 60px;
+        text-align: center;
+        padding-top: 140px;
+      }
+      .hero-text p { margin-left: auto; margin-right: auto; }
+      .hero-visual { max-width: 540px; margin: 0 auto; width: 100%; }
+      .mock-dashboard { animation: none; }
+      .mock-dashboard:hover { transform: translateY(-4px); }
+    }
+
+    /* ---------- FEATURES (Alternating Rows) ---------- */
+    .features {
+      position: relative;
+      z-index: 1;
+      padding: 0 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 120px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(28px, 3.5vw, 42px);
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 80px;
+      padding: 120px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feature-row:last-child {
+      border-bottom: none;
+    }
+
+    .feature-row:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+
+    .feature-text {
+      flex: 1;
+      max-width: 520px;
+    }
+
+    .feature-text h3 {
+      font-size: 32px;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .feature-text p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .feature-visual {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      font-weight: 700;
-      margin-right: 24px;
-      border: 1px solid #3f3f46;
+      min-height: 320px;
     }
 
-    .step-content h3 {
-      font-size: 24px;
-      margin-bottom: 12px;
+    /* Visual Cards */
+    .v-card {
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.8), rgba(5, 5, 8, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 28px;
+      width: 100%;
+      max-width: 380px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .v-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(6, 182, 212, 0.2);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(6, 182, 212, 0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .v-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .v-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(16, 185, 129, 0.1));
+      border: 1px solid rgba(6, 182, 212, 0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .v-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .v-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .v-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 3px;
+      overflow: hidden;
+      max-width: 160px;
+    }
+
+    .v-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--emerald), var(--cyan));
+      transition: width 1s ease;
+    }
+
+    .v-popup {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.15);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .v-popup::before {
+      content: '⚡';
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: var(--bg);
+      padding: 0 6px;
+      font-size: 14px;
+    }
+
+    .v-popup-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 4px;
+    }
+
+    .v-popup-body {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .v-widget-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
       margin-top: 8px;
     }
 
-    .step-content p {
-      color: #a1a1aa;
-      line-height: 1.6;
-      max-width: 500px;
+    .donut-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
     }
 
-    /* CTA Section */
-    .cta {
-      padding: 100px 0;
+    .donut-svg {
+      width: 120px;
+      height: 120px;
+      transform: rotate(-90deg);
+    }
+
+    .donut-track {
+      fill: none;
+      stroke: rgba(255,255,255,0.04);
+      stroke-width: 10;
+    }
+
+    .donut-fill {
+      fill: none;
+      stroke: url(#donutGrad);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 220 360;
+      transition: stroke-dasharray 1s ease;
+    }
+
+    .v-card:hover .donut-fill {
+      stroke-dasharray: 260 360;
+    }
+
+    .donut-labels {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .donut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .donut-row:last-child { border-bottom: none; }
+
+    .donut-key {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+    }
+
+    .key-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+
+    .key-dot.emerald { background: var(--emerald); }
+
+    .donut-val {
+      color: var(--text);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .target-visual {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .t-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(6, 182, 212, 0.15);
+      transition: all 0.5s ease;
+    }
+
+    .t-ring:nth-child(1) { width: 200px; height: 200px; }
+    .t-ring:nth-child(2) { width: 140px; height: 140px; border-color: rgba(16, 185, 129, 0.2); }
+    .t-ring:nth-child(3) { width: 80px; height: 80px; border-color: rgba(6, 182, 212, 0.3); }
+
+    .v-card:hover .t-ring:nth-child(1) { transform: scale(1.05); border-color: rgba(6, 182, 212, 0.25); }
+    .v-card:hover .t-ring:nth-child(2) { transform: scale(1.08); border-color: rgba(16, 185, 129, 0.35); }
+    .v-card:hover .t-ring:nth-child(3) { transform: scale(1.1); border-color: rgba(6, 182, 212, 0.45); }
+
+    .t-dot {
+      width: 12px; height: 12px;
+      background: linear-gradient(135deg, var(--cyan), var(--emerald));
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+      position: relative;
+      z-index: 2;
+    }
+
+    .t-pulses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .t-pill {
+      font-size: 11px;
+      padding: 6px 12px;
+      background: rgba(6, 182, 212, 0.06);
+      border: 1px solid rgba(6, 182, 212, 0.12);
+      color: var(--cyan);
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .shield-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
       text-align: center;
-      background: linear-gradient(to bottom, #18181b, #09090b);
-      border-top: 1px solid #27272a;
+    }
+
+    .shield-icon {
+      width: 80px; height: 80px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(16, 185, 129, 0.08));
+      border: 1px solid rgba(6, 182, 212, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      transition: all 0.4s ease;
+    }
+
+    .v-card:hover .shield-icon {
+      transform: scale(1.1);
+      border-color: rgba(6, 182, 212, 0.3);
+      box-shadow: 0 12px 40px rgba(6, 182, 212, 0.15);
+    }
+
+    .shield-badge {
+      font-size: 11px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .term {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .term-header {
+      display: flex;
+      gap: 6px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .term-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .term-dot:nth-child(1) { background: rgba(255, 100, 100, 0.4); }
+    .term-dot:nth-child(2) { background: rgba(255, 200, 100, 0.4); }
+    .term-dot:nth-child(3) { background: rgba(16, 185, 129, 0.4); }
+
+    .term-body {
+      padding: 20px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+      color: var(--cyan);
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
+
+    .term-tag { color: var(--emerald); }
+
+    @media (max-width: 900px) {
+      .feature-row {
+        flex-direction: column !important;
+        gap: 48px;
+        padding: 80px 0;
+        text-align: center;
+      }
+      .feature-text { max-width: 500px; }
+      .feature-text h3 { font-size: 26px; }
+      .feature-visual { min-height: auto; width: 100%; }
+      .v-card { max-width: 340px; margin: 0 auto; }
+    }
+
+    /* ---------- HOW IT WORKS ---------- */
+    .how-it-works {
+      position: relative;
+      z-index: 1;
+      padding: 120px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .how-it-works .section-header {
+      padding-top: 0;
+      margin-bottom: 64px;
+    }
+
+    .steps-wrapper {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .step-item {
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(16px);
+    }
+
+    .step-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .step-item:hover {
+      transform: translateY(-6px);
+      border-color: rgba(6, 182, 212, 0.15);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    .step-item:hover::before {
+      opacity: 1;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(16, 185, 129, 0.1));
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .step-item:hover .step-number {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(6, 182, 212, 0.25);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    .step-content h3 {
+      font-size: 22px;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+      font-weight: 700;
+    }
+
+    .step-content p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    @media (max-width: 900px) {
+      .steps-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+    }
+
+    /* ---------- CTA ---------- */
+    .cta {
+      position: relative;
+      z-index: 1;
+      padding: 120px 24px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 900px; height: 900px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .cta .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .cta h2 {
-      font-size: 40px;
-      letter-spacing: -1px;
-      margin-bottom: 24px;
+      font-size: clamp(32px, 4vw, 48px);
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .cta p {
       font-size: 18px;
-      color: #a1a1aa;
+      color: var(--text-secondary);
       margin-bottom: 40px;
       max-width: 500px;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.7;
     }
 
-    /* Footer */
+    .cta .btn {
+      font-size: 17px;
+      padding: 18px 40px;
+      box-shadow: 0 0 60px rgba(6, 182, 212, 0.35);
+    }
+
+    /* ---------- FOOTER ---------- */
     footer {
-      padding: 40px 0;
+      position: relative;
+      z-index: 1;
+      padding: 48px 24px;
       text-align: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      color: #71717a;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
       font-size: 14px;
+    }
+
+    /* ---------- UTILITIES ---------- */
+    ::selection {
+      background: rgba(6, 182, 212, 0.25);
+      color: #fff;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(6, 182, 212, 0.2);
+      border-radius: 4px;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
   </style>
 </head>
 <body>
 
-  <nav class="container">
-    <div class="logo">Friction<span class="gradient-text">Pulse</span></div>
-    <div>
-      <a href="demo.html" class="btn btn-secondary" style="padding: 8px 16px; margin-right: 12px; font-size: 14px;">View Demo</a>
-      <a href="dashboard.html" class="btn" style="padding: 8px 16px; font-size: 14px;">Merchant Login</a>
+  <div class="aurora-bg">
+    <div class="aurora-orb orb-1"></div>
+    <div class="aurora-orb orb-2"></div>
+    <div class="aurora-orb orb-3"></div>
+  </div>
+
+  <nav>
+    <div class="container">
+      <div class="logo">Friction<span class="gradient-text">Pulse</span></div>
+      <div class="nav-actions">
+        <a href="demo.html" class="btn btn-secondary">View Demo</a>
+        <a href="dashboard.html" class="btn">Merchant Login</a>
+      </div>
     </div>
   </nav>
 
-  <section class="hero container">
-    <h1>Stop Guessing Why<br>Your Customers Leave</h1>
-    <p>Capture hidden objections directly on your store in real-time, instantly counter them, and convert abandoning carts into revenue.</p>
-    <div style="display: flex; gap: 16px; justify-content: center; align-items: center;">
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Stop Guessing Why Your Customers Leave</h1>
+      <p>Capture hidden objections directly on your store in real-time, instantly counter them, and convert abandoning carts into revenue.</p>
       <a href="dashboard.html" class="btn">Get Started for Free</a>
     </div>
-  </section>
-
-  <section class="features">
-    <div class="container">
-      <h2 class="section-title">The silent killer of conversion rates</h2>
-      <div class="grid-3">
-        <div class="feature-card">
-          <div class="feature-icon">🔍</div>
-          <h3>Identify the Blockers</h3>
-          <p>97% of visitors leave without buying. They have concerns about price, trust, or features, but they never tell you. We surface exactly what's stopping them.</p>
+    <div class="hero-visual">
+      <div class="mock-dashboard">
+        <div class="dash-header">
+          <div class="dash-title">FrictionPulse Dashboard</div>
+          <div class="dash-badge">Live</div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h3>Real-time Deflection</h3>
-          <p>When a user clicks a concern on the widget, instantly show a personalized counter-message (like a discount code or social proof) to save the sale immediately.</p>
+        <div class="dash-stats">
+          <div class="dash-stat">
+            <div class="dash-stat-value">2,847</div>
+            <div class="dash-stat-label">Objections</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-value">34%</div>
+            <div class="dash-stat-label">Recovery</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-value">$12.4k</div>
+            <div class="dash-stat-label">Saved</div>
+          </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3>Actionable Analytics</h3>
-          <p>Stop relying on guesswork. Use our beautiful dashboard to see exactly which objections are costing you the most money, and iterate your product copy accordingly.</p>
+        <div class="dash-chart">
+          <div class="dash-chart-title">Objections Over Time</div>
+          <svg class="chart-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,100 C30,92 60,88 90,78 C120,68 150,72 180,58 C210,44 240,50 270,38 C300,26 330,32 360,18 L400,12 L400,120 L0,120 Z" fill="url(#areaGrad)"/>
+            <path d="M0,100 C30,92 60,88 90,78 C120,68 150,72 180,58 C210,44 240,50 270,38 C300,26 330,32 360,18 L400,12" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="90" cy="78" r="3" fill="#10b981" opacity="0.8"/>
+            <circle cx="180" cy="58" r="3" fill="#06b6d4" opacity="0.8"/>
+            <circle cx="270" cy="38" r="3" fill="#10b981" opacity="0.8"/>
+            <circle cx="360" cy="18" r="3" fill="#06b6d4" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="dash-row">
+          <div class="dash-widget">
+            <div class="widget-header">Top Objections</div>
+            <div class="objection-list">
+              <div class="objection-item">
+                <span>Too Expensive</span>
+                <span class="objection-count">42%</span>
+              </div>
+              <div class="objection-item">
+                <span>Need Reviews</span>
+                <span class="objection-count">28%</span>
+              </div>
+              <div class="objection-item">
+                <span>Shipping Cost</span>
+                <span class="objection-count">19%</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-widget">
+            <div class="widget-header">Live Activity</div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+              <div class="pulse-dot"></div>
+              <span style="font-size: 12px; color: var(--text-secondary);">3 active visitors</span>
+            </div>
+            <div class="sparkline">
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+              <div class="spark"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="how-it-works container">
-    <h2 class="section-title">How it works</h2>
-    <div style="max-width: 800px; margin: 0 auto;">
+  <section class="features">
+    <div class="section-header">
+      <h2>The silent killer of conversion rates</h2>
+      <p>Transform invisible friction into actionable revenue intelligence</p>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Identify the Blockers</h3>
+        <p>97% of visitors leave without buying. They have concerns about price, trust, or features, but they never tell you. We surface exactly what's stopping them.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="v-card">
+          <div class="v-header">
+            <div class="v-icon-wrap">🔍</div>
+            <span>Objections Found</span>
+          </div>
+          <div class="v-list">
+            <div class="v-item">
+              <span>Price</span>
+              <div class="v-track"><div class="v-fill" style="width: 70%"></div></div>
+            </div>
+            <div class="v-item">
+              <span>Trust</span>
+              <div class="v-track"><div class="v-fill" style="width: 50%"></div></div>
+            </div>
+            <div class="v-item">
+              <span>Features</span>
+              <div class="v-track"><div class="v-fill" style="width: 35%"></div></div>
+            </div>
+            <div class="v-item">
+              <span>Shipping</span>
+              <div class="v-track"><div class="v-fill" style="width: 25%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Real-time Deflection</h3>
+        <p>When a user clicks a concern on the widget, instantly show a personalized counter-message (like a discount code or social proof) to save the sale immediately.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="v-card">
+          <div class="v-popup">
+            <div class="v-popup-title">Instant Response Activated</div>
+            <div class="v-popup-body">Get 10% off your first order — applied automatically at checkout.</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="v-icon-wrap" style="width: 36px; height: 36px; font-size: 16px;">⚡</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text);">Deflection Widget</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Active on product page</div>
+            </div>
+          </div>
+          <div class="v-widget-pill">
+            <span style="width: 6px; height: 6px; background: var(--emerald); border-radius: 50%; display: inline-block;"></span>
+            Saving sale in real-time
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Actionable Analytics</h3>
+        <p>Stop relying on guesswork. Use our beautiful dashboard to see exactly which objections are costing you the most money, and iterate your product copy accordingly.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="v-card">
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="donutGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#06b6d4"/>
+                  <stop offset="100%" stop-color="#10b981"/>
+                </linearGradient>
+              </defs>
+              <circle class="donut-track" cx="50" cy="50" r="40"/>
+              <circle class="donut-fill" cx="50" cy="50" r="40"/>
+            </svg>
+            <div class="donut-labels">
+              <div class="donut-row">
+                <div class="donut-key"><div class="key-dot"></div> Price</div>
+                <div class="donut-val">-42%</div>
+              </div>
+              <div class="donut-row">
+                <div class="donut-key"><div class="key-dot emerald"></div> Trust</div>
+                <div class="donut-val">-28%</div>
+              </div>
+              <div class="donut-row">
+                <div class="donut-key"><div class="key-dot" style="background: rgba(255,255,255,0.2);"></div> Features</div>
+                <div class="donut-val">-19%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Smart Targeting</h3>
+        <p>Trigger the right message at the exact moment of hesitation. Our behavioral engine detects exit intent, scroll depth, and time-on-page to deliver laser-precise interventions.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="v-card" style="display: flex; flex-direction: column; align-items: center; padding: 40px 28px;">
+          <div class="target-visual">
+            <div class="t-ring"></div>
+            <div class="t-ring"></div>
+            <div class="t-ring"></div>
+            <div class="t-dot"></div>
+          </div>
+          <div class="t-pulses">
+            <div class="t-pill">Exit Intent</div>
+            <div class="t-pill">Scroll Depth</div>
+            <div class="t-pill">Time on Page</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Privacy First</h3>
+        <p>GDPR compliant. Zero cookies required.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="v-card" style="padding: 40px 28px;">
+          <div class="shield-wrap">
+            <div class="shield-icon">🔒</div>
+            <div style="font-size: 15px; font-weight: 600; color: var(--text);">Your data stays yours</div>
+            <div class="shield-badge">GDPR Ready</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">No personal data stored</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>2-Minute Setup</h3>
+        <p>One script tag. Zero dependencies. Instant results.</p>
+      </div>
+      <div class="feature-visual">
+        <div class="v-card" style="padding: 0; overflow: hidden; max-width: 360px;">
+          <div class="term">
+            <div class="term-header">
+              <div class="term-dot"></div>
+              <div class="term-dot"></div>
+              <div class="term-dot"></div>
+            </div>
+            <div class="term-body">
+              <span class="term-tag">&lt;script</span> <span style="color: var(--text-muted);">src=</span><span style="color: #a5b4fc;">"..."</span><span class="term-tag">&gt;&lt;/script&gt;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="section-header">
+      <h2>How it works</h2>
+      <p>From signup to live widget in three simple steps</p>
+    </div>
+    <div class="steps-wrapper">
       <div class="step-item">
         <div class="step-number">1</div>
         <div class="step-content">
@@ -314,7 +1383,7 @@
     <div class="container">
       <h2>Ready to rescue abandoned carts?</h2>
       <p>Takes less than 2 minutes to install. Start recovering lost revenue today.</p>
-      <a href="dashboard.html" class="btn" style="font-size: 18px; padding: 16px 36px;">Create your Free Dashboard</a>
+      <a href="dashboard.html" class="btn">Create your Free Dashboard</a>
     </div>
   </section>
 
