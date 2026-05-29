@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FrictionPulse - Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();</script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; }
+    .hidden { display: none; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .tab { cursor: pointer; padding: 10px; border: 1px solid #ccc; display: inline-block; }
+    .tab.active { background-color: #eee; font-weight: bold; }
+    .tab-content { border: 1px solid #ccc; padding: 20px; margin-top: -1px; }
+    .site-item { padding: 10px; border: 1px solid #ccc; margin-bottom: 5px; cursor: pointer; }
+    .site-item.active { background-color: #e0f7fa; }
+  </style>
+</head>
+<body>
+  <h1>FrictionPulse Merchant Console</h1>
+
+  <!-- Auth Section -->
+  <div id="auth-section">
+    <h2>Login / Sign Up</h2>
+    <input type="email" id="email" placeholder="Enter your email" />
+    <button id="login-btn" onclick="sendMagicLink()">Send Magic Link</button>
+    <div id="auth-message" style="margin-top:10px;"></div>
+    <div id="verify-section" class="hidden" style="margin-top:10px;">
+      <input type="text" id="token" placeholder="Enter Magic Link Token" />
+      <button onclick="verifyToken()">Verify Token</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Section -->
+  <div id="dashboard-section" class="hidden">
+    <h2>Welcome!</h2>
+    <button onclick="logout()">Logout</button>
+
+    <h3>Register a Domain</h3>
+    <input type="text" id="domain" placeholder="e.g. mystore.com" />
+    <button id="register-btn" onclick="registerDomain()">Register</button>
+    <span id="register-spinner" class="spinner hidden"></span>
+    <div id="register-message" style="margin-top:10px;"></div>
+
+    <h3>Your Sites</h3>
+    <div id="sites-list">Loading sites...</div>
+
+    <div id="site-dashboard" class="hidden" style="margin-top:20px; padding:15px; border:1px solid #aaa;">
+      <h3 id="current-site-title"></h3>
+      <p><strong>Embed Code:</strong></p>
+      <textarea id="embed-code" rows="3" cols="60" readonly></textarea>
+
+      <div style="margin-top:20px;">
+        <div class="tab active" onclick="switchTab('objections')">Objections</div>
+        <div class="tab" onclick="switchTab('stats')">Stats</div>
+      </div>
+
+      <div id="tab-objections" class="tab-content">
+        <h4>Objections</h4>
+        <ul id="objections-list"></ul>
+      </div>
+
+      <div id="tab-stats" class="tab-content hidden">
+        <h4>Stats</h4>
+        <p>Widget Views: <span id="stat-views">0</span></p>
+        <p>Votes: <span id="stat-votes">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://amtalgsyuedgayxkxijw.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtdGFsZ3N5dWVkZ2F5eGt4aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MzQxNjksImV4cCI6MjA5NTUxMDE2OX0.Wan4ywifJJi7w1WEPyeJY6uQhtYsZm3ilZuCC2IEf_Y";
+
+    let currentUser = null;
+    let currentSession = null;
+    let currentSiteKey = null;
+
+    // Fixed Headers logic
+    function getHeaders(includeAuth = true) {
+      const headers = {
+        "apikey": SUPABASE_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      };
+      if (includeAuth && currentSession && currentSession.access_token) {
+        headers["Authorization"] = `Bearer ${currentSession.access_token}`;
+      } else {
+        headers["Authorization"] = `Bearer ${SUPABASE_KEY}`;
+      }
+      return headers;
+    }
+
+    async function sendMagicLink() {
+      const email = document.getElementById("email").value;
+      if (!email) return alert("Enter email");
+
+      const btn = document.getElementById("login-btn");
+      btn.disabled = true;
+      btn.innerText = "Sending...";
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+          method: "POST",
+          headers: getHeaders(false),
+          body: JSON.stringify({ email: email, create_user: true })
+        });
+
+        if (!response.ok) throw new Error("Failed to send magic link");
+
+        document.getElementById("auth-message").innerText = "Check your email for the magic link token!";
+        document.getElementById("verify-section").classList.remove("hidden");
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Send Magic Link";
+      }
+    }
+
+    async function verifyToken() {
+      const email = document.getElementById("email").value;
+      const token = document.getElementById("token").value;
+      if (!token) return alert("Enter token");
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+          method: "POST",
+          headers: getHeaders(false),
+          body: JSON.stringify({ email, token, type: "magiclink" })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.msg || "Verification failed");
+
+        currentSession = data.session;
+        currentUser = data.user;
+
+        showDashboard();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function logout() {
+      currentSession = null;
+      currentUser = null;
+      document.getElementById("auth-section").classList.remove("hidden");
+      document.getElementById("dashboard-section").classList.add("hidden");
+    }
+
+    function showDashboard() {
+      document.getElementById("auth-section").classList.add("hidden");
+      document.getElementById("dashboard-section").classList.remove("hidden");
+      renderSites();
+    }
+
+    function generateSiteKey() {
+      return 'sk_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    }
+
+    async function registerDomain() {
+      const domainInput = document.getElementById("domain");
+      const domain = domainInput.value.trim();
+      const spinner = document.getElementById("register-spinner");
+      const btn = document.getElementById("register-btn");
+      const msg = document.getElementById("register-message");
+
+      if (!domain) return alert("Enter a valid domain");
+
+      btn.disabled = true;
+      spinner.classList.remove("hidden");
+      msg.innerText = "Registering...";
+
+      const siteKey = generateSiteKey();
+
+      try {
+        // Step 1: Create Site
+        const siteResponse = await fetch(`${SUPABASE_URL}/rest/v1/sites`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            user_id: currentUser ? currentUser.id : "anonymous",
+            domain: domain,
+            site_key: siteKey
+          })
+        });
+
+        if (!siteResponse.ok) {
+          const errData = await siteResponse.json();
+          throw new Error("Failed to register site: " + JSON.stringify(errData));
+        }
+
+        // Step 2: Seed 4 default objections
+        const defaultObjections = [
+          { site_key: siteKey, label: "Price is too high", counter_message: "We offer flexible payment plans and a money-back guarantee." },
+          { site_key: siteKey, label: "Not sure if it works for me", counter_message: "Check out our case studies to see how we've helped similar customers." },
+          { site_key: siteKey, label: "I need to think about it", counter_message: "Don't miss out! This offer might expire soon." },
+          { site_key: siteKey, label: "Missing features I need", counter_message: "Contact our support! We might have a beta feature or a workaround." }
+        ];
+
+        const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify(defaultObjections)
+        });
+
+        if (!objResponse.ok) {
+          const errData = await objResponse.json();
+          throw new Error("Failed to seed objections: " + JSON.stringify(errData));
+        }
+
+        msg.innerText = "Domain registered successfully!";
+        msg.style.color = "green";
+        domainInput.value = "";
+        renderSites();
+
+      } catch (err) {
+        msg.innerText = "";
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add("hidden");
+      }
+    }
+
+    async function renderSites() {
+      const list = document.getElementById("sites-list");
+      list.innerHTML = "Loading...";
+
+      // Handle no user case (for local dev with RLS disabled)
+      const queryUserId = currentUser ? currentUser.id : "anonymous";
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch sites");
+
+        const sites = await response.json();
+
+        if (sites.length === 0) {
+          list.innerHTML = "No sites registered yet.";
+          return;
+        }
+
+        list.innerHTML = "";
+        sites.forEach(site => {
+          const div = document.createElement("div");
+          div.className = "site-item";
+          div.innerText = site.domain;
+          div.onclick = (e) => {
+            document.querySelectorAll(".site-item").forEach(el => el.classList.remove("active"));
+            div.classList.add("active");
+            selectSite(site);
+          };
+          list.appendChild(div);
+        });
+
+      } catch (err) {
+        list.innerHTML = "Error loading sites.";
+        console.error(err);
+      }
+    }
+
+    function selectSite(site) {
+      currentSiteKey = site.site_key;
+      document.getElementById("site-dashboard").classList.remove("hidden");
+      document.getElementById("current-site-title").innerText = site.domain;
+
+      const widgetUrl = window.location.origin + "/widget.js";
+      document.getElementById("embed-code").value = `<script src="${widgetUrl}" data-site-key="${site.site_key}"><\/script>`;
+
+      loadSiteData();
+    }
+
+    async function loadSiteData() {
+      if (!currentSiteKey) return;
+
+      try {
+        // Load Objections
+        const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${currentSiteKey}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+        if (objResponse.ok) {
+          const objections = await objResponse.json();
+          const ul = document.getElementById("objections-list");
+          ul.innerHTML = "";
+          objections.forEach(obj => {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${obj.label}</strong><br>Counter: ${obj.counter_message}`;
+            ul.appendChild(li);
+          });
+        }
+
+        // Load Stats
+        const viewsResponse = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${currentSiteKey}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+        if (viewsResponse.ok) {
+          const views = await viewsResponse.json();
+          document.getElementById("stat-views").innerText = views.length || 0;
+        }
+
+        const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=id&site_key=eq.${currentSiteKey}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+        if (votesResponse.ok) {
+          const votes = await votesResponse.json();
+          document.getElementById("stat-votes").innerText = votes.length || 0;
+        }
+      } catch (err) {
+        console.error("Error loading site data", err);
+      }
+    }
+
+    function switchTab(tabName) {
+      const eventTarget = window.event.target;
+      const tabs = document.querySelectorAll(".tab");
+      tabs.forEach(tab => tab.classList.remove("active"));
+      if (eventTarget) {
+        eventTarget.classList.add("active");
+      }
+
+      document.getElementById("tab-objections").classList.add("hidden");
+      document.getElementById("tab-stats").classList.add("hidden");
+
+      document.getElementById(`tab-${tabName}`).classList.remove("hidden");
+    }
+
+    // Initialize - auto-login if dev token is used or show auth
+    // For RLS disabled development, we can mock a user if needed, but let's stick to auth flow
+  </script>
+</body>
+</html>
