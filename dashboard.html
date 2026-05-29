@@ -11,19 +11,60 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding: 20px;
-      background-color: #0a0a0f;
-      color: #e2e8f0;
+      background-color: #18181b; /* zinc-900 */
+      color: #fafafa; /* zinc-50 */
       margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    h1, h2, h3, h4 { color: #ffffff; }
+    h1, h2, h3, h4 { color: #ffffff; font-weight: 600; }
 
-    .hidden { display: none; }
+    .hidden { display: none !important; }
+
+    /* View Containers */
+    .view-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Centered Views (Auth & Onboarding) */
+    .centered-layout {
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+    /* Dashboard View */
+    .dashboard-layout {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #27272a;
+    }
 
     .spinner {
       border: 3px solid rgba(255,255,255,0.1);
-      border-top: 3px solid #8b5cf6;
+      border-top: 3px solid #d4d4d8;
       border-radius: 50%;
       width: 18px;
       height: 18px;
@@ -36,201 +77,246 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .card {
-      background: linear-gradient(145deg, #16161e, #111118);
-      border: 1px solid #2a2a35;
+      background: #09090b; /* zinc-950 */
+      border: 1px solid #27272a; /* zinc-800 */
       border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 450px;
+      box-sizing: border-box;
     }
 
     input[type="email"], input[type="text"], textarea {
       width: 100%;
-      padding: 12px 16px;
-      margin: 8px 0 16px;
-      background-color: #1a1a24;
-      border: 1px solid #3f3f5a;
+      padding: 14px 16px;
+      margin: 8px 0 24px;
+      background-color: #18181b;
+      border: 1px solid #3f3f46;
       border-radius: 8px;
       color: #fff;
       box-sizing: border-box;
       font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      transition: border-color 0.2s;
     }
 
     input:focus, textarea:focus {
       outline: none;
-      border-color: #8b5cf6;
-      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+      border-color: #a1a1aa;
     }
 
     button {
-      background: linear-gradient(135deg, #8b5cf6, #ec4899);
-      color: white;
-      border: none;
+      background-color: #fafafa;
+      color: #09090b;
+      border: 1px solid transparent;
       padding: 12px 24px;
       border-radius: 8px;
-      font-weight: 600;
+      font-weight: 500;
+      font-size: 15px;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
+      transition: all 0.2s;
       font-family: 'Inter', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    button:hover { opacity: 0.9; }
-    button:active { transform: translateY(1px); }
+    button:hover { background-color: #e4e4e7; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    button.secondary {
+      background-color: transparent;
+      color: #fafafa;
+      border: 1px solid #3f3f46;
+    }
+    button.secondary:hover { background-color: #27272a; }
+
+    button.ghost {
+      background-color: transparent;
+      color: #a1a1aa;
+      padding: 8px 16px;
+    }
+    button.ghost:hover { color: #fafafa; background-color: #27272a; }
 
     .tab-container {
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #27272a;
+      padding-bottom: 12px;
     }
 
     .tab {
       cursor: pointer;
-      padding: 10px 20px;
-      border-radius: 8px;
-      background-color: #1a1a24;
-      color: #a0aec0;
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: #a1a1aa;
       transition: all 0.2s;
+      font-size: 14px;
+      font-weight: 500;
     }
 
+    .tab:hover { color: #fafafa; }
+
     .tab.active {
-      background-color: #8b5cf6;
-      color: white;
-      font-weight: 600;
+      background-color: #27272a;
+      color: #fafafa;
     }
 
     .tab-content {
-      background-color: #1a1a24;
-      padding: 20px;
+      background-color: transparent;
       border-radius: 8px;
-      border: 1px solid #2a2a35;
+    }
+
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
     }
 
     .site-item {
-      padding: 16px;
-      background-color: #1a1a24;
-      border: 1px solid #2a2a35;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      padding: 24px;
+      background-color: #09090b;
+      border: 1px solid #27272a;
+      border-radius: 12px;
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
     }
 
-    .site-item:hover { border-color: #4c4c6d; }
+    .site-item:hover {
+      border-color: #52525b;
+      transform: translateY(-2px);
+    }
+
     .site-item.active {
-      border-color: #8b5cf6;
-      background-color: #231f3c;
+      border-color: #fafafa;
     }
 
     #objections-list {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
 
     #objections-list li {
-      background-color: #111118;
-      padding: 16px;
+      background-color: #09090b;
+      padding: 20px;
       border-radius: 8px;
-      margin-bottom: 12px;
-      border-left: 4px solid #ec4899;
-    }
-
-    .gradient-text {
-      background: linear-gradient(135deg, #a78bfa, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+      border: 1px solid #27272a;
     }
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      gap: 20px;
     }
 
     .stat-box {
-      background-color: #111118;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      border: 1px solid #2a2a35;
+      background-color: #09090b;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #27272a;
     }
 
     .stat-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: #8b5cf6;
-      margin-top: 8px;
+      font-size: 36px;
+      font-weight: 600;
+      color: #fafafa;
+      margin-top: 12px;
     }
+
+    .text-muted { color: #a1a1aa; }
+    .text-sm { font-size: 14px; }
   </style>
 </head>
 <body>
-  <div style="max-width: 800px; margin: 0 auto;">
-    <h1 class="gradient-text">FrictionPulse Merchant Console</h1>
 
-    <!-- Auth Section -->
-    <div id="auth-section" class="card">
-      <h2>Login / Sign Up</h2>
-      <p style="color: #a0aec0; margin-bottom: 20px;">Enter your email to receive a passwordless magic link.</p>
+  <!-- VIEW: AUTH -->
+  <div id="view-auth" class="view-container centered-layout">
+    <div class="card">
+      <h2 style="margin-top: 0; font-size: 24px;">Welcome to FrictionPulse</h2>
+      <p class="text-muted" style="margin-bottom: 32px; line-height: 1.5;">Enter your email to receive a secure, passwordless magic link to access your dashboard.</p>
+
+      <label for="email" class="text-sm" style="font-weight: 500;">Email Address</label>
       <input type="email" id="email" placeholder="merchant@example.com" />
-      <button id="login-btn" onclick="sendMagicLink()">Send Magic Link</button>
-      <div id="auth-message" style="margin-top:15px; color: #a78bfa;"></div>
+
+      <button id="login-btn" onclick="sendMagicLink()" style="width: 100%;">Continue with Email</button>
+      <div id="auth-message" class="text-sm" style="margin-top:20px; text-align: center;"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: ONBOARDING -->
+  <div id="view-onboarding" class="view-container centered-layout hidden">
+    <div class="card" style="max-width: 500px;">
+      <h2 style="margin-top: 0; font-size: 28px;">Let's get started</h2>
+      <p class="text-muted" style="margin-bottom: 32px; line-height: 1.5;">Add your first domain. We'll automatically seed it with proven counter-objection templates.</p>
+
+      <label for="domain" class="text-sm" style="font-weight: 500;">Store Domain</label>
+      <input type="text" id="domain" placeholder="e.g. store.com" />
+
+      <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
+        <button id="register-btn" onclick="registerDomain()">Create Site</button>
+        <button id="cancel-onboarding-btn" class="ghost hidden" onclick="showView('dashboard')">Cancel</button>
+        <span id="register-spinner" class="spinner hidden"></span>
+      </div>
+      <div id="register-message" class="text-sm" style="margin-top:20px;"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: DASHBOARD -->
+  <div id="view-dashboard" class="view-container dashboard-layout hidden">
+    <div class="header">
+      <div>
+        <h1 style="margin: 0; font-size: 24px;">FrictionPulse</h1>
+        <p class="text-muted text-sm" style="margin: 4px 0 0 0;">Merchant Console</p>
+      </div>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <button class="secondary" onclick="openNewSiteFlow()">+ New Site</button>
+        <button class="ghost" onclick="logout()">Logout</button>
+      </div>
     </div>
 
-    <!-- Dashboard Section -->
-    <div id="dashboard-section" class="hidden">
-      <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0;">Welcome back!</h2>
-        <button onclick="logout()" style="background: #2a2a35; padding: 8px 16px;">Logout</button>
+    <div id="sites-empty-state" class="hidden" style="text-align: center; padding: 60px 0;">
+      <h3 style="color: #a1a1aa;">No sites found</h3>
+    </div>
+
+    <div id="sites-list" class="sites-grid"></div>
+
+    <div id="site-dashboard" class="hidden" style="animation: fadeIn 0.4s ease-out;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+        <h2 id="current-site-title" style="margin: 0; font-size: 28px;"></h2>
+        <span id="current-site-key" class="text-muted text-sm font-mono" style="font-family: monospace;"></span>
       </div>
 
-      <div class="card">
-        <h3>Register a Domain</h3>
-        <p style="color: #a0aec0; margin-bottom: 15px;">Add a new site to start collecting objections.</p>
-        <div style="display: flex; gap: 10px;">
-          <input type="text" id="domain" placeholder="e.g. mystore.com" style="margin: 0;" />
-          <button id="register-btn" onclick="registerDomain()">Register</button>
-        </div>
-        <div style="margin-top: 15px;">
-          <span id="register-spinner" class="spinner hidden"></span>
-          <span id="register-message"></span>
-        </div>
+      <div style="background: #09090b; padding: 24px; border-radius: 12px; border: 1px solid #27272a; margin-bottom: 32px;">
+        <p style="margin: 0 0 12px 0; font-weight: 500;">Embed Code</p>
+        <p class="text-muted text-sm" style="margin-bottom: 16px;">Paste this right before the closing &lt;/body&gt; tag of your site.</p>
+        <textarea id="embed-code" rows="2" readonly style="margin: 0; background: #18181b; font-family: monospace; color: #a1a1aa; border-color: #27272a;"></textarea>
       </div>
 
-      <div class="card">
-        <h3>Your Sites</h3>
-        <div id="sites-list" style="margin-top: 15px;">Loading sites...</div>
+      <div class="tab-container">
+        <div class="tab active" onclick="switchTab('objections')">Objections</div>
+        <div class="tab" onclick="switchTab('stats')">Analytics</div>
       </div>
 
-      <div id="site-dashboard" class="card hidden">
-        <h3 id="current-site-title" class="gradient-text" style="font-size: 24px; margin-top: 0;"></h3>
+      <div id="tab-objections" class="tab-content">
+        <ul id="objections-list"></ul>
+      </div>
 
-        <div style="background: #111118; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <p style="margin-top: 0; color: #a0aec0;"><strong>Embed Code:</strong></p>
-          <textarea id="embed-code" rows="2" readonly style="margin-bottom: 0; background: #0a0a0f; font-family: monospace; color: #ec4899;"></textarea>
-          <p style="font-size: 12px; color: #a0aec0; margin-bottom: 0;">Paste this right before the closing &lt;/body&gt; tag of your site.</p>
-        </div>
-
-        <div class="tab-container">
-          <div class="tab active" onclick="switchTab('objections')">Objections</div>
-          <div class="tab" onclick="switchTab('stats')">Analytics</div>
-        </div>
-
-        <div id="tab-objections" class="tab-content">
-          <h4 style="margin-top: 0;">Configured Counter-Messages</h4>
-          <ul id="objections-list"></ul>
-        </div>
-
-        <div id="tab-stats" class="tab-content hidden">
-          <h4 style="margin-top: 0;">Widget Performance</h4>
-          <div class="stats-grid">
-            <div class="stat-box">
-              <div>Widget Views</div>
-              <div id="stat-views" class="stat-value">0</div>
-            </div>
-            <div class="stat-box">
-              <div>Total Votes</div>
-              <div id="stat-votes" class="stat-value">0</div>
-            </div>
+      <div id="tab-stats" class="tab-content hidden">
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="text-muted text-sm font-medium">Widget Views</div>
+            <div id="stat-views" class="stat-value">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="text-muted text-sm font-medium">Total Votes</div>
+            <div id="stat-votes" class="stat-value">0</div>
           </div>
         </div>
       </div>
@@ -244,6 +330,27 @@
     let currentUser = null;
     let currentSession = null;
     let currentSiteKey = null;
+
+    // View Management Logic
+    function showView(viewName) {
+      document.getElementById('view-auth').classList.add('hidden');
+      document.getElementById('view-onboarding').classList.add('hidden');
+      document.getElementById('view-dashboard').classList.add('hidden');
+
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+      // Reset specific view states
+      if (viewName === 'onboarding') {
+        document.getElementById('domain').value = '';
+        document.getElementById('register-message').innerText = '';
+        document.getElementById('register-spinner').classList.add('hidden');
+      }
+    }
+
+    function openNewSiteFlow() {
+      document.getElementById('cancel-onboarding-btn').classList.remove('hidden');
+      showView('onboarding');
+    }
 
     // Fixed Headers logic
     function getHeaders(includeAuth = true) {
@@ -265,8 +372,10 @@
       if (!email) return alert("Enter email");
 
       const btn = document.getElementById("login-btn");
+      const msg = document.getElementById("auth-message");
       btn.disabled = true;
       btn.innerText = "Sending...";
+      msg.innerText = "";
 
       try {
         const redirectUrl = window.location.origin + window.location.pathname;
@@ -282,12 +391,14 @@
 
         if (!response.ok) throw new Error("Failed to send magic link");
 
-        document.getElementById("auth-message").innerText = "Success! Check your email for the magic link.";
+        msg.innerText = "Success! Check your email for the magic link.";
+        msg.style.color = "#2ecc71";
       } catch (err) {
-        alert(err.message);
+        msg.innerText = err.message;
+        msg.style.color = "#ef4444";
       } finally {
         btn.disabled = false;
-        btn.innerText = "Send Magic Link";
+        btn.innerText = "Continue with Email";
       }
     }
 
@@ -299,21 +410,16 @@
         const accessToken = hashParams.get('access_token');
 
         if (accessToken) {
-          // Clear hash from URL for clean UI
           window.history.replaceState(null, null, window.location.pathname);
-
-          // Authenticate with the token
           authenticateWithToken(accessToken);
         }
       } else {
-        // Check local storage for session (optional, but good UX)
-        // For this task, we'll keep it simple and require login if no hash
+        showView('auth');
       }
     });
 
     async function authenticateWithToken(token) {
       try {
-        // To get user info, we need to call Supabase auth endpoint
         const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
           method: "GET",
           headers: {
@@ -329,25 +435,47 @@
         currentSession = { access_token: token };
         currentUser = user;
 
-        showDashboard();
+        checkUserSites();
       } catch (err) {
         alert("Session expired or invalid. Please login again.");
         console.error(err);
+        showView('auth');
       }
     }
 
     function logout() {
       currentSession = null;
       currentUser = null;
-      document.getElementById("auth-section").classList.remove("hidden");
-      document.getElementById("dashboard-section").classList.add("hidden");
-      document.getElementById("auth-message").innerText = "";
+      currentSiteKey = null;
+      document.getElementById('email').value = '';
+      document.getElementById('auth-message').innerText = '';
+      showView('auth');
     }
 
-    function showDashboard() {
-      document.getElementById("auth-section").classList.add("hidden");
-      document.getElementById("dashboard-section").classList.remove("hidden");
-      renderSites();
+    async function checkUserSites() {
+      const queryUserId = currentUser ? currentUser.id : "anonymous";
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch sites");
+
+        const sites = await response.json();
+
+        if (sites.length === 0) {
+          document.getElementById('cancel-onboarding-btn').classList.add('hidden');
+          showView('onboarding');
+        } else {
+          showView('dashboard');
+          renderSitesList(sites);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error loading account data.");
+        showView('auth');
+      }
     }
 
     function generateSiteKey() {
@@ -361,12 +489,16 @@
       const btn = document.getElementById("register-btn");
       const msg = document.getElementById("register-message");
 
-      if (!domain) return alert("Enter a valid domain");
+      if (!domain) {
+        msg.innerText = "Please enter a valid domain.";
+        msg.style.color = "#ef4444";
+        return;
+      }
 
       btn.disabled = true;
       spinner.classList.remove("hidden");
-      msg.innerText = "Registering...";
-      msg.style.color = "#a0aec0";
+      msg.innerText = "Registering and seeding objections...";
+      msg.style.color = "#a1a1aa";
 
       const siteKey = generateSiteKey();
 
@@ -408,46 +540,55 @@
 
         msg.innerText = "Domain registered successfully!";
         msg.style.color = "#2ecc71";
-        domainInput.value = "";
-        renderSites();
+
+        // Brief pause to show success, then navigate to dashboard
+        setTimeout(() => {
+          checkUserSites();
+        }, 800);
 
       } catch (err) {
         msg.innerText = err.message;
         msg.style.color = "#ef4444";
       } finally {
         btn.disabled = false;
+        // Fix for infinite spinner: ensure we hide it
         spinner.classList.add("hidden");
       }
     }
 
-    async function renderSites() {
-      const list = document.getElementById("sites-list");
-      list.innerHTML = "Loading...";
-
-      // Handle no user case (for local dev with RLS disabled)
+    async function fetchSites() {
       const queryUserId = currentUser ? currentUser.id : "anonymous";
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, {
+        method: "GET",
+        headers: getHeaders()
+      });
+      if (!response.ok) throw new Error("Failed to fetch sites");
+      return await response.json();
+    }
+
+    async function renderSitesList(preloadedSites = null) {
+      const list = document.getElementById("sites-list");
+      const emptyState = document.getElementById("sites-empty-state");
+
+      list.innerHTML = "";
+      emptyState.classList.add("hidden");
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, {
-          method: "GET",
-          headers: getHeaders()
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch sites");
-
-        const sites = await response.json();
+        const sites = preloadedSites || await fetchSites();
 
         if (sites.length === 0) {
-          list.innerHTML = "<p style='color: #a0aec0; margin: 0;'>No sites registered yet.</p>";
+          emptyState.classList.remove("hidden");
           return;
         }
 
-        list.innerHTML = "";
         sites.forEach(site => {
           const div = document.createElement("div");
           div.className = "site-item";
-          div.innerHTML = `<strong>${site.domain}</strong> <span style="color: #64748b; font-size: 12px; float: right;">${site.site_key}</span>`;
-          div.onclick = (e) => {
+          div.innerHTML = `
+            <strong style="font-size: 18px; margin-bottom: 8px;">${site.domain}</strong>
+            <span class="text-muted text-sm font-mono" style="font-family: monospace;">${site.site_key}</span>
+          `;
+          div.onclick = () => {
             document.querySelectorAll(".site-item").forEach(el => el.classList.remove("active"));
             div.classList.add("active");
             selectSite(site);
@@ -455,9 +596,13 @@
           list.appendChild(div);
         });
 
+        // Automatically select the first site if none is selected
+        if (!currentSiteKey && sites.length > 0) {
+          list.firstChild.click();
+        }
+
       } catch (err) {
-        list.innerHTML = `<p style="color: #ef4444;">Error loading sites: ${err.message}</p>`;
-        console.error(err);
+        console.error("Error loading sites list", err);
       }
     }
 
@@ -465,6 +610,7 @@
       currentSiteKey = site.site_key;
       document.getElementById("site-dashboard").classList.remove("hidden");
       document.getElementById("current-site-title").innerText = site.domain;
+      document.getElementById("current-site-key").innerText = site.site_key;
 
       const widgetUrl = window.location.origin + "/widget.js";
       document.getElementById("embed-code").value = `<script src="${widgetUrl}" data-site-key="${site.site_key}"><\/script>`;
@@ -487,7 +633,10 @@
           ul.innerHTML = "";
           objections.forEach(obj => {
             const li = document.createElement("li");
-            li.innerHTML = `<div><strong style="color: white; font-size: 16px;">${obj.label}</strong></div><div style="color: #a0aec0; margin-top: 5px; font-size: 14px;">↪ ${obj.counter_message}</div>`;
+            li.innerHTML = `
+              <div style="font-weight: 500; margin-bottom: 6px; font-size: 16px;">${obj.label}</div>
+              <div class="text-muted text-sm">↳ ${obj.counter_message}</div>
+            `;
             ul.appendChild(li);
           });
         }
