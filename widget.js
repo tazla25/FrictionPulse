@@ -117,11 +117,11 @@
           console.log("FrictionPulse: Duplicate vote detected and handled gracefully.");
           messageArea.innerText = "Thanks! Your feedback has already been recorded.";
         } else {
-          console.error("Supabase Write Error:", errData);
+          console.error("Supabase Error:", errData);
         }
       }
     } catch (err) {
-      console.error("FrictionPulse: Failed to log vote", err);
+      console.error("Supabase Error:", err);
     }
   }
 
@@ -138,10 +138,10 @@
       });
       if (!response.ok) {
         const errData = await response.json();
-        console.error("Supabase Write Error:", errData);
+        console.error("Supabase Error:", errData);
       }
     } catch (err) {
-      console.error("FrictionPulse: Failed to log view", err);
+      console.error("Supabase Error:", err);
     }
   }
 

@@ -423,7 +423,7 @@
       }
     }
 
-    // Handle incoming magic link hash
+    // Handle incoming magic link hash or persist session
     window.addEventListener('load', () => {
       const hash = window.location.hash;
       if (hash && hash.includes('access_token')) {
@@ -435,7 +435,12 @@
           authenticateWithToken(accessToken);
         }
       } else {
-        showView('auth');
+        const persistedToken = localStorage.getItem('fp_access_token');
+        if (persistedToken) {
+          authenticateWithToken(persistedToken);
+        } else {
+          showView('auth');
+        }
       }
     });
 
@@ -455,9 +460,11 @@
 
         currentSession = { access_token: token };
         currentUser = user;
+        localStorage.setItem('fp_access_token', token);
 
         checkUserSites();
       } catch (err) {
+        localStorage.removeItem('fp_access_token');
         alert("Session expired or invalid. Please login again.");
         console.error(err);
         showView('auth');
@@ -468,6 +475,7 @@
       currentSession = null;
       currentUser = null;
       currentSiteKey = null;
+      localStorage.removeItem('fp_access_token');
       document.getElementById('email').value = '';
       document.getElementById('auth-message').innerText = '';
       showView('auth');
