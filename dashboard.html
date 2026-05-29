@@ -288,15 +288,15 @@
     <div id="sites-list" class="sites-grid"></div>
 
     <div id="site-dashboard" class="hidden" style="animation: fadeIn 0.4s ease-out;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+      <div style="margin-bottom: 24px;">
         <h2 id="current-site-title" style="margin: 0; font-size: 28px;"></h2>
-        <span id="current-site-key" class="text-muted text-sm font-mono" style="font-family: monospace;"></span>
+        <div id="current-site-key" class="text-muted text-sm font-mono" style="font-family: monospace; margin-top: 8px;"></div>
       </div>
 
       <div style="background: #09090b; padding: 24px; border-radius: 12px; border: 1px solid #27272a; margin-bottom: 32px;">
         <p style="margin: 0 0 12px 0; font-weight: 500;">Embed Code</p>
         <p class="text-muted text-sm" style="margin-bottom: 16px;">Paste this right before the closing &lt;/body&gt; tag of your site.</p>
-        <textarea id="embed-code" rows="2" readonly style="margin: 0; background: #18181b; font-family: monospace; color: #a1a1aa; border-color: #27272a;"></textarea>
+        <textarea id="embed-code" rows="1" readonly style="margin: 0; background: #18181b; font-family: monospace; color: #a1a1aa; border-color: #27272a; white-space: pre; overflow-x: auto; display: block; width: 100%;"></textarea>
       </div>
 
       <div class="tab-container">
@@ -585,8 +585,8 @@
           const div = document.createElement("div");
           div.className = "site-item";
           div.innerHTML = `
-            <strong style="font-size: 18px; margin-bottom: 8px;">${site.domain}</strong>
-            <span class="text-muted text-sm font-mono" style="font-family: monospace;">${site.site_key}</span>
+            <strong style="font-size: 18px; margin-bottom: 8px; display: block;">${site.domain}</strong>
+            <span class="text-muted text-sm font-mono" style="font-family: monospace; display: block;">${site.site_key}</span>
           `;
           div.onclick = () => {
             document.querySelectorAll(".site-item").forEach(el => el.classList.remove("active"));
