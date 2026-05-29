@@ -96,7 +96,7 @@
 
     // Log vote
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
         method: "POST",
         headers: headers,
         body: JSON.stringify({
@@ -104,6 +104,10 @@
           objection_id: obj.id
         })
       });
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("Supabase Write Error:", errData);
+      }
     } catch (err) {
       console.error("FrictionPulse: Failed to log vote", err);
     }
@@ -112,13 +116,17 @@
   // Log view
   async function logView() {
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/widget_views`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/widget_views`, {
         method: "POST",
         headers: headers,
         body: JSON.stringify({
           site_key: siteKey
         })
       });
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("Supabase Write Error:", errData);
+      }
     } catch (err) {
       console.error("FrictionPulse: Failed to log view", err);
     }
