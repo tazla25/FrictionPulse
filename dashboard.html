@@ -140,6 +140,34 @@
     }
     button.ghost:hover { color: #fafafa; background-color: #27272a; }
 
+    .btn-google {
+      background-color: white;
+      color: #09090b;
+      font-weight: 600;
+      border: 1px solid #e4e4e7;
+    }
+    .btn-google:hover {
+      background-color: #f4f4f5;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #52525b;
+      margin: 20px 0;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #27272a;
+    }
+    .divider::before { margin-right: 12px; }
+    .divider::after { margin-left: 12px; }
+
     .tab-container {
       display: flex;
       gap: 12px;
@@ -240,13 +268,32 @@
   <!-- VIEW: AUTH -->
   <div id="view-auth" class="view-container centered-layout">
     <div class="card">
-      <h2 style="margin-top: 0; font-size: 24px;">Welcome to FrictionPulse</h2>
-      <p class="text-muted" style="margin-bottom: 32px; line-height: 1.5;">Enter your email to receive a secure, passwordless magic link to access your dashboard.</p>
+      <h2 style="margin-top: 0; font-size: 24px; text-align: center;">Welcome to FrictionPulse</h2>
+      <p class="text-muted" style="margin-bottom: 32px; line-height: 1.5; text-align: center;">Log in or create an account to start rescuing abandoned carts.</p>
 
       <label for="email" class="text-sm" style="font-weight: 500;">Email Address</label>
       <input type="email" id="email" placeholder="merchant@example.com" />
 
-      <button id="login-btn" onclick="sendMagicLink()" style="width: 100%;">Continue with Email</button>
+      <label for="password" class="text-sm" style="font-weight: 500;">Password</label>
+      <input type="password" id="password" placeholder="••••••••" style="width: 100%; padding: 14px 16px; margin: 8px 0 24px; background-color: #18181b; border: 1px solid #3f3f46; border-radius: 8px; color: #fff; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 15px; transition: border-color 0.2s;" />
+
+      <div style="display: flex; gap: 12px;">
+        <button id="signin-btn" onclick="signInWithEmail()" style="flex: 1;">Sign In</button>
+        <button id="signup-btn" onclick="signUpWithEmail()" class="secondary" style="flex: 1;">Sign Up</button>
+      </div>
+
+      <div class="divider">OR</div>
+
+      <button id="google-btn" class="btn-google" onclick="signInWithGoogle()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18px" height="18px">
+          <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+          <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+          <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+          <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+        </svg>
+        Continue with Google
+      </button>
+
       <div id="auth-message" class="text-sm" style="margin-top:20px; text-align: center;"></div>
     </div>
   </div>
@@ -389,38 +436,103 @@
       return headers;
     }
 
-    async function sendMagicLink() {
+    async function signUpWithEmail() {
       const email = document.getElementById("email").value;
-      if (!email) return alert("Enter email");
-
-      const btn = document.getElementById("login-btn");
+      const password = document.getElementById("password").value;
       const msg = document.getElementById("auth-message");
+      const btn = document.getElementById("signup-btn");
+
+      if (!email || !password) {
+        msg.innerText = "Please enter both email and password.";
+        msg.style.color = "#ef4444";
+        return;
+      }
+
       btn.disabled = true;
-      btn.innerText = "Sending...";
-      msg.innerText = "";
+      msg.innerText = "Creating account...";
+      msg.style.color = "#a1a1aa";
 
       try {
         const redirectUrl = window.location.href.split('#')[0];
-        const response = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectUrl)}`, {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(redirectUrl)}`, {
           method: "POST",
           headers: getHeaders(false),
-          body: JSON.stringify({
-            email: email,
-            create_user: true
-          })
+          body: JSON.stringify({ email, password })
         });
 
-        if (!response.ok) throw new Error("Failed to send magic link");
+        const data = await response.json();
 
-        msg.innerText = "Success! Check your email for the magic link.";
-        msg.style.color = "#2ecc71";
+        if (!response.ok) throw new Error(data.msg || data.error_description || data.message || "Failed to create account");
+
+        if (data.session) {
+          // Auto login if no email confirmation required
+          localStorage.setItem('fp_access_token', data.session.access_token);
+          if (data.session.refresh_token) {
+            localStorage.setItem('fp_refresh_token', data.session.refresh_token);
+          }
+          currentSession = data.session;
+          currentUser = data.user;
+          checkUserSites();
+        } else {
+          msg.innerText = "Success! Please check your email to confirm your account.";
+          msg.style.color = "#2ecc71";
+        }
       } catch (err) {
         msg.innerText = err.message;
         msg.style.color = "#ef4444";
       } finally {
         btn.disabled = false;
-        btn.innerText = "Continue with Email";
       }
+    }
+
+    async function signInWithEmail() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("auth-message");
+      const btn = document.getElementById("signin-btn");
+
+      if (!email || !password) {
+        msg.innerText = "Please enter both email and password.";
+        msg.style.color = "#ef4444";
+        return;
+      }
+
+      btn.disabled = true;
+      msg.innerText = "Signing in...";
+      msg.style.color = "#a1a1aa";
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: getHeaders(false),
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error_description || data.msg || "Invalid login credentials");
+
+        localStorage.setItem('fp_access_token', data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem('fp_refresh_token', data.refresh_token);
+        }
+
+        currentSession = { access_token: data.access_token };
+        currentUser = data.user;
+
+        checkUserSites();
+      } catch (err) {
+        msg.innerText = err.message;
+        msg.style.color = "#ef4444";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function signInWithGoogle() {
+      const redirectUrl = window.location.href.split('#')[0];
+      const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+      window.location.href = authUrl;
     }
 
     // Handle incoming magic link hash or persist session
