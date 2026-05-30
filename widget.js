@@ -16,7 +16,7 @@
     "apikey": SUPABASE_KEY,
     "Authorization": `Bearer ${SUPABASE_KEY}`,
     "Content-Type": "application/json",
-    "Prefer": "return=representation"
+    "Prefer": "return=minimal"
   };
 
   let sessionHash = sessionStorage.getItem('fp_session_hash');
