@@ -10,10 +10,20 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+    :root {
+      --bg: #050508;
+      --surface: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.06);
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --text: #f0f0f5;
+      --text-secondary: #8a8a9a;
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #18181b; /* zinc-900 */
-      color: #fafafa; /* zinc-50 */
+      background-color: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 0;
       min-height: 100vh;
@@ -21,12 +31,64 @@
       flex-direction: column;
     }
 
-    h1, h2, h3, h4 { color: #ffffff; font-weight: 600; }
+    /* ---------- AURORA BACKGROUND ---------- */
+    .aurora-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 20% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                  var(--bg);
+    }
+
+    .aurora-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+      animation: aurora-drift 25s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--cyan), transparent 70%);
+      top: -15%; left: -10%;
+      animation-duration: 28s;
+    }
+
+    .orb-2 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, var(--emerald), transparent 70%);
+      bottom: -5%; right: -8%;
+      animation-delay: -10s;
+      animation-duration: 32s;
+    }
+
+    .orb-3 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, var(--cyan), transparent 70%);
+      top: 45%; left: 55%;
+      animation-delay: -18s;
+      animation-duration: 22s;
+      opacity: 0.08;
+    }
+
+    @keyframes aurora-drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    h1, h2, h3, h4 { color: var(--text); font-weight: 600; }
 
     .hidden { display: none !important; }
 
     /* View Containers */
     .view-container {
+      position: relative;
+      z-index: 1;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -60,12 +122,12 @@
       align-items: center;
       margin-bottom: 40px;
       padding-bottom: 20px;
-      border-bottom: 1px solid #27272a;
+      border-bottom: 1px solid var(--border);
     }
 
     .spinner {
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top: 3px solid #d4d4d8;
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--cyan);
       border-radius: 50%;
       width: 18px;
       height: 18px;
@@ -78,24 +140,26 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .card {
-      background: #09090b; /* zinc-950 */
-      border: 1px solid #27272a; /* zinc-800 */
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.75), rgba(5, 5, 8, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       padding: 32px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       width: 100%;
       max-width: 450px;
       box-sizing: border-box;
     }
 
-    input[type="email"], input[type="text"], textarea {
+    input[type="email"], input[type="text"], input[type="password"], textarea {
       width: 100%;
       padding: 14px 16px;
       margin: 8px 0 24px;
-      background-color: #18181b;
-      border: 1px solid #3f3f46;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      color: #fff;
+      color: var(--text);
       box-sizing: border-box;
       font-family: 'Inter', sans-serif;
       font-size: 15px;
@@ -104,16 +168,16 @@
 
     input:focus, textarea:focus {
       outline: none;
-      border-color: #a1a1aa;
+      border-color: var(--cyan);
     }
 
     button {
-      background-color: #fafafa;
-      color: #09090b;
-      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--cyan), var(--emerald));
+      color: white;
+      border: none;
       padding: 12px 24px;
       border-radius: 8px;
-      font-weight: 500;
+      font-weight: 600;
       font-size: 15px;
       cursor: pointer;
       transition: all 0.2s;
@@ -121,30 +185,35 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.25);
     }
 
-    button:hover { background-color: #e4e4e7; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(6, 182, 212, 0.45); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
     button.secondary {
-      background-color: transparent;
-      color: #fafafa;
-      border: 1px solid #3f3f46;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: none;
     }
-    button.secondary:hover { background-color: #27272a; }
+    button.secondary:hover { background-color: var(--surface); }
 
     button.ghost {
-      background-color: transparent;
-      color: #a1a1aa;
+      background: transparent;
+      color: var(--text-secondary);
       padding: 8px 16px;
+      box-shadow: none;
+      border: none;
     }
-    button.ghost:hover { color: #fafafa; background-color: #27272a; }
+    button.ghost:hover { color: var(--text); background-color: var(--surface); }
 
     .tab-container {
       display: flex;
       gap: 12px;
       margin-bottom: 24px;
-      border-bottom: 1px solid #27272a;
+      border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
     }
 
@@ -152,17 +221,18 @@
       cursor: pointer;
       padding: 8px 16px;
       border-radius: 6px;
-      color: #a1a1aa;
+      color: var(--text-secondary);
       transition: all 0.2s;
       font-size: 14px;
       font-weight: 500;
     }
 
-    .tab:hover { color: #fafafa; }
+    .tab:hover { color: var(--text); }
 
     .tab.active {
-      background-color: #27272a;
-      color: #fafafa;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(16, 185, 129, 0.1));
+      color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.2);
     }
 
     .tab-content {
@@ -179,28 +249,31 @@
 
     .site-item {
       padding: 24px;
-      background-color: #09090b;
-      border: 1px solid #27272a;
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
+      border: 1px solid var(--border);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       flex-direction: column;
+      backdrop-filter: blur(12px);
     }
 
     .site-item:hover {
-      border-color: #52525b;
+      border-color: rgba(6, 182, 212, 0.15);
       transform: translateY(-2px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
 
     .site-item.active {
-      border-color: #fafafa;
+      border-color: rgba(6, 182, 212, 0.35);
+      box-shadow: 0 0 30px rgba(6, 182, 212, 0.08), inset 0 1px 0 rgba(255,255,255,0.04);
     }
 
     /* ---------- EMBED CODE BLOCK (TERMINAL) ---------- */
     .embed-block {
       background: rgba(0, 0, 0, 0.35);
-      border: 1px solid #27272a;
+      border: 1px solid var(--border);
       border-radius: 14px;
       margin-bottom: 32px;
       overflow: hidden;
@@ -217,7 +290,7 @@
       gap: 6px;
       padding: 12px 16px;
       background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid #27272a;
+      border-bottom: 1px solid var(--border);
       align-items: center;
     }
 
@@ -233,7 +306,7 @@
 
     .embed-block-title {
       font-size: 11px;
-      color: #a1a1aa;
+      color: var(--text-secondary);
       margin-left: 8px;
       letter-spacing: 0.05em;
     }
@@ -242,7 +315,7 @@
       margin: 0;
       background: transparent;
       font-family: 'SF Mono', Monaco, monospace;
-      color: #06b6d4;
+      color: var(--cyan);
       border: none;
       font-size: 13px;
       white-space: pre;
@@ -251,6 +324,7 @@
       padding: 20px;
       box-shadow: none;
       width: 100%;
+      border-radius: 0;
     }
 
     .embed-block textarea:focus {
@@ -266,11 +340,12 @@
     }
 
     #objections-list li {
-      background-color: #09090b;
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
       padding: 20px;
       border-radius: 8px;
       margin-bottom: 16px;
-      border: 1px solid #27272a;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
     }
 
     .stats-grid {
@@ -280,24 +355,31 @@
     }
 
     .stat-box {
-      background-color: #09090b;
+      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
       padding: 24px;
       border-radius: 12px;
-      border: 1px solid #27272a;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
     }
 
     .stat-value {
       font-size: 36px;
       font-weight: 600;
-      color: #fafafa;
+      color: var(--text);
       margin-top: 12px;
     }
 
-    .text-muted { color: #a1a1aa; }
+    .text-muted { color: var(--text-secondary); }
     .text-sm { font-size: 14px; }
   </style>
 </head>
 <body>
+
+  <div class="aurora-bg">
+    <div class="aurora-orb orb-1"></div>
+    <div class="aurora-orb orb-2"></div>
+    <div class="aurora-orb orb-3"></div>
+  </div>
 
   <!-- VIEW: AUTH -->
   <div id="view-auth" class="view-container centered-layout">
@@ -309,7 +391,7 @@
       <input type="email" id="email" placeholder="merchant@example.com" />
 
       <label for="password" class="text-sm" style="font-weight: 500;">Password</label>
-      <input type="password" id="password" placeholder="••••••••" style="width: 100%; padding: 14px 16px; margin: 8px 0 24px; background-color: #18181b; border: 1px solid #3f3f46; border-radius: 8px; color: #fff; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 15px; transition: border-color 0.2s;" />
+      <input type="password" id="password" placeholder="••••••••" />
 
       <div style="display: flex; gap: 12px;">
         <button id="signin-btn" onclick="signInWithEmail()" style="flex: 1;">Sign In</button>
@@ -352,7 +434,7 @@
     </div>
 
     <div id="sites-empty-state" class="hidden" style="text-align: center; padding: 60px 0;">
-      <h3 style="color: #a1a1aa;">No sites found</h3>
+      <h3 style="color: var(--text-secondary);">No sites found</h3>
     </div>
 
     <div id="sites-list" class="sites-grid"></div>
@@ -388,7 +470,7 @@
           <button class="ghost" onclick="toggleAddObjectionForm()">+ Add Objection</button>
         </div>
 
-        <div id="add-objection-form" class="hidden" style="background: #09090b; padding: 20px; border-radius: 8px; border: 1px solid #27272a; margin-bottom: 20px;">
+        <div id="add-objection-form" class="hidden" style="background: rgba(10, 10, 18, 0.6); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
           <input type="text" id="new-obj-label" placeholder="Objection Label (e.g. Price is too high)" style="margin-bottom: 12px;" />
           <textarea id="new-obj-message" rows="2" placeholder="Counter Message" style="margin-bottom: 12px;"></textarea>
           <div style="display: flex; gap: 10px;">
@@ -413,7 +495,7 @@
           </div>
         </div>
 
-        <div style="background: #09090b; padding: 24px; border-radius: 12px; border: 1px solid #27272a; margin-top: 30px;">
+        <div style="background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8)); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top: 30px;">
           <h4 style="margin-top: 0; margin-bottom: 20px;">Votes by Objection</h4>
           <canvas id="objectionsChart" style="max-height: 350px;"></canvas>
         </div>
@@ -480,7 +562,7 @@
 
       btn.disabled = true;
       msg.innerText = "Creating account...";
-      msg.style.color = "#a1a1aa";
+      msg.style.color = "var(--text-secondary)";
 
       try {
         const redirectUrl = window.location.href.split('#')[0];
@@ -505,7 +587,7 @@
           checkUserSites();
         } else {
           msg.innerText = "Success! Please check your email to confirm your account.";
-          msg.style.color = "#2ecc71";
+          msg.style.color = "var(--emerald)";
         }
       } catch (err) {
         msg.innerText = err.message;
@@ -529,7 +611,7 @@
 
       btn.disabled = true;
       msg.innerText = "Signing in...";
-      msg.style.color = "#a1a1aa";
+      msg.style.color = "var(--text-secondary)";
 
       try {
         const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -703,7 +785,7 @@
       btn.disabled = true;
       spinner.classList.remove("hidden");
       msg.innerText = "Registering and seeding objections...";
-      msg.style.color = "#a1a1aa";
+      msg.style.color = "var(--text-secondary)";
 
       const siteKey = generateSiteKey();
 
@@ -729,7 +811,7 @@
           { site_key: siteKey, label: "Price is too high", counter_message: "We offer flexible payment plans and a money-back guarantee." },
           { site_key: siteKey, label: "Not sure if it works for me", counter_message: "Check out our case studies to see how we've helped similar customers." },
           { site_key: siteKey, label: "I need to think about it", counter_message: "Don't miss out! This offer might expire soon." },
-          { site_key: siteKey, label: "Missing features I need", counter_message: "Contact our support! We might have a beta feature or a workaround." }
+          { site_key: siteKey, label: "Missing features I need", counter_message: "Contact our support! We might have a workaround." }
         ];
 
         const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
@@ -744,7 +826,7 @@
         }
 
         msg.innerText = "Domain registered successfully!";
-        msg.style.color = "#2ecc71";
+        msg.style.color = "var(--emerald)";
 
         // Brief pause to show success, then navigate to dashboard
         setTimeout(() => {
@@ -942,7 +1024,7 @@
             x: {
               beginAtZero: true,
               ticks: { stepSize: 1, color: '#a1a1aa' },
-              grid: { color: '#27272a' }
+              grid: { color: 'rgba(255, 255, 255, 0.06)' }
             },
             y: {
               ticks: { color: '#a1a1aa' },
