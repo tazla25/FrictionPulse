@@ -11,13 +11,14 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     :root {
-      --bg: #050508;
-      --surface: rgba(255, 255, 255, 0.03);
-      --border: rgba(255, 255, 255, 0.06);
-      --cyan: #06b6d4;
-      --emerald: #10b981;
-      --text: #f0f0f5;
-      --text-secondary: #8a8a9a;
+      --bg: #0D0E12;
+      --surface: #13151A;
+      --border: rgba(255, 255, 255, 0.03);
+      --border-hover: rgba(255, 78, 17, 0.35);
+      --cyan: #FF4E11; /* Repurposed variable name to avoid refactoring all JS */
+      --emerald: #FF5722;
+      --text: #FFFFFF;
+      --text-secondary: #8A8F98;
     }
 
     body {
@@ -31,17 +32,7 @@
       flex-direction: column;
     }
 
-    /* ---------- AURORA BACKGROUND ---------- */
-    .aurora-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      overflow: hidden;
-      pointer-events: none;
-      background: radial-gradient(ellipse at 20% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
-                  radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
-                  var(--bg);
-    }
+
 
     .aurora-orb {
       position: absolute;
@@ -140,13 +131,10 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .card {
-      background: linear-gradient(145deg, rgba(10, 10, 18, 0.75), rgba(5, 5, 8, 0.9));
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 32px;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       width: 100%;
       max-width: 450px;
       box-sizing: border-box;
@@ -249,30 +237,29 @@
 
     .site-item {
       padding: 24px;
-      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       flex-direction: column;
-      backdrop-filter: blur(12px);
     }
 
     .site-item:hover {
-      border-color: rgba(6, 182, 212, 0.15);
+      border-color: rgba(255, 78, 17, 0.5);
       transform: translateY(-2px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
     .site-item.active {
-      border-color: rgba(6, 182, 212, 0.35);
-      box-shadow: 0 0 30px rgba(6, 182, 212, 0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px var(--cyan);
     }
 
     /* ---------- EMBED CODE BLOCK (TERMINAL) ---------- */
     .embed-block {
-      background: rgba(0, 0, 0, 0.35);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 14px;
       margin-bottom: 32px;
@@ -282,14 +269,14 @@
     }
 
     .embed-block:hover {
-      border-color: rgba(6, 182, 212, 0.15);
+      border-color: rgba(255, 78, 17, 0.3);
     }
 
     .embed-block-header {
       display: flex;
       gap: 6px;
       padding: 12px 16px;
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
       align-items: center;
     }
@@ -340,7 +327,7 @@
     }
 
     #objections-list li {
-      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
+      background: var(--surface);
       padding: 20px;
       border-radius: 8px;
       margin-bottom: 16px;
@@ -355,7 +342,7 @@
     }
 
     .stat-box {
-      background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8));
+      background: var(--surface);
       padding: 24px;
       border-radius: 12px;
       border: 1px solid var(--border);
@@ -375,11 +362,7 @@
 </head>
 <body>
 
-  <div class="aurora-bg">
-    <div class="aurora-orb orb-1"></div>
-    <div class="aurora-orb orb-2"></div>
-    <div class="aurora-orb orb-3"></div>
-  </div>
+
 
   <!-- VIEW: AUTH -->
   <div id="view-auth" class="view-container centered-layout">
@@ -471,7 +454,7 @@
           <button class="ghost" onclick="toggleAddObjectionForm()">+ Add Objection</button>
         </div>
 
-        <div id="add-objection-form" class="hidden" style="background: rgba(10, 10, 18, 0.6); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
+        <div id="add-objection-form" class="hidden" style="background: var(--surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
           <input type="text" id="new-obj-label" placeholder="Objection Label (e.g. Price is too high)" style="margin-bottom: 12px;" />
           <textarea id="new-obj-message" rows="2" placeholder="Counter Message" style="margin-bottom: 12px;"></textarea>
           <div style="display: flex; gap: 10px;">
@@ -496,7 +479,7 @@
           </div>
         </div>
 
-        <div style="background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8)); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top: 30px;">
+        <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top: 30px;">
           <h4 style="margin-top: 0; margin-bottom: 20px;">Votes by Objection</h4>
           <canvas id="objectionsChart" style="max-height: 350px;"></canvas>
         </div>
@@ -1027,8 +1010,8 @@
           datasets: [{
             label: 'Votes',
             data: data,
-            backgroundColor: 'rgba(6, 182, 212, 0.8)',
-            borderColor: 'rgba(6, 182, 212, 1)',
+            backgroundColor: 'rgba(255, 78, 17, 0.8)',
+            borderColor: 'rgba(255, 78, 17, 1)',
             borderWidth: 1,
             borderRadius: 4
           }]

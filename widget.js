@@ -34,28 +34,32 @@
 
   let objections = [];
 
+
   // Create Widget UI
   const widgetContainer = document.createElement('div');
   widgetContainer.id = "frictionpulse-widget";
-  widgetContainer.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: sans-serif;";
+  widgetContainer.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: 'Inter', sans-serif;";
 
   const button = document.createElement('button');
-  button.innerText = "?";
-  button.style.cssText = "width: 50px; height: 50px; border-radius: 25px; background-color: #3498db; color: white; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+  button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="rgba(255, 78, 17, 0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255, 78, 17, 0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>';
+  button.style.cssText = "width: 56px; height: 56px; border-radius: 28px; background-color: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: transform 0.2s, box-shadow 0.2s;";
+  button.onmouseover = () => { button.style.transform = "scale(1.05)"; button.style.boxShadow = "0 12px 40px rgba(255, 78, 17, 0.2)"; };
+  button.onmouseout = () => { button.style.transform = "scale(1)"; button.style.boxShadow = "0 8px 32px rgba(0,0,0,0.4)"; };
 
   const popup = document.createElement('div');
-  popup.style.cssText = "display: none; position: absolute; bottom: 60px; right: 0; width: 300px; background: white; border: 1px solid #ccc; border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: #333;";
+  popup.style.cssText = "display: none; position: absolute; bottom: 70px; right: 0; width: 320px; background: linear-gradient(145deg, rgba(19, 21, 26, 0.95), rgba(13, 14, 18, 0.98)); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); backdrop-filter: blur(12px); color: #FFFFFF;";
 
   const title = document.createElement('h3');
   title.innerText = "Any concerns before you buy?";
-  title.style.cssText = "margin-top: 0; font-size: 16px; color: #333;";
+  title.style.cssText = "margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #FFFFFF;";
   popup.appendChild(title);
+
 
   const objectionsContainer = document.createElement('div');
   popup.appendChild(objectionsContainer);
 
   const messageArea = document.createElement('div');
-  messageArea.style.cssText = "margin-top: 15px; font-weight: bold; color: #2ecc71; display: none;";
+  messageArea.style.cssText = "margin-top: 16px; font-weight: 500; color: #FF4E11; display: none; line-height: 1.5; font-size: 14px; padding: 12px; background: rgba(255, 78, 17, 0.1); border: 1px solid rgba(255, 78, 17, 0.2); border-radius: 8px;";
   popup.appendChild(messageArea);
 
   widgetContainer.appendChild(popup);
@@ -98,7 +102,9 @@
     objections.forEach(obj => {
       const btn = document.createElement('button');
       btn.innerText = obj.label;
-      btn.style.cssText = "display: block; width: 100%; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; text-align: left; color: #333;";
+      btn.style.cssText = "display: block; width: 100%; margin-bottom: 10px; padding: 12px 16px; background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; cursor: pointer; text-align: left; color: #FFFFFF; font-size: 14px; font-weight: 500; transition: all 0.2s;";
+      btn.onmouseover = () => { btn.style.borderColor = "rgba(255, 78, 17, 0.5)"; btn.style.background = "rgba(255, 78, 17, 0.05)"; };
+      btn.onmouseout = () => { btn.style.borderColor = "rgba(255, 255, 255, 0.08)"; btn.style.background = "#0D0E12"; };
       btn.onclick = () => handleVote(obj);
       objectionsContainer.appendChild(btn);
     });
