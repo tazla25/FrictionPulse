@@ -38,16 +38,21 @@
   // Create Widget UI
   const widgetContainer = document.createElement('div');
   widgetContainer.id = "frictionpulse-widget";
-  widgetContainer.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: 'Inter', sans-serif;";
+  widgetContainer.style.cssText = "position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 99999 !important; font-family: 'Inter', sans-serif !important;";
 
   const button = document.createElement('button');
-  button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="rgba(255, 78, 17, 0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255, 78, 17, 0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>';
-  button.style.cssText = "width: 56px; height: 56px; border-radius: 28px; background-color: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: transform 0.2s, box-shadow 0.2s;";
-  button.onmouseover = () => { button.style.transform = "scale(1.05)"; button.style.boxShadow = "0 12px 40px rgba(255, 78, 17, 0.2)"; };
-  button.onmouseout = () => { button.style.transform = "scale(1)"; button.style.boxShadow = "0 8px 32px rgba(0,0,0,0.4)"; };
+  button.className = "frictionpulse-btn-isolated";
+  button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block !important; margin: auto !important;"><circle cx="12" cy="12" r="10" stroke="rgba(255, 78, 17, 0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255, 78, 17, 0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>';
+
+  // Apply isolated CSS text with !important
+  const baseButtonStyles = "all: initial !important; width: 56px !important; height: 56px !important; border-radius: 28px !important; background-color: #0D0E12 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; transition: transform 0.2s ease, box-shadow 0.2s ease !important; padding: 0 !important; margin: 0 !important;";
+  button.style.cssText = baseButtonStyles;
+
+  button.onmouseover = () => { button.style.cssText = baseButtonStyles + " transform: scale(1.05) !important; box-shadow: 0 12px 40px rgba(255, 78, 17, 0.2) !important;"; };
+  button.onmouseout = () => { button.style.cssText = baseButtonStyles; };
 
   const popup = document.createElement('div');
-  popup.style.cssText = "display: none; position: absolute; bottom: 70px; right: 0; width: 320px; background: linear-gradient(145deg, rgba(19, 21, 26, 0.95), rgba(13, 14, 18, 0.98)); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); backdrop-filter: blur(12px); color: #FFFFFF;";
+  popup.style.cssText = "all: initial !important; display: none !important; position: absolute !important; bottom: 70px !important; right: 0 !important; width: 320px !important; background: linear-gradient(145deg, rgba(19, 21, 26, 0.95), rgba(13, 14, 18, 0.98)) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 16px !important; padding: 24px !important; box-shadow: 0 16px 40px rgba(0,0,0,0.5) !important; backdrop-filter: blur(12px) !important; color: #FFFFFF !important; font-family: 'Inter', sans-serif !important; box-sizing: border-box !important;";
 
   const title = document.createElement('h3');
   title.innerText = "Any concerns before you buy?";
