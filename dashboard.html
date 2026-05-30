@@ -462,6 +462,7 @@
       <div class="tab-container">
         <div class="tab active" onclick="switchTab('objections')">Objections</div>
         <div class="tab" onclick="switchTab('stats')">Analytics</div>
+        <div class="tab" onclick="switchTab('support')">Support</div>
       </div>
 
       <div id="tab-objections" class="tab-content">
@@ -498,6 +499,25 @@
         <div style="background: linear-gradient(145deg, rgba(10, 10, 18, 0.6), rgba(5, 5, 8, 0.8)); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top: 30px;">
           <h4 style="margin-top: 0; margin-bottom: 20px;">Votes by Objection</h4>
           <canvas id="objectionsChart" style="max-height: 350px;"></canvas>
+        </div>
+      </div>
+
+      <div id="tab-support" class="tab-content hidden">
+        <div class="card" style="max-width: 600px; margin-top: 10px;">
+          <h4 style="margin-top:0; margin-bottom: 12px; font-size: 18px;">Contact Merchant Support</h4>
+          <p class="text-muted text-sm" style="margin-bottom: 24px;">Have any questions or facing an issue? Send us a message and our technical team will get back to you shortly.</p>
+
+          <label class="text-sm">Subject</label>
+          <input type="text" id="support-subject" placeholder="e.g., Widget not loading on my site" />
+
+          <label class="text-sm">Your Message</label>
+          <textarea id="support-message" rows="4" placeholder="Describe your problem in detail..."></textarea>
+
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="sendSupportMessage()">Submit Message</button>
+            <span id="support-spinner" class="spinner hidden"></span>
+          </div>
+          <div id="support-status" class="text-sm" style="margin-top: 16px; font-weight: 500;"></div>
         </div>
       </div>
     </div>
@@ -1045,8 +1065,55 @@
 
       document.getElementById("tab-objections").classList.add("hidden");
       document.getElementById("tab-stats").classList.add("hidden");
+      document.getElementById("tab-support").classList.add("hidden");
 
       document.getElementById(`tab-${tabName}`).classList.remove("hidden");
+    }
+
+    async function sendSupportMessage() {
+      const subjectInput = document.getElementById("support-subject");
+      const messageInput = document.getElementById("support-message");
+      const subject = subjectInput.value.trim();
+      const message = messageInput.value.trim();
+      const spinner = document.getElementById("support-spinner");
+      const statusDiv = document.getElementById("support-status");
+
+      if (!subject || !message) {
+        statusDiv.innerText = "Please fill in both subject and message.";
+        statusDiv.style.color = "#ef4444";
+        return;
+      }
+
+      spinner.classList.remove("hidden");
+      statusDiv.innerText = "Sending message...";
+      statusDiv.style.color = "var(--text-secondary)";
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/support_messages`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            merchant_email: currentUser ? currentUser.email : "anonymous",
+            subject: subject,
+            message: message
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error("Failed to send message: " + JSON.stringify(errData));
+        }
+
+        statusDiv.innerText = "Message sent successfully! Our team will reach out soon.";
+        statusDiv.style.color = "var(--emerald)";
+        subjectInput.value = "";
+        messageInput.value = "";
+      } catch (err) {
+        statusDiv.innerText = err.message;
+        statusDiv.style.color = "#ef4444";
+      } finally {
+        spinner.classList.add("hidden");
+      }
     }
 
     function toggleAddObjectionForm() {
