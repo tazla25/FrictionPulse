@@ -25,11 +25,13 @@
     sessionStorage.setItem('fp_session_hash', sessionHash);
   }
 
+  let globalCounterMessage = "Pulse captured! Thank you for helping us eliminate friction.";
+
   const defaultObjections = [
-    { label: "Price is too high", counter_message: "We offer flexible payment plans and a money-back guarantee." },
-    { label: "Not sure if it works for me", counter_message: "Check out our case studies to see how we've helped similar customers." },
-    { label: "I need to think about it", counter_message: "Don't miss out! This offer might expire soon." },
-    { label: "Missing features I need", counter_message: "Contact our support! We might have a workaround." }
+    { id: 1, label: "Found a bug / glitch" },
+    { id: 2, label: "UI feels confusing" },
+    { id: 3, label: "Page loads slowly" },
+    { id: 4, label: "Missing core features" }
   ];
 
   let objections = [];
@@ -84,20 +86,33 @@
   async function loadObjections() {
     objectionsContainer.innerHTML = "Loading...";
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${siteKey}`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&site_key=eq.${siteKey}`, {
         method: "GET",
         headers: headers
       });
-      if (!response.ok) throw new Error("Failed to load objections");
+      if (!response.ok) throw new Error("Failed to load widget config");
 
-      objections = await response.json();
-      if (!objections || objections.length === 0) {
+      const sitesData = await response.json();
+      if (sitesData && sitesData.length > 0) {
+        const config = sitesData[0];
+        const loadedLabels = [
+          { id: 1, label: config.label_1 },
+          { id: 2, label: config.label_2 },
+          { id: 3, label: config.label_3 },
+          { id: 4, label: config.label_4 }
+        ].filter(obj => obj.label && obj.label.trim() !== "");
+
+        objections = loadedLabels.length > 0 ? loadedLabels : defaultObjections;
+        globalCounterMessage = config.counter_message || "Pulse captured! Thank you for helping us eliminate friction.";
+      } else {
         objections = defaultObjections;
+        globalCounterMessage = "Pulse captured! Thank you for helping us eliminate friction.";
       }
       renderObjections();
     } catch (err) {
       console.error("FrictionPulse error:", err);
       objections = defaultObjections;
+      globalCounterMessage = "Pulse captured! Thank you for helping us eliminate friction.";
       renderObjections();
     }
   }
@@ -117,7 +132,7 @@
 
   async function handleVote(obj) {
     // Show counter message
-    messageArea.innerText = obj.counter_message;
+    messageArea.innerText = globalCounterMessage;
     messageArea.style.display = "block";
 
     // Hide buttons
