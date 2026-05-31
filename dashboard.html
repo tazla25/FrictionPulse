@@ -782,7 +782,7 @@
           if (data.session.refresh_token) localStorage.setItem('fp_refresh_token', data.session.refresh_token);
           currentSession = data.session; currentUser = data.user; checkUserSites();
         } else {
-          msg.innerText = "Success! Please check your email to confirm."; msg.style.color = "var(--emerald)";
+          msg.innerText = "Check your email to confirm! (If you already have an account, please click Merchant Login)"; msg.style.color = "var(--emerald)";
         }
       } catch (err) { msg.innerText = err.message; msg.style.color = "#ef4444"; } finally { btn.disabled = false; }
     }

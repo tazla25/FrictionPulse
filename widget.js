@@ -308,12 +308,22 @@
           <div class="fp-thanks-icon">🙏</div>
           <h4>Thanks for your feedback!</h4>
           <p>We appreciate you taking the time.</p>
-          <a href="#" class="fp-cta-link" onclick="document.getElementById('fp-popup').classList.remove('open'); return false;">Close & Continue Shopping</a>
+          <a href="#" class="fp-cta-link" id="fp-close-shopping">Close & Continue Shopping</a>
         </div>
       `;
     }
 
     content.innerHTML = html;
+
+    if (!isLeadWorthy) {
+      const closeShoppingBtn = content.querySelector('#fp-close-shopping');
+      if (closeShoppingBtn) {
+        closeShoppingBtn.onclick = (e) => {
+          e.preventDefault();
+          toggle(false);
+        };
+      }
+    }
 
     if (CONFIG.leadCapture && isLeadWorthy) {
       const submitBtn = content.querySelector('#fp-lead-submit');
@@ -443,7 +453,8 @@
       if (scrollShown || isOpen) return;
       const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
       if (scrollPercent > 0.7) {
-        setTimeout(() => { if (!isOpen) { toggle(true); scrollShown = true; } }, 2000);
+        scrollShown = true;
+        setTimeout(() => { if (!isOpen) { toggle(true); } }, 2000);
       }
     });
   }
