@@ -1061,7 +1061,7 @@
         spinner.classList.add("hidden");
       }
     }
-    window.switchTab = function(tabName) {
+    function switchTab(tabName) {
       const eventTarget = window.event.target || window.event.srcElement;
       const tabs = document.querySelectorAll(".tab");
       tabs.forEach(tab => tab.classList.remove("active"));
@@ -1074,7 +1074,7 @@
       document.getElementById("tab-support").classList.add("hidden");
 
       document.getElementById(`tab-${tabName}`).classList.remove("hidden");
-    };
+    }
 
     async function sendSupportMessage() {
       const subjectInput = document.getElementById("support-subject");
@@ -1123,5 +1123,4 @@
     }
   </script>
 </body>
-  <script src="https://frictionpulse.vercel.app/widget.js" data-site-key="sk_wtr1lrukcmpsh8bhn"></script>
 </html>

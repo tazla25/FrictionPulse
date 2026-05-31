@@ -58,7 +58,7 @@
 
   const title = document.createElement('h3');
   title.innerText = "Any concerns before you buy?";
-  title.style.cssText = "margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #FFFFFF;";
+  title.style.cssText = "margin-top: 0 !important; margin-bottom: 16px !important; font-size: 16px !important; font-weight: 600 !important; color: #FFFFFF !important;";
   popup.appendChild(title);
 
 
@@ -66,7 +66,7 @@
   popup.appendChild(objectionsContainer);
 
   const messageArea = document.createElement('div');
-  messageArea.style.cssText = "margin-top: 16px; font-weight: 500; color: #FF4E11; display: none; line-height: 1.5; font-size: 14px; padding: 12px; background: rgba(255, 78, 17, 0.1); border: 1px solid rgba(255, 78, 17, 0.2); border-radius: 8px;";
+  messageArea.style.cssText = "margin-top: 16px !important; font-weight: 500 !important; color: #FF4E11 !important; display: none !important; line-height: 1.5 !important; font-size: 14px !important; padding: 12px !important; background: rgba(255, 78, 17, 0.1) !important; border: 1px solid rgba(255, 78, 17, 0.2) !important; border-radius: 8px !important;";
   popup.appendChild(messageArea);
 
   widgetContainer.appendChild(popup);
@@ -77,7 +77,7 @@
 
   button.onclick = () => {
     isOpen = !isOpen;
-    popup.style.setProperty('display', isOpen ? 'block' : 'none', 'important');
+    popup.style.display = isOpen ? "block" : "none";
     if (isOpen && objections.length === 0) {
       loadObjections();
     }
@@ -122,9 +122,9 @@
     objections.forEach(obj => {
       const btn = document.createElement('button');
       btn.innerText = obj.label;
-      btn.style.cssText = "display: block; width: 100%; margin-bottom: 10px; padding: 12px 16px; background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; cursor: pointer; text-align: left; color: #FFFFFF; font-size: 14px; font-weight: 500; transition: all 0.2s;";
-      btn.onmouseover = () => { btn.style.borderColor = "rgba(255, 78, 17, 0.5)"; btn.style.background = "rgba(255, 78, 17, 0.05)"; };
-      btn.onmouseout = () => { btn.style.borderColor = "rgba(255, 255, 255, 0.08)"; btn.style.background = "#0D0E12"; };
+      btn.style.cssText = "display: block !important; width: 100% !important; margin-bottom: 10px !important; padding: 12px 16px !important; background: #0D0E12 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 8px !important; cursor: pointer !important; text-align: left !important; color: #FFFFFF !important; font-size: 14px !important; font-weight: 500 !important; transition: all 0.2s !important;";
+      btn.onmouseover = () => { btn.style.setProperty('border-color', 'rgba(255, 78, 17, 0.5)', 'important'); btn.style.setProperty('background', 'rgba(255, 78, 17, 0.05)', 'important'); };
+      btn.onmouseout = () => { btn.style.setProperty('border-color', 'rgba(255, 255, 255, 0.08)', 'important'); btn.style.setProperty('background', '#0D0E12', 'important'); };
       btn.onclick = () => handleVote(obj);
       objectionsContainer.appendChild(btn);
     });
