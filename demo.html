@@ -3,45 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mock E-Commerce Store</title>
-  <script>
-    // Fallback logic to intercept magic link redirects that land on the wrong page
-    // Redirects them directly to the dashboard with the hash intact
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      window.location.href = '/dashboard.html' + window.location.hash;
-    }
-  </script>
+  <title>FrictionPulse Demo Store</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px; text-align: center; background-color: #f5f5f5; }
-    .product { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-block; }
-    .add-to-cart { background-color: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; }
-    .add-to-cart:hover { background-color: #2ecc71; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #f8f9fa; color: #333; }
+    .top-bar { background: #0D0E12; color: white; text-align: center; padding: 10px; font-size: 13px; }
+    .top-bar a { color: #FF4E11; text-decoration: none; font-weight: 600; }
+    nav { background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .logo { font-weight: 800; font-size: 20px; color: #0D0E12; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: #666; text-decoration: none; font-size: 14px; font-weight: 500; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+    .product-images { background: white; border-radius: 16px; padding: 40px; text-align: center; }
+    .product-img { width: 100%; max-width: 400px; height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 80px; }
+    .product-info h1 { font-size: 32px; margin-bottom: 12px; }
+    .price { font-size: 28px; font-weight: 700; color: #0D0E12; margin-bottom: 8px; }
+    .price .original { text-decoration: line-through; color: #999; font-size: 18px; margin-left: 8px; font-weight: 500; }
+    .rating { color: #f59e0b; margin-bottom: 16px; font-size: 14px; }
+    .desc { color: #666; line-height: 1.7; margin-bottom: 24px; font-size: 15px; }
+    .features { list-style: none; margin-bottom: 24px; }
+    .features li { display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #555; font-size: 14px; }
+    .features li::before { content: '✓'; color: #22c55e; font-weight: 700; }
+    .add-cart {
+      width: 100%; padding: 16px; background: #0D0E12; color: white; border: none;
+      border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .add-cart:hover { background: #FF4E11; transform: translateY(-1px); }
+    .trust-badges { display: flex; gap: 16px; margin-top: 20px; justify-content: center; }
+    .trust-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+    .stock-warning { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; gap: 30px; }
+      .product-img { height: 300px; }
+    }
   </style>
 </head>
 <body>
-  <div class="product">
-    <h1>Awesome Gadget</h1>
-    <p>The best gadget you'll ever own.</p>
-    <p><strong>$99.99</strong></p>
-    <button id="add-btn" class="add-to-cart" onclick="simulateAddToCart()">Add to Cart</button>
+  <div class="top-bar">
+    🚀 This is a demo store powered by <a href="https://frictionpulse.vercel.app">FrictionPulse</a> — Try clicking the widget in the corner!
+  </div>
+  <nav>
+    <div class="logo">DemoStore</div>
+    <div class="nav-links">
+      <a href="#">Products</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="product-images">
+      <div class="product-img">👟</div>
+      <div class="trust-badges">
+        <div class="trust-badge">🔒 Secure Checkout</div>
+        <div class="trust-badge">🚚 Free Shipping</div>
+        <div class="trust-badge">↩️ 30-Day Returns</div>
+      </div>
+    </div>
+    <div class="product-info">
+      <h1>Premium Running Shoes</h1>
+      <div class="price">$89.99 <span class="original">$129.99</span></div>
+      <div class="rating">⭐⭐⭐⭐⭐ (4.8/5 from 342 reviews)</div>
+      <div class="stock-warning">
+        ⚠️ Only 3 pairs left in stock — selling fast!
+      </div>
+      <p class="desc">
+        Experience ultimate comfort with our premium running shoes. Designed for athletes 
+        who demand performance. Features breathable mesh, responsive cushioning, and 
+        durable rubber outsole.
+      </p>
+      <ul class="features">
+        <li>Breathable engineered mesh upper</li>
+        <li>Responsive foam midsole</li>
+        <li>Durable rubber outsole</li>
+        <li>Lightweight at only 240g</li>
+        <li>Available in 5 colors</li>
+      </ul>
+      <button class="add-cart" onclick="addToCart()">Add to Cart — $89.99</button>
+      <p style="text-align: center; margin-top: 12px; font-size: 12px; color: #999;">
+        👆 Notice the widget in the corner? Click it to see how FrictionPulse captures objections!
+      </p>
+    </div>
   </div>
 
   <script>
-    function simulateAddToCart() {
-      const btn = document.getElementById('add-btn');
-      btn.textContent = 'Added';
-      btn.style.backgroundColor = '#7f8c8d';
-      btn.disabled = true;
+    function addToCart() {
+      const btn = document.querySelector('.add-cart');
+      btn.textContent = '✓ Added to Cart!';
+      btn.style.background = '#22c55e';
       setTimeout(() => {
-        btn.textContent = 'Add to Cart';
-        btn.style.backgroundColor = '#27ae60';
-        btn.disabled = false;
+        btn.textContent = 'Add to Cart — $89.99';
+        btn.style.background = '#0D0E12';
       }, 2000);
     }
   </script>
 
-  <!-- Embedding FrictionPulse Widget with a mock site-key for testing locally -->
-  <!-- Note: Replace "sk_test_123" with an actual site key generated from the dashboard -->
-  <script src="./widget.js" data-site-key="sk_test_123"></script>
+  <!-- FrictionPulse Widget -->
+  <script src="./widget-v2.js" data-site-key="sk_test_123"></script>
 </body>
 </html>
