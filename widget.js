@@ -25,8 +25,6 @@
     sessionStorage.setItem('fp_session_hash', sessionHash);
   }
 
-  let globalCounterMessage = "Pulse captured! Thank you for helping us eliminate friction.";
-
   const defaultObjections = [
     { id: 1, label: "Found a bug / glitch" },
     { id: 2, label: "UI feels confusing" },
@@ -86,33 +84,20 @@
   async function loadObjections() {
     objectionsContainer.innerHTML = "Loading...";
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&site_key=eq.${siteKey}`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${siteKey}`, {
         method: "GET",
         headers: headers
       });
-      if (!response.ok) throw new Error("Failed to load widget config");
+      if (!response.ok) throw new Error("Failed to load objections");
 
-      const sitesData = await response.json();
-      if (sitesData && sitesData.length > 0) {
-        const config = sitesData[0];
-        const loadedLabels = [
-          { id: 1, label: config.label_1 },
-          { id: 2, label: config.label_2 },
-          { id: 3, label: config.label_3 },
-          { id: 4, label: config.label_4 }
-        ].filter(obj => obj.label && obj.label.trim() !== "");
-
-        objections = loadedLabels.length > 0 ? loadedLabels : defaultObjections;
-        globalCounterMessage = config.counter_message || "Pulse captured! Thank you for helping us eliminate friction.";
-      } else {
+      objections = await response.json();
+      if (!objections || objections.length === 0) {
         objections = defaultObjections;
-        globalCounterMessage = "Pulse captured! Thank you for helping us eliminate friction.";
       }
       renderObjections();
     } catch (err) {
       console.error("FrictionPulse error:", err);
       objections = defaultObjections;
-      globalCounterMessage = "Pulse captured! Thank you for helping us eliminate friction.";
       renderObjections();
     }
   }
@@ -132,7 +117,7 @@
 
   async function handleVote(obj) {
     // Show counter message
-    messageArea.innerText = globalCounterMessage;
+    messageArea.innerText = obj.counter_message || "Thank you for your feedback!";
     messageArea.style.display = "block";
 
     // Hide buttons

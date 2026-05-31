@@ -449,38 +449,22 @@
       </div>
 
       <div id="tab-objections" class="tab-content">
-        <div style="background: var(--surface); padding: 32px; border-radius: 16px; border: 1px solid var(--border);">
-          <h4 style="margin-top: 0; margin-bottom: 24px; font-size: 18px;">Widget Customization</h4>
-          <p class="text-muted text-sm" style="margin-bottom: 24px;">Configure the feedback options your customers will see.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h4 style="margin: 0; font-size: 18px;">Configured Counter-Messages</h4>
+          <button class="ghost" onclick="toggleAddObjectionForm()">+ Add Objection</button>
+        </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div>
-              <label class="text-sm">Option 1</label>
-              <input type="text" id="label-1" placeholder="e.g. Price is too high" />
-            </div>
-            <div>
-              <label class="text-sm">Option 2</label>
-              <input type="text" id="label-2" placeholder="e.g. Shipping takes too long" />
-            </div>
-            <div>
-              <label class="text-sm">Option 3</label>
-              <input type="text" id="label-3" placeholder="e.g. Confusing checkout" />
-            </div>
-            <div>
-              <label class="text-sm">Option 4</label>
-              <input type="text" id="label-4" placeholder="e.g. Just browsing" />
-            </div>
-          </div>
-
-          <label class="text-sm" style="margin-top: 16px; display: block;">Success Message</label>
-          <input type="text" id="counter-msg" placeholder="Thank you for your feedback!" />
-
-          <div style="display: flex; gap: 10px; align-items: center; margin-top: 16px;">
-            <button onclick="saveWidgetSettings()">Save Settings</button>
-            <span id="save-settings-spinner" class="spinner hidden"></span>
-            <span id="save-settings-status" class="text-sm" style="margin-left: 10px; font-weight: 500;"></span>
+        <div id="add-objection-form" class="hidden" style="background: rgba(10, 10, 18, 0.6); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
+          <input type="text" id="new-obj-label" placeholder="Objection Label (e.g. Price is too high)" style="margin-bottom: 12px;" />
+          <textarea id="new-obj-message" rows="2" placeholder="Counter Message" style="margin-bottom: 12px;"></textarea>
+          <div style="display: flex; gap: 10px;">
+            <button onclick="addObjection()">Save Objection</button>
+            <button class="ghost" onclick="toggleAddObjectionForm()">Cancel</button>
+            <span id="add-obj-spinner" class="spinner hidden"></span>
           </div>
         </div>
+
+        <ul id="objections-list"></ul>
       </div>
 
       <div id="tab-stats" class="tab-content hidden">
@@ -803,24 +787,20 @@
 
       btn.disabled = true;
       spinner.classList.remove("hidden");
-      msg.innerText = "Registering...";
+      msg.innerText = "Registering and seeding objections...";
       msg.style.color = "var(--text-secondary)";
 
       const siteKey = generateSiteKey();
 
       try {
+        // Step 1: Create Site
         const siteResponse = await fetch(`${SUPABASE_URL}/rest/v1/sites`, {
           method: "POST",
           headers: getHeaders(),
           body: JSON.stringify({
             user_id: currentUser ? currentUser.id : "anonymous",
             domain: domain,
-            site_key: siteKey,
-            label_1: "Found a bug / glitch",
-            label_2: "UI feels confusing",
-            label_3: "Page loads slowly",
-            label_4: "Missing core features",
-            counter_message: "Pulse captured! Thank you for helping us eliminate friction."
+            site_key: siteKey
           })
         });
 
@@ -829,9 +809,29 @@
           throw new Error("Failed to register site: " + JSON.stringify(errData));
         }
 
+        // Step 2: Seed 4 default objections
+        const defaultObjections = [
+          { site_key: siteKey, label: "Price is too high", counter_message: "We offer flexible payment plans and a money-back guarantee." },
+          { site_key: siteKey, label: "Not sure if it works for me", counter_message: "Check out our case studies to see how we've helped similar customers." },
+          { site_key: siteKey, label: "I need to think about it", counter_message: "Don't miss out! This offer might expire soon." },
+          { site_key: siteKey, label: "Missing features I need", counter_message: "Contact our support! We might have a workaround." }
+        ];
+
+        const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify(defaultObjections)
+        });
+
+        if (!objResponse.ok) {
+          const errData = await objResponse.json();
+          throw new Error("Failed to seed objections: " + JSON.stringify(errData));
+        }
+
         msg.innerText = "Domain registered successfully!";
         msg.style.color = "var(--emerald)";
 
+        // Brief pause to show success, then navigate to dashboard
         setTimeout(() => {
           checkUserSites();
         }, 800);
@@ -912,24 +912,50 @@
       if (!currentSiteKey) return;
 
       try {
-        let currentSiteConfig = null;
+        let loadedObjections = [];
 
-        // Load Configuration
-        const siteResponse = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&site_key=eq.${currentSiteKey}`, {
+        // Load Objections
+        const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${currentSiteKey}`, {
           method: "GET",
           headers: getHeaders()
         });
+        if (objResponse.ok) {
+          loadedObjections = await objResponse.json();
+          const ul = document.getElementById("objections-list");
+          ul.innerHTML = "";
+          loadedObjections.forEach(obj => {
+            const li = document.createElement("li");
+            li.style.cssText = "display: flex; justify-content: space-between; align-items: flex-start;";
 
-        if (siteResponse.ok) {
-          const sites = await siteResponse.json();
-          if (sites.length > 0) {
-            currentSiteConfig = sites[0];
-            document.getElementById("label-1").value = currentSiteConfig.label_1 || "";
-            document.getElementById("label-2").value = currentSiteConfig.label_2 || "";
-            document.getElementById("label-3").value = currentSiteConfig.label_3 || "";
-            document.getElementById("label-4").value = currentSiteConfig.label_4 || "";
-            document.getElementById("counter-msg").value = currentSiteConfig.counter_message || "";
-          }
+            const contentDiv = document.createElement("div");
+            contentDiv.style.flex = "1";
+            contentDiv.innerHTML = `
+              <div style="font-weight: 500; margin-bottom: 6px; font-size: 16px;">${obj.label}</div>
+              <div class="text-muted text-sm">↳ ${obj.counter_message}</div>
+            `;
+
+            const actionsDiv = document.createElement("div");
+            actionsDiv.style.cssText = "display: flex; gap: 8px; margin-left: 16px;";
+
+            const editBtn = document.createElement("button");
+            editBtn.className = "ghost";
+            editBtn.style.cssText = "padding: 4px 8px; font-size: 13px;";
+            editBtn.innerText = "Edit";
+            editBtn.onclick = () => editObjection(obj.id, obj.label, obj.counter_message);
+
+            const delBtn = document.createElement("button");
+            delBtn.className = "ghost";
+            delBtn.style.cssText = "padding: 4px 8px; font-size: 13px; color: #ef4444;";
+            delBtn.innerText = "Delete";
+            delBtn.onclick = () => deleteObjection(obj.id);
+
+            actionsDiv.appendChild(editBtn);
+            actionsDiv.appendChild(delBtn);
+
+            li.appendChild(contentDiv);
+            li.appendChild(actionsDiv);
+            ul.appendChild(li);
+          });
         }
 
         // Load Stats (Requires authenticated headers to bypass RLS policies)
@@ -950,8 +976,8 @@
           const votes = await votesResponse.json();
           document.getElementById("stat-votes").innerText = votes.length || 0;
 
-          if (currentSiteConfig) {
-            updateChart(currentSiteConfig, votes);
+          if (loadedObjections.length > 0) {
+            updateChart(loadedObjections, votes);
           }
         }
       } catch (err) {
@@ -959,27 +985,19 @@
       }
     }
 
-    function updateChart(config, votes) {
+    function updateChart(objections, votes) {
       const ctx = document.getElementById('objectionsChart').getContext('2d');
 
-      const labelsMap = {
-        '1': config.label_1 || 'Option 1',
-        '2': config.label_2 || 'Option 2',
-        '3': config.label_3 || 'Option 3',
-        '4': config.label_4 || 'Option 4'
-      };
-
-      const voteCounts = { '1': 0, '2': 0, '3': 0, '4': 0 };
-
+      const voteCounts = {};
+      objections.forEach(obj => voteCounts[obj.id] = 0);
       votes.forEach(vote => {
-        const objId = String(vote.objection_id);
-        if (objId in voteCounts) {
-          voteCounts[objId]++;
+        if (vote.objection_id in voteCounts) {
+          voteCounts[vote.objection_id]++;
         }
       });
 
-      const labels = [labelsMap['1'], labelsMap['2'], labelsMap['3'], labelsMap['4']];
-      const data = [voteCounts['1'], voteCounts['2'], voteCounts['3'], voteCounts['4']];
+      const labels = objections.map(obj => obj.label);
+      const data = objections.map(obj => voteCounts[obj.id]);
 
       if (chartInstance) {
         chartInstance.destroy();
@@ -1020,48 +1038,99 @@
       });
     }
 
-    async function saveWidgetSettings() {
+    function toggleAddObjectionForm() {
+      const form = document.getElementById("add-objection-form");
+      if (form.classList.contains("hidden")) {
+        form.classList.remove("hidden");
+      } else {
+        form.classList.add("hidden");
+        document.getElementById("new-obj-label").value = '';
+        document.getElementById("new-obj-message").value = '';
+      }
+    }
+
+    async function addObjection() {
       if (!currentSiteKey) return;
+      const label = document.getElementById("new-obj-label").value.trim();
+      const message = document.getElementById("new-obj-message").value.trim();
+      const spinner = document.getElementById("add-obj-spinner");
 
-      const label1 = document.getElementById("label-1").value.trim();
-      const label2 = document.getElementById("label-2").value.trim();
-      const label3 = document.getElementById("label-3").value.trim();
-      const label4 = document.getElementById("label-4").value.trim();
-      const counterMsg = document.getElementById("counter-msg").value.trim();
-
-      const spinner = document.getElementById("save-settings-spinner");
-      const status = document.getElementById("save-settings-status");
+      if (!label || !message) {
+        alert("Please enter both a label and a counter message.");
+        return;
+      }
 
       spinner.classList.remove("hidden");
-      status.innerText = "Saving...";
-      status.style.color = "var(--text-secondary)";
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?site_key=eq.${currentSiteKey}`, {
-          method: "PATCH",
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
+          method: "POST",
           headers: getHeaders(),
           body: JSON.stringify({
-            label_1: label1,
-            label_2: label2,
-            label_3: label3,
-            label_4: label4,
-            counter_message: counterMsg
+            site_key: currentSiteKey,
+            label: label,
+            counter_message: message
           })
         });
 
-        if (!response.ok) throw new Error("Failed to save settings");
+        if (!response.ok) throw new Error("Failed to add objection");
 
-        status.innerText = "Settings saved successfully!";
-        status.style.color = "var(--emerald)";
+        toggleAddObjectionForm();
         loadSiteData();
       } catch (err) {
-        status.innerText = err.message;
-        status.style.color = "#ef4444";
+        alert(err.message);
       } finally {
         spinner.classList.add("hidden");
       }
     }
-    function switchTab(tabName) {
+
+    async function editObjection(id, currentLabel, currentMessage) {
+      const newLabel = prompt("Update Objection Label:", currentLabel);
+      if (newLabel === null) return;
+
+      const newMessage = prompt("Update Counter Message:", currentMessage);
+      if (newMessage === null) return;
+
+      if (!newLabel.trim() || !newMessage.trim()) {
+        alert("Fields cannot be empty.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, {
+          method: "PATCH",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            label: newLabel.trim(),
+            counter_message: newMessage.trim()
+          })
+        });
+
+        if (!response.ok) throw new Error("Failed to edit objection");
+
+        loadSiteData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteObjection(id) {
+      if (!confirm("Are you sure you want to delete this counter-message?")) return;
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, {
+          method: "DELETE",
+          headers: getHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to delete objection");
+
+        loadSiteData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+    window.switchTab = function(tabName) {
       const eventTarget = window.event.target || window.event.srcElement;
       const tabs = document.querySelectorAll(".tab");
       tabs.forEach(tab => tab.classList.remove("active"));
@@ -1074,7 +1143,7 @@
       document.getElementById("tab-support").classList.add("hidden");
 
       document.getElementById(`tab-${tabName}`).classList.remove("hidden");
-    }
+    };
 
     async function sendSupportMessage() {
       const subjectInput = document.getElementById("support-subject");
