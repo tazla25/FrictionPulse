@@ -430,22 +430,6 @@
     }
   }
 
-  // ─── EXIT INTENT ───
-  if (CONFIG.exitIntent && !isMobile) {
-    let exitIntentShown = false;
-    document.addEventListener('mouseout', e => {
-      if (exitIntentShown || isOpen) return;
-      if (e.clientY < 10 && e.relatedTarget === null) {
-        setTimeout(() => {
-          if (!isOpen) {
-            toggle(true);
-            exitIntentShown = true;
-          }
-        }, 500);
-      }
-    });
-  }
-
   // ─── INIT ───
   logView();
   fetchVisitorCount();
