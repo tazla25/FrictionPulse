@@ -1,6 +1,11 @@
 (function() {
   'use strict';
 
+  if (window.location.pathname.includes('dashboard.html')) {
+    console.log('Widget blocked on dashboard.');
+    return; // Stop execution
+  }
+
   // ─── CONFIG ───
   const scriptTag = document.currentScript || document.querySelector('script[src*="widget.js"],script[src*="widget-v2.js"]');
   const siteKey = scriptTag ? scriptTag.getAttribute('data-site-key') : null;
@@ -423,35 +428,6 @@
       badge.textContent = visitorCount;
       badge.style.display = visitorCount > 1 ? 'block' : 'none';
     }
-  }
-
-  // ─── EXIT INTENT ───
-  if (CONFIG.exitIntent && !isMobile) {
-    let exitIntentShown = false;
-    document.addEventListener('mouseout', e => {
-      if (exitIntentShown || isOpen) return;
-      if (e.clientY < 10 && e.relatedTarget === null) {
-        setTimeout(() => {
-          if (!isOpen) {
-            toggle(true);
-            exitIntentShown = true;
-          }
-        }, 500);
-      }
-    });
-  }
-
-  // Mobile: show after scroll depth
-  if (isMobile && CONFIG.exitIntent) {
-    let scrollShown = false;
-    window.addEventListener('scroll', () => {
-      if (scrollShown || isOpen) return;
-      const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
-      if (scrollPercent > 0.7) {
-        scrollShown = true;
-        setTimeout(() => { if (!isOpen) { toggle(true); } }, 2000);
-      }
-    });
   }
 
   // ─── INIT ───
