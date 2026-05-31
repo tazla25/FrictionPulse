@@ -77,7 +77,7 @@
 
   button.onclick = () => {
     isOpen = !isOpen;
-    popup.style.display = isOpen ? "block" : "none";
+    popup.style.setProperty('display', isOpen ? 'block' : 'none', 'important');
     if (isOpen && objections.length === 0) {
       loadObjections();
     }
