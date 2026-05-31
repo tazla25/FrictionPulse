@@ -141,6 +141,48 @@
       border: 1px solid rgba(255, 78, 17, 0.2);
       border-radius: 8px;
     }
+
+    #lead-form {
+      margin-top: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .lead-input {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.2);
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .lead-submit {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background: #FF4E11;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .lead-submit:hover {
+      background: #e0440f;
+    }
+
+    #lead-success {
+      margin-top: 16px;
+      display: none;
+      color: #27ae60;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
   `;
   shadowRoot.appendChild(style);
 
@@ -167,6 +209,35 @@
   const messageArea = document.createElement('div');
   messageArea.id = "message-area";
   popup.appendChild(messageArea);
+
+  const leadForm = document.createElement('form');
+  leadForm.id = "lead-form";
+
+  const leadPrompt = document.createElement('div');
+  leadPrompt.innerText = "Drop your email/phone and we'll send you a solution/discount!";
+  leadPrompt.style.fontSize = "13px";
+  leadPrompt.style.color = "#ccc";
+  leadForm.appendChild(leadPrompt);
+
+  const leadInput = document.createElement('input');
+  leadInput.type = "text";
+  leadInput.className = "lead-input";
+  leadInput.placeholder = "Email or Phone number";
+  leadInput.required = true;
+  leadForm.appendChild(leadInput);
+
+  const leadSubmit = document.createElement('button');
+  leadSubmit.type = "submit";
+  leadSubmit.className = "lead-submit";
+  leadSubmit.innerText = "Submit";
+  leadForm.appendChild(leadSubmit);
+
+  popup.appendChild(leadForm);
+
+  const leadSuccess = document.createElement('div');
+  leadSuccess.id = "lead-success";
+  leadSuccess.innerText = "Thank you! Our team will get back to you shortly.";
+  popup.appendChild(leadSuccess);
 
   widgetContainer.appendChild(popup);
   widgetContainer.appendChild(button);
@@ -233,6 +304,42 @@
 
     // Hide buttons
     objectionsContainer.style.display = "none";
+
+    // Show lead form
+    leadForm.style.display = "flex";
+
+    // Handle form submit
+    leadForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const val = leadInput.value.trim();
+      const isEmail = val.includes('@');
+
+      const payload = {
+        site_key: siteKey,
+        email: isEmail ? val : null,
+        phone: !isEmail ? val : null,
+        objection_id: obj.id,
+        objection_label: obj.label,
+        page_url: window.location.href
+      };
+
+      try {
+        const leadResponse = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(payload)
+        });
+
+        if (leadResponse.ok) {
+          leadForm.style.display = "none";
+          leadSuccess.style.display = "block";
+        } else {
+          console.error("FrictionPulse: Lead submission failed.");
+        }
+      } catch (err) {
+        console.error("FrictionPulse: Lead submission error.", err);
+      }
+    };
 
     // Log vote
     try {
