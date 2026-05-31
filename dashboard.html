@@ -356,6 +356,50 @@
 
     .text-muted { color: var(--text-secondary); }
     .text-sm { font-size: 14px; }
+
+    /* Leads Table Styling */
+    .leads-table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: rgba(0,0,0,0.2);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: rgba(255,255,255,0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: rgba(255, 78, 17, 0.15);
+      color: #FF4E11;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -443,6 +487,7 @@
       <div class="tab-container">
         <div class="tab active" onclick="switchTab('objections')">Configuration</div>
         <div class="tab" onclick="switchTab('stats')">Analytics</div>
+        <div class="tab" onclick="switchTab('leads')">Leads</div>
         <div class="tab" onclick="switchTab('support')">Support</div>
       </div>
 
@@ -480,6 +525,33 @@
         <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top: 30px;">
           <h4 style="margin-top: 0; margin-bottom: 20px;">Votes by Objection</h4>
           <canvas id="objectionsChart" style="max-height: 350px;"></canvas>
+        </div>
+      </div>
+
+      <div id="tab-leads" class="tab-content hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h4 style="margin: 0; font-size: 18px;">Captured Leads</h4>
+          <span id="leads-spinner" class="spinner hidden"></span>
+        </div>
+
+        <div id="leads-empty-state" class="hidden" style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+          <p style="color: var(--text-secondary); margin: 0;">No leads captured yet.</p>
+        </div>
+
+        <div id="leads-table-wrapper" class="leads-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Email / Phone</th>
+                <th>Objection</th>
+                <th>Page Source</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody">
+              <!-- Leads injected here -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1138,10 +1210,90 @@
 
       document.getElementById("tab-objections").classList.add("hidden");
       document.getElementById("tab-stats").classList.add("hidden");
+      document.getElementById("tab-leads").classList.add("hidden");
       document.getElementById("tab-support").classList.add("hidden");
 
       document.getElementById(`tab-${tabName}`).classList.remove("hidden");
+
+      if (tabName === 'leads') {
+        loadLeads();
+      }
     };
+
+    async function loadLeads() {
+      if (!currentSiteKey) return;
+
+      const tbody = document.getElementById("leads-tbody");
+      const emptyState = document.getElementById("leads-empty-state");
+      const tableWrapper = document.getElementById("leads-table-wrapper");
+      const spinner = document.getElementById("leads-spinner");
+
+      spinner.classList.remove("hidden");
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leads?site_key=eq.${currentSiteKey}&order=created_at.desc`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch leads");
+
+        const leads = await response.json();
+
+        if (leads.length === 0) {
+          emptyState.classList.remove("hidden");
+          tableWrapper.classList.add("hidden");
+        } else {
+          emptyState.classList.add("hidden");
+          tableWrapper.classList.remove("hidden");
+
+          tbody.innerHTML = "";
+          leads.forEach(lead => {
+            const tr = document.createElement("tr");
+
+            const contactStr = lead.email ? lead.email : (lead.phone ? lead.phone : '-');
+            const dateStr = new Date(lead.created_at).toLocaleString();
+
+            // Email/Phone Cell
+            const contactTd = document.createElement("td");
+            contactTd.style.fontWeight = "500";
+            contactTd.textContent = contactStr;
+            tr.appendChild(contactTd);
+
+            // Objection Cell
+            const objectionTd = document.createElement("td");
+            const badgeSpan = document.createElement("span");
+            badgeSpan.className = "badge";
+            badgeSpan.textContent = lead.objection_label || '-';
+            objectionTd.appendChild(badgeSpan);
+            tr.appendChild(objectionTd);
+
+            // Page Source Cell
+            const pageTd = document.createElement("td");
+            pageTd.style.color = "var(--text-secondary)";
+            pageTd.style.maxWidth = "200px";
+            pageTd.style.overflow = "hidden";
+            pageTd.style.textOverflow = "ellipsis";
+            pageTd.style.whiteSpace = "nowrap";
+            pageTd.title = lead.page_url || '';
+            pageTd.textContent = lead.page_url || '-';
+            tr.appendChild(pageTd);
+
+            // Date Cell
+            const dateTd = document.createElement("td");
+            dateTd.style.color = "var(--text-secondary)";
+            dateTd.textContent = dateStr;
+            tr.appendChild(dateTd);
+
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading leads:", err);
+      } finally {
+        spinner.classList.add("hidden");
+      }
+    }
 
     async function sendSupportMessage() {
       const subjectInput = document.getElementById("support-subject");
