@@ -446,19 +446,6 @@
     });
   }
 
-  // Mobile: show after scroll depth
-  if (isMobile && CONFIG.exitIntent) {
-    let scrollShown = false;
-    window.addEventListener('scroll', () => {
-      if (scrollShown || isOpen) return;
-      const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
-      if (scrollPercent > 0.7) {
-        scrollShown = true;
-        setTimeout(() => { if (!isOpen) { toggle(true); } }, 2000);
-      }
-    });
-  }
-
   // ─── INIT ───
   logView();
   fetchVisitorCount();
