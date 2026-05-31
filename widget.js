@@ -24,7 +24,7 @@
   };
 
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-  const position = isMobile ? 'bottom-center' : 'bottom-right';
+  const position = 'bottom-right';
 
   // ─── SESSION ───
   let sessionHash = sessionStorage.getItem('fp_session_hash');
@@ -167,8 +167,8 @@
     .fp-footer a:hover { color: ${CONFIG.primaryColor}; }
 
     @media (max-width: 480px) {
-      .fp-popup { width: calc(100vw - 32px); left: 50% !important; transform: translateX(-50%) translateY(10px); }
-      .fp-popup.open { transform: translateX(-50%) translateY(0); }
+      .fp-popup { width: calc(100vw - 40px); right: 0 !important; left: auto !important; transform: translateY(10px); }
+      .fp-popup.open { transform: translateY(0); }
     }
   `;
   shadow.appendChild(style);
