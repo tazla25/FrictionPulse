@@ -66,7 +66,7 @@
   // ─── SHADOW DOM SETUP ───
   const host = document.createElement('div');
   host.id = 'fp-widget-host';
-  host.style.cssText = 'position:fixed;z-index:2147483647;bottom:0;right:0;width:0;height:0;overflow:visible;';
+  host.style.cssText = 'position:fixed;z-index:2147483647;bottom:0;left:0;width:100%;height:0;overflow:visible;';
   document.body.appendChild(host);
 
   const shadow = host.attachShadow({ mode: 'open' });
