@@ -1,6 +1,5 @@
 (function() {
-  // FrictionPulse Widget
-  // Fallback to querySelector if currentScript is null (e.g. async/defer loading)
+  // FrictionPulse Widget v2
   const scriptTag = document.currentScript || document.querySelector('script[src*="widget.js"]');
   const siteKey = scriptTag ? scriptTag.getAttribute('data-site-key') : null;
 
@@ -34,52 +33,166 @@
 
   let objections = [];
 
+  // Create Shadow DOM Host
+  const host = document.createElement('div');
+  host.id = 'frictionpulse-widget-host';
+  document.body.appendChild(host);
 
-  // Create Widget UI
+  const shadowRoot = host.attachShadow({ mode: 'open' });
+
+  // Inject Styles into Shadow DOM
+  const style = document.createElement('style');
+  style.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+    #frictionpulse-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 99999;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .frictionpulse-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      background-color: #0D0E12;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      padding: 0;
+      margin: 0;
+    }
+
+    .frictionpulse-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 40px rgba(255, 78, 17, 0.2);
+    }
+
+    #frictionpulse-popup {
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 320px;
+      background: linear-gradient(145deg, rgba(19, 21, 26, 0.95), rgba(13, 14, 18, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      color: #FFFFFF;
+      box-sizing: border-box;
+
+      /* Hidden state / Smooth sliding */
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    }
+
+    #frictionpulse-popup.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .objection-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 12px 16px;
+      background: #0D0E12;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .objection-btn:hover {
+      border-color: rgba(255, 78, 17, 0.5);
+      background: rgba(255, 78, 17, 0.05);
+    }
+
+    #message-area {
+      margin-top: 16px;
+      font-weight: 500;
+      color: #FF4E11;
+      display: none;
+      line-height: 1.5;
+      font-size: 14px;
+      padding: 12px;
+      background: rgba(255, 78, 17, 0.1);
+      border: 1px solid rgba(255, 78, 17, 0.2);
+      border-radius: 8px;
+    }
+  `;
+  shadowRoot.appendChild(style);
+
+  // Widget Container
   const widgetContainer = document.createElement('div');
   widgetContainer.id = "frictionpulse-widget";
-  widgetContainer.style.cssText = "position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 99999 !important; font-family: 'Inter', sans-serif !important;";
 
+  // Button
   const button = document.createElement('button');
-  button.className = "frictionpulse-btn-isolated";
-  button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block !important; margin: auto !important;"><circle cx="12" cy="12" r="10" stroke="rgba(255, 78, 17, 0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255, 78, 17, 0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>';
+  button.className = "frictionpulse-btn";
+  button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: auto;"><circle cx="12" cy="12" r="10" stroke="rgba(255, 78, 17, 0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255, 78, 17, 0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>';
 
-  // Apply isolated CSS text with !important
-  const baseButtonStyles = "all: initial !important; width: 56px !important; height: 56px !important; border-radius: 28px !important; background-color: #0D0E12 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; transition: transform 0.2s ease, box-shadow 0.2s ease !important; padding: 0 !important; margin: 0 !important;";
-  button.style.cssText = baseButtonStyles;
-
-  button.onmouseover = () => { button.style.cssText = baseButtonStyles + " transform: scale(1.05) !important; box-shadow: 0 12px 40px rgba(255, 78, 17, 0.2) !important;"; };
-  button.onmouseout = () => { button.style.cssText = baseButtonStyles; };
-
+  // Popup
   const popup = document.createElement('div');
-  popup.style.cssText = "all: initial !important; display: none !important; position: absolute !important; bottom: 70px !important; right: 0 !important; width: 320px !important; background: linear-gradient(145deg, rgba(19, 21, 26, 0.95), rgba(13, 14, 18, 0.98)) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 16px !important; padding: 24px !important; box-shadow: 0 16px 40px rgba(0,0,0,0.5) !important; backdrop-filter: blur(12px) !important; color: #FFFFFF !important; font-family: 'Inter', sans-serif !important; box-sizing: border-box !important;";
+  popup.id = "frictionpulse-popup";
 
   const title = document.createElement('h3');
   title.innerText = "Any concerns before you buy?";
-  title.style.cssText = "margin-top: 0 !important; margin-bottom: 16px !important; font-size: 16px !important; font-weight: 600 !important; color: #FFFFFF !important;";
   popup.appendChild(title);
-
 
   const objectionsContainer = document.createElement('div');
   popup.appendChild(objectionsContainer);
 
   const messageArea = document.createElement('div');
-  messageArea.style.cssText = "margin-top: 16px !important; font-weight: 500 !important; color: #FF4E11 !important; display: none !important; line-height: 1.5 !important; font-size: 14px !important; padding: 12px !important; background: rgba(255, 78, 17, 0.1) !important; border: 1px solid rgba(255, 78, 17, 0.2) !important; border-radius: 8px !important;";
+  messageArea.id = "message-area";
   popup.appendChild(messageArea);
 
   widgetContainer.appendChild(popup);
   widgetContainer.appendChild(button);
-  document.body.appendChild(widgetContainer);
+  shadowRoot.appendChild(widgetContainer);
 
   let isOpen = false;
+  let hasTriggered = false; // Prevent multiple auto-triggers
 
-  button.onclick = () => {
-    isOpen = !isOpen;
-    popup.style.display = isOpen ? "block" : "none";
-    if (isOpen && objections.length === 0) {
-      loadObjections();
+  function toggleWidget(forceOpen = null) {
+    if (forceOpen !== null) {
+      isOpen = forceOpen;
+    } else {
+      isOpen = !isOpen;
     }
-  };
+
+    if (isOpen) {
+      popup.classList.add('open');
+      if (objections.length === 0) {
+        loadObjections();
+      }
+    } else {
+      popup.classList.remove('open');
+    }
+  }
+
+  button.onclick = () => toggleWidget();
 
   async function loadObjections() {
     objectionsContainer.innerHTML = "Loading...";
@@ -107,9 +220,7 @@
     objections.forEach(obj => {
       const btn = document.createElement('button');
       btn.innerText = obj.label;
-      btn.style.cssText = "display: block !important; width: 100% !important; margin-bottom: 10px !important; padding: 12px 16px !important; background: #0D0E12 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 8px !important; cursor: pointer !important; text-align: left !important; color: #FFFFFF !important; font-size: 14px !important; font-weight: 500 !important; transition: all 0.2s !important;";
-      btn.onmouseover = () => { btn.style.setProperty('border-color', 'rgba(255, 78, 17, 0.5)', 'important'); btn.style.setProperty('background', 'rgba(255, 78, 17, 0.05)', 'important'); };
-      btn.onmouseout = () => { btn.style.setProperty('border-color', 'rgba(255, 255, 255, 0.08)', 'important'); btn.style.setProperty('background', '#0D0E12', 'important'); };
+      btn.className = 'objection-btn';
       btn.onclick = () => handleVote(obj);
       objectionsContainer.appendChild(btn);
     });
@@ -170,5 +281,51 @@
 
   // Initial view log
   logView();
+
+  // --- TRIGGERS ---
+
+  function triggerOpen() {
+    if (!hasTriggered && !isOpen) {
+      hasTriggered = true;
+      toggleWidget(true);
+    }
+  }
+
+  // 1. Exit Intent Trigger (Desktop)
+  document.addEventListener("mouseleave", (e) => {
+    // If the mouse pointer moves toward the top of the screen (clientY < 20)
+    if (e.clientY < 20) {
+      triggerOpen();
+    }
+  });
+
+  // 2. Scroll Depth & Delay Trigger (Mobile/General)
+  let scrollTimeout;
+  window.addEventListener("scroll", () => {
+    if (hasTriggered) return;
+
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+
+    // Only calculate percentage if there is scrollable content
+    if (scrollHeight > 0) {
+      const scrollPercentage = (scrollTop / scrollHeight) * 100;
+
+      if (scrollPercentage >= 70) {
+        // If not already waiting to trigger
+        if (!scrollTimeout) {
+          scrollTimeout = setTimeout(() => {
+            triggerOpen();
+          }, 2000); // 2-second delay
+        }
+      } else {
+        // Clear timeout if user scrolls back up before 2 seconds
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+          scrollTimeout = null;
+        }
+      }
+    }
+  });
 
 })();
