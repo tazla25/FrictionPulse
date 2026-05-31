@@ -315,14 +315,9 @@
 
     content.innerHTML = html;
 
-    if (!isLeadWorthy) {
-      const closeShoppingBtn = content.querySelector('#fp-close-shopping');
-      if (closeShoppingBtn) {
-        closeShoppingBtn.onclick = (e) => {
-          e.preventDefault();
-          toggle(false);
-        };
-      }
+    const closeShoppingBtn = content.querySelector('#fp-close-shopping');
+    if (closeShoppingBtn) {
+      closeShoppingBtn.onclick = (e) => { e.preventDefault(); toggle(false); };
     }
 
     if (CONFIG.leadCapture && isLeadWorthy) {
