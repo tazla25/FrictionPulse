@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FrictionPulse - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>eruda.init();</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -902,7 +900,7 @@
       document.getElementById("current-site-title").innerText = site.domain;
       document.getElementById("current-site-key").innerText = site.site_key;
 
-      const widgetUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '') + 'widget.js';
+      const widgetUrl = 'https://frictionpulse.vercel.app/widget.js';
       document.getElementById("embed-code").value = `<script src="${widgetUrl}" data-site-key="${site.site_key}"><\/script>`;
 
       loadSiteData();
