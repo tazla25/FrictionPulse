@@ -1,6 +1,11 @@
 (function() {
   'use strict';
 
+  if (window.location.pathname.includes('dashboard.html')) {
+    console.log('Widget blocked on dashboard.');
+    return; // Stop execution
+  }
+
   // ─── CONFIG ───
   const scriptTag = document.currentScript || document.querySelector('script[src*="widget.js"],script[src*="widget-v2.js"]');
   const siteKey = scriptTag ? scriptTag.getAttribute('data-site-key') : null;
