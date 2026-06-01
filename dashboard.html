@@ -1464,12 +1464,21 @@
           <!-- TAB: LEADS -->
           <div id="tab-leads" class="tab-content hidden">
             <div class="card">
-              <div class="card-header">
+              <div class="card-header" style="margin-bottom:16px;">
                 <div class="card-title">Captured Leads</div>
                 <div class="card-actions">
                   <button class="btn btn-ghost btn-sm" onclick="exportLeads()">📥 Export CSV</button>
                   <button class="btn btn-ghost btn-sm" onclick="loadLeads()">🔄 Refresh</button>
                 </div>
+              </div>
+              <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                <input type="text" id="leads-search" placeholder="Search email or phone..." style="flex:1;min-width:200px;padding:8px 12px;" />
+                <select id="leads-status-filter" style="width:auto;padding:8px 12px;cursor:pointer;">
+                  <option value="">All Statuses</option>
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="converted">Converted</option>
+                </select>
               </div>
               <div id="leads-container">
                 <div class="skeleton-card">
@@ -1573,9 +1582,12 @@
                 </label>
               </div>
 
-              <div style="display:flex;gap:10px;align-items:center;">
-                <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
-                <span id="settings-spinner" class="spinner hidden"></span>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
+                  <span id="settings-spinner" class="spinner hidden"></span>
+                </div>
+                <button onclick="deleteSite()" class="btn btn-danger">Delete Site</button>
               </div>
               <div id="settings-status" style="margin-top:16px;font-size:13px;font-weight:500;"></div>
             </div>
@@ -1820,9 +1832,24 @@
     async function renderSitesList(preloadedSites = null) {
       const list = document.getElementById("sites-list");
       const emptyState = document.getElementById("sites-empty-state");
-      list.innerHTML = ""; emptyState.classList.add("hidden");
+      emptyState.classList.add("hidden");
+
+      if (!preloadedSites) {
+        list.innerHTML = `
+          <div class="skeleton-card" style="min-height: 150px;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
+          <div class="skeleton-card" style="min-height: 150px;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
+        `;
+      }
+
       try {
         const sites = preloadedSites || await fetchSites();
+        list.innerHTML = "";
         if (sites.length === 0) { emptyState.classList.remove("hidden"); return; }
         sites.forEach(site => {
           const div = document.createElement("div");
@@ -2060,13 +2087,24 @@
         </div>
       `;
       try {
-        const leads = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        let query = `select=*&site_key=eq.${currentSiteKey}`;
+        const searchVal = document.getElementById('leads-search').value.trim();
+        const statusVal = document.getElementById('leads-status-filter').value;
+        if (searchVal) {
+          query += `&or=(email.ilike.*${encodeURIComponent(searchVal)}*,phone.ilike.*${encodeURIComponent(searchVal)}*)`;
+        }
+        if (statusVal) {
+          query += `&status=eq.${encodeURIComponent(statusVal)}`;
+        }
+        query += `&order=created_at.desc`;
+
+        const leads = await fetch(`${SUPABASE_URL}/rest/v1/leads?${query}`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
         if (leads.length === 0) {
           container.innerHTML = `
             <div class="empty-state">
               <div class="empty-state-icon">🎯</div>
-              <h3>No leads yet</h3>
-              <p>When visitors share their email or phone, they will appear here.</p>
+              <h3>No leads found</h3>
+              <p>Try adjusting your search or filters.</p>
             </div>
           `;
           return;
@@ -2334,14 +2372,49 @@
       finally { spinner.classList.add('hidden'); btn.disabled = false; }
     }
 
+    // ─── UTILS ───
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
     // ─── TOAST ───
+    const toastQueue = [];
+    let isToastShowing = false;
+
     function showToast(message, type = 'success') {
+      toastQueue.push({ message, type });
+      processToastQueue();
+    }
+
+    function processToastQueue() {
+      if (isToastShowing || toastQueue.length === 0) return;
+      isToastShowing = true;
+      const { message, type } = toastQueue.shift();
+
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
+      toast.style.transition = 'all 0.3s ease';
       toast.innerHTML = `<span style="font-size:20px;">${type === 'success' ? '✅' : '❌'}</span><span style="font-size:14px;font-weight:500;">${message}</span>`;
       container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          toast.remove();
+          isToastShowing = false;
+          processToastQueue();
+        }, 300);
+      }, 3000);
     }
 
     function copyToClipboard(text, successMsg) {
@@ -2380,6 +2453,11 @@
           closeModal();
         }
       });
+
+      // Setup Search/Filter Debounce for Leads
+      const debouncedLoadLeads = debounce(() => loadLeads(), 300);
+      document.getElementById('leads-search').addEventListener('input', debouncedLoadLeads);
+      document.getElementById('leads-status-filter').addEventListener('change', () => loadLeads());
     });
 
     function switchTab(tabName) {
@@ -2449,13 +2527,52 @@
       } catch (err) { showToast(err.message, 'error'); }
     }
 
-    async function deleteObjection(id) {
-      if (!confirm("Are you sure you want to delete this counter-message?")) return;
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, { method: "DELETE", headers: getHeaders() });
-        if (!response.ok) throw new Error("Failed to delete objection");
-        loadSiteData(); showToast('Objection deleted!', 'success');
-      } catch (err) { showToast(err.message, 'error'); }
+    function customConfirm(message, onConfirm) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay show';
+      overlay.style.zIndex = '300';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width: 400px;">
+          <div class="modal-header">
+            <div class="modal-title">Confirm Action</div>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+          </div>
+          <div style="font-size:14px; margin-bottom:24px; color:var(--text-secondary);">${message}</div>
+          <div class="modal-actions" style="justify-content: flex-end;">
+            <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-danger" id="confirm-yes-btn">Confirm</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.getElementById('confirm-yes-btn').onclick = () => {
+        overlay.remove();
+        onConfirm();
+      };
+    }
+
+    function deleteObjection(id) {
+      customConfirm("Are you sure you want to delete this counter-message?", async () => {
+        try {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, { method: "DELETE", headers: getHeaders() });
+          if (!response.ok) throw new Error("Failed to delete objection");
+          loadSiteData(); showToast('Objection deleted!', 'success');
+        } catch (err) { showToast(err.message, 'error'); }
+      });
+    }
+
+    function deleteSite() {
+      if (!currentSiteKey) return;
+      customConfirm("Are you sure you want to delete this site and all its data? This action cannot be undone.", async () => {
+        try {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?site_key=eq.${currentSiteKey}`, { method: "DELETE", headers: getHeaders() });
+          if (!response.ok) throw new Error("Failed to delete site");
+          showToast('Site deleted successfully!', 'success');
+          document.getElementById('site-dashboard').classList.add('hidden');
+          currentSiteKey = null;
+          checkUserSites();
+        } catch (err) { showToast(err.message, 'error'); }
+      });
     }
 
     // ─── SUPPORT ───
