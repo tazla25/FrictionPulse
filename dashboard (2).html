@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FrictionPulse — Merchant Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #050507;
+      --bg-elevated: #0A0A0F;
+      --surface: #111118;
+      --surface-hover: #181820;
+      --sidebar: #0C0C12;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-strong: rgba(255, 255, 255, 0.1);
+      --accent: #FF4E11;
+      --accent-glow: rgba(255, 78, 17, 0.4);
+      --accent-secondary: #00D4FF;
+      --text: #FAFAFA;
+      --text-secondary: #8A8F98;
+      --text-muted: #4A4D55;
+      --success: #00E676;
+      --warning: #FFB300;
+      --danger: #FF5252;
+      --gradient-1: linear-gradient(135deg, #FF4E11 0%, #FF8A00 100%);
+      --glass: rgba(255, 255, 255, 0.03);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    ::selection { background: rgba(255, 78, 17, 0.3); color: #fff; }
+
+    /* App Layout */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      width: 260px;
+      height: 100vh;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--gradient-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 20px rgba(255, 78, 17, 0.3);
+    }
+
+    .logo-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .logo-text span {
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 16px 12px 8px;
+      font-weight: 600;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .nav-item:hover {
+      background: var(--glass);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(255,78,17,0.1), rgba(255,138,0,0.05));
+      color: var(--accent);
+      border: 1px solid rgba(255,78,17,0.15);
+    }
+
+    .nav-item .icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--gradient-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-email {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(5,5,7,0.8);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      text-decoration: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--gradient-1);
+      color: white;
+      box-shadow: 0 4px 20px rgba(255, 78, 17, 0.3);
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(255, 78, 17, 0.4); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+    }
+
+    .btn-ghost:hover { background: var(--glass); }
+
+    .btn-danger {
+      background: rgba(255, 82, 82, 0.1);
+      border: 1px solid rgba(255, 82, 82, 0.2);
+      color: var(--danger);
+    }
+
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      padding: 32px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-hover) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-text { height: 16px; margin-bottom: 8px; }
+    .skeleton-text.sm { height: 12px; width: 60%; }
+    .skeleton-title { height: 24px; width: 40%; margin-bottom: 16px; }
+    .skeleton-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .skeleton-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .skeleton-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .skeleton-stat-value { height: 36px; width: 60%; margin-bottom: 8px; }
+    .skeleton-stat-label { height: 14px; width: 40%; }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--gradient-1);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .stat-card:hover::before { opacity: 1; }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .stat-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: linear-gradient(135deg, rgba(255,78,17,0.1), rgba(255,138,0,0.05));
+      border: 1px solid rgba(255,78,17,0.15);
+    }
+
+    .stat-trend {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(0, 230, 118, 0.1);
+      color: var(--success);
+    }
+
+    .stat-trend.down {
+      background: rgba(255, 82, 82, 0.1);
+      color: var(--danger);
+    }
+
+    .stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: all 0.3s;
+    }
+
+    .card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 12px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-new { background: rgba(255, 78, 17, 0.1); color: var(--accent); border: 1px solid rgba(255, 78, 17, 0.2); }
+    .badge-contacted { background: rgba(255, 179, 0, 0.1); color: var(--warning); border: 1px solid rgba(255, 179, 0, 0.2); }
+    .badge-converted { background: rgba(0, 230, 118, 0.1); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.2); }
+    .badge-unread { background: rgba(255, 78, 17, 0.1); color: var(--accent); border: 1px solid rgba(255, 78, 17, 0.2); }
+    .badge-read { background: rgba(74, 77, 85, 0.2); color: var(--text-muted); border: 1px solid var(--border-strong); }
+
+    /* Embed Block */
+    .embed-block {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      transition: border-color 0.3s;
+    }
+
+    .embed-block:hover { border-color: rgba(255, 78, 17, 0.3); }
+
+    .embed-header {
+      display: flex;
+      gap: 6px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+
+    .embed-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .embed-dot:nth-child(1) { background: rgba(255, 82, 82, 0.4); }
+    .embed-dot:nth-child(2) { background: rgba(255, 179, 0, 0.4); }
+    .embed-dot:nth-child(3) { background: rgba(0, 230, 118, 0.4); }
+    .embed-title { font-size: 11px; color: var(--text-muted); margin-left: 8px; letter-spacing: 0.05em; font-weight: 600; }
+
+    .embed-block textarea {
+      margin: 0;
+      background: transparent;
+      font-family: 'SF Mono', Monaco, monospace;
+      color: var(--accent);
+      border: none;
+      font-size: 13px;
+      white-space: pre;
+      overflow-x: auto;
+      min-height: 56px;
+      padding: 20px;
+      box-shadow: none;
+      width: 100%;
+      border-radius: 0;
+      resize: none;
+      color: var(--accent-secondary);
+    }
+
+    .embed-block textarea:focus { outline: none; background: rgba(0, 212, 255, 0.02); }
+
+    /* Form Elements */
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 78, 17, 0.1);
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+
+    /* Color Picker */
+    .color-picker {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .color-option:hover { transform: scale(1.1); }
+    .color-option.active { border-color: white; box-shadow: 0 0 0 2px var(--accent); }
+    .color-option.active::after {
+      content: '✓';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Objections List */
+    .objection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+
+    .objection-item:hover {
+      border-color: var(--border-strong);
+      transform: translateX(4px);
+    }
+
+    .objection-content { flex: 1; }
+
+    .objection-label {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .objection-message {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .objection-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 16px;
+    }
+
+    /* Preview */
+    .preview-frame {
+      background: #f5f5f5;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      min-height: 400px;
+      border: 1px solid var(--border);
+    }
+
+    .preview-phone {
+      width: 320px;
+      height: 600px;
+      background: white;
+      border-radius: 24px;
+      border: 8px solid #1a1a1a;
+      margin: 20px auto;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .preview-phone-header {
+      background: #1a1a1a;
+      color: white;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .preview-phone-content {
+      padding: 20px;
+      color: #333;
+      font-family: sans-serif;
+      height: calc(100% - 36px);
+      overflow-y: auto;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: toastIn 0.3s ease;
+      max-width: 400px;
+      backdrop-filter: blur(20px);
+    }
+
+    .toast.success { border-color: rgba(0, 230, 118, 0.3); }
+    .toast.error { border-color: rgba(255, 82, 82, 0.3); }
+
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      color: var(--text-secondary);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    /* Auth Card */
+    .auth-layout {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .auth-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+      animation: orbFloat 25s ease-in-out infinite;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+
+    .auth-card .logo-mark {
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-card h2 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .auth-card .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    /* Sites Grid */
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .site-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .site-card:hover {
+      border-color: rgba(255, 78, 17, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+
+    .site-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 16px 40px rgba(255,78,17,0.1);
+    }
+
+    .site-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--gradient-1);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .site-card:hover::before, .site-card.active::before { opacity: 1; }
+
+    .site-domain {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .site-key {
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    .site-meta {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .site-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .site-meta-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .site-meta-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    /* Mobile */
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .app-layout { grid-template-columns: 1fr; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .mobile-toggle { display: block; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .skeleton-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .skeleton-stats { grid-template-columns: 1fr; }
+      .content-area { padding: 20px; }
+      .top-bar { padding: 0 16px; }
+      .auth-card { padding: 32px 24px; }
+      .sites-grid { grid-template-columns: 1fr; }
+    }
+
+    .hidden { display: none !important; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.1); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- VIEW: AUTH -->
+  <div id="view-auth" class="auth-layout">
+    <div class="auth-bg">
+      <div class="auth-orb" style="width:600px;height:600px;background:radial-gradient(circle,var(--accent),transparent 70%);top:-10%;left:-10%;animation-duration:28s;"></div>
+      <div class="auth-orb" style="width:500px;height:500px;background:radial-gradient(circle,var(--accent-secondary),transparent 70%);bottom:-10%;right:-10%;animation-delay:-10s;animation-duration:32s;"></div>
+    </div>
+
+    <div class="auth-card">
+      <div class="logo-mark">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">Friction<span>Pulse</span></div>
+      </div>
+      <h2>Welcome back</h2>
+      <p class="subtitle">Sign in to your merchant dashboard</p>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="merchant@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••" />
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button id="signin-btn" onclick="signInWithEmail()" class="btn btn-primary" style="flex:1;justify-content:center;">Sign In</button>
+        <button id="signup-btn" onclick="signUpWithEmail()" class="btn btn-ghost" style="flex:1;justify-content:center;">Sign Up</button>
+      </div>
+
+      <div id="auth-message" style="margin-top:20px;text-align:center;font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: ONBOARDING -->
+  <div id="view-onboarding" class="auth-layout hidden">
+    <div class="auth-bg">
+      <div class="auth-orb" style="width:600px;height:600px;background:radial-gradient(circle,var(--accent),transparent 70%);top:-10%;left:-10%;"></div>
+    </div>
+
+    <div class="auth-card" style="max-width:480px;">
+      <div class="logo-mark">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">Friction<span>Pulse</span></div>
+      </div>
+      <h2>Let's get started</h2>
+      <p class="subtitle">Add your first domain. We'll seed it with proven counter-objection templates.</p>
+
+      <div class="form-group">
+        <label>Store Domain</label>
+        <input type="text" id="domain" placeholder="e.g. store.com" />
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;">
+        <button id="register-btn" onclick="registerDomain()" class="btn btn-primary">Create Site</button>
+        <button id="cancel-onboarding-btn" class="btn btn-ghost hidden" onclick="showView('dashboard')">Cancel</button>
+        <span id="register-spinner" class="spinner hidden"></span>
+      </div>
+      <div id="register-message" style="margin-top:20px;font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: DASHBOARD -->
+  <div id="view-dashboard" class="app-layout hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="logo-mark">
+          <div class="logo-icon">⚡</div>
+          <div class="logo-text">Friction<span>Pulse</span></div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <button class="nav-item active" onclick="switchTab('overview')" data-tab="overview">
+          <span class="icon">📊</span>
+          <span>Analytics</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('objections')" data-tab="objections">
+          <span class="icon">⚙️</span>
+          <span>Configuration</span>
+        </button>
+
+        <div class="nav-section">Data</div>
+        <button class="nav-item" onclick="switchTab('leads')" data-tab="leads">
+          <span class="icon">🎯</span>
+          <span>Leads</span>
+          <span class="nav-badge" id="sidebar-leads-badge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('feedback')" data-tab="feedback">
+          <span class="icon">💬</span>
+          <span>Feedback</span>
+          <span class="nav-badge" id="sidebar-feedback-badge" style="display:none;">0</span>
+        </button>
+
+        <div class="nav-section">Tools</div>
+        <button class="nav-item" onclick="switchTab('preview')" data-tab="preview">
+          <span class="icon">👁️</span>
+          <span>Widget Preview</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('settings')" data-tab="settings">
+          <span class="icon">🔧</span>
+          <span>Settings</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('support')" data-tab="support">
+          <span class="icon">🎧</span>
+          <span>Support</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="user-avatar">M</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">Merchant</div>
+            <div class="user-email" id="user-email">Loading...</div>
+          </div>
+          <button onclick="logout()" class="btn btn-ghost btn-sm" style="padding:6px;">🚪</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+          <h1 class="page-title" id="page-title">Analytics</h1>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openNewSiteFlow()">+ New Site</button>
+          <button class="btn btn-primary btn-sm" onclick="refreshData()">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <!-- Sites List -->
+        <div id="sites-section">
+          <div id="sites-empty-state" class="empty-state hidden">
+            <div class="empty-state-icon">📭</div>
+            <h3>No sites found</h3>
+            <p>Create your first site to get started</p>
+            <button onclick="openNewSiteFlow()" class="btn btn-primary" style="margin-top:16px;">Create Site</button>
+          </div>
+          <div id="sites-list" class="sites-grid"></div>
+        </div>
+
+        <!-- Site Dashboard -->
+        <div id="site-dashboard" class="hidden">
+          <div style="margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+              <div>
+                <h2 id="current-site-title" style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px;"></h2>
+                <div id="current-site-key" style="font-family:'SF Mono',monospace;font-size:12px;color:var(--text-muted);"></div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <span class="badge badge-new">Active</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Embed Code -->
+          <div style="margin-bottom:8px;">
+            <label style="margin-bottom:4px;">Embed Code</label>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Paste this before the closing &lt;/body&gt; tag</p>
+          </div>
+          <div class="embed-block">
+            <div class="embed-header">
+              <div class="embed-dot"></div>
+              <div class="embed-dot"></div>
+              <div class="embed-dot"></div>
+              <div class="embed-title">frictionpulse-snippet.html</div>
+            </div>
+            <textarea id="embed-code" rows="1" readonly onclick="this.select();copyToClipboard(this.value,'Embed code copied!')"></textarea>
+          </div>
+
+          <!-- TAB: OVERVIEW -->
+          <div id="tab-overview" class="tab-content">
+            <!-- Skeleton Loading -->
+            <div id="overview-skeleton">
+              <div class="skeleton-stats">
+                <div class="skeleton-stat">
+                  <div class="skeleton skeleton-stat-value"></div>
+                  <div class="skeleton skeleton-stat-label"></div>
+                </div>
+                <div class="skeleton-stat">
+                  <div class="skeleton skeleton-stat-value"></div>
+                  <div class="skeleton skeleton-stat-label"></div>
+                </div>
+                <div class="skeleton-stat">
+                  <div class="skeleton skeleton-stat-value"></div>
+                  <div class="skeleton skeleton-stat-label"></div>
+                </div>
+                <div class="skeleton-stat">
+                  <div class="skeleton skeleton-stat-value"></div>
+                  <div class="skeleton skeleton-stat-label"></div>
+                </div>
+              </div>
+              <div class="skeleton-card">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton" style="height:200px;"></div>
+              </div>
+            </div>
+
+            <!-- Actual Content -->
+            <div id="overview-content" class="hidden">
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-header">
+                    <div class="stat-icon">👁️</div>
+                    <div class="stat-trend">+12%</div>
+                  </div>
+                  <div class="stat-value" id="stat-views">0</div>
+                  <div class="stat-label">Widget Views</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-header">
+                    <div class="stat-icon">🗳️</div>
+                    <div class="stat-trend">+8%</div>
+                  </div>
+                  <div class="stat-value" id="stat-votes">0</div>
+                  <div class="stat-label">Total Votes</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-header">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-trend">+24%</div>
+                  </div>
+                  <div class="stat-value" id="stat-leads">0</div>
+                  <div class="stat-label">Leads Captured</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-header">
+                    <div class="stat-icon">💬</div>
+                    <div class="stat-trend down">-3%</div>
+                  </div>
+                  <div class="stat-value" id="stat-feedback">0</div>
+                  <div class="stat-label">Feedback Received</div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Votes by Objection</div>
+                  <div class="card-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="loadSiteData()">🔄 Refresh</button>
+                  </div>
+                </div>
+                <canvas id="objectionsChart" style="max-height:350px;"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: CONFIGURATION -->
+          <div id="tab-objections" class="tab-content hidden">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Configured Counter-Messages</div>
+                <button class="btn btn-primary btn-sm" onclick="toggleAddObjectionForm()">+ Add Objection</button>
+              </div>
+
+              <div id="add-objection-form" class="hidden" style="background:var(--bg-elevated);padding:20px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
+                <div class="form-group">
+                  <label>Objection Label</label>
+                  <input type="text" id="new-obj-label" placeholder="e.g. Price is too high" />
+                </div>
+                <div class="form-group">
+                  <label>Counter Message</label>
+                  <textarea id="new-obj-message" rows="2" placeholder="e.g. Get 10% off with code WELCOME"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <button onclick="addObjection()" class="btn btn-primary">Save Objection</button>
+                  <button onclick="toggleAddObjectionForm()" class="btn btn-ghost">Cancel</button>
+                  <span id="add-obj-spinner" class="spinner hidden"></span>
+                </div>
+              </div>
+
+              <div id="objections-list"></div>
+            </div>
+          </div>
+
+          <!-- TAB: LEADS -->
+          <div id="tab-leads" class="tab-content hidden">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Captured Leads</div>
+                <div class="card-actions">
+                  <button class="btn btn-ghost btn-sm" onclick="exportLeads()">📥 Export CSV</button>
+                  <button class="btn btn-ghost btn-sm" onclick="loadLeads()">🔄 Refresh</button>
+                </div>
+              </div>
+              <div id="leads-container">
+                <div class="skeleton-card">
+                  <div class="skeleton skeleton-title"></div>
+                  <div class="skeleton skeleton-text"></div>
+                  <div class="skeleton skeleton-text"></div>
+                  <div class="skeleton skeleton-text"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: FEEDBACK -->
+          <div id="tab-feedback" class="tab-content hidden">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Customer Feedback</div>
+                <div class="card-actions">
+                  <button class="btn btn-ghost btn-sm" onclick="loadFeedback()">🔄 Refresh</button>
+                </div>
+              </div>
+              <div id="feedback-container">
+                <div class="skeleton-card">
+                  <div class="skeleton skeleton-title"></div>
+                  <div class="skeleton skeleton-text"></div>
+                  <div class="skeleton skeleton-text"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: PREVIEW -->
+          <div id="tab-preview" class="tab-content hidden">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Live Widget Preview</div>
+                <div class="card-actions">
+                  <button class="btn btn-ghost btn-sm" id="preview-desktop-btn" onclick="setPreviewMode('desktop')">🖥️ Desktop</button>
+                  <button class="btn btn-ghost btn-sm" id="preview-mobile-btn" onclick="setPreviewMode('mobile')">📱 Mobile</button>
+                </div>
+              </div>
+              <div class="preview-frame" id="preview-container">
+                <div class="preview-phone" id="preview-phone">
+                  <div class="preview-phone-header">9:41</div>
+                  <div class="preview-phone-content">
+                    <h4 style="margin:0 0 8px;color:#1a1a1a;">Awesome T-Shirt</h4>
+                    <p style="color:#666;font-size:13px;margin:0 0 16px;">Premium cotton, perfect fit. Available in 5 colors.</p>
+                    <p style="font-weight:700;font-size:18px;margin:0 0 16px;color:#1a1a1a;">$29.99</p>
+                    <button style="width:100%;padding:12px;background:#1a1a1a;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Add to Cart</button>
+                  </div>
+                </div>
+              </div>
+              <p style="margin-top:16px;text-align:center;font-size:13px;color:var(--text-muted);">Click the widget button in the preview to test the flow</p>
+            </div>
+          </div>
+
+          <!-- TAB: SETTINGS -->
+          <div id="tab-settings" class="tab-content hidden">
+            <div class="card" style="max-width:600px;">
+              <div class="card-header">
+                <div class="card-title">Widget Settings</div>
+              </div>
+
+              <div class="form-group">
+                <label>Widget Primary Color</label>
+                <div class="color-picker" id="color-picker">
+                  <div class="color-option active" style="background:#FF4E11;" data-color="#FF4E11" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#3B82F6;" data-color="#3B82F6" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#8B5CF6;" data-color="#8B5CF6" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#10B981;" data-color="#10B981" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#F59E0B;" data-color="#F59E0B" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#EC4899;" data-color="#EC4899" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#6366F1;" data-color="#6366F1" onclick="selectColor(this)"></div>
+                  <div class="color-option" style="background:#14B8A6;" data-color="#14B8A6" onclick="selectColor(this)"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Notification Email</label>
+                <input type="email" id="settings-email" placeholder="your@email.com" />
+              </div>
+
+              <div class="form-group">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                  <input type="checkbox" id="alert-new-lead" checked style="width:auto;margin:0;" />
+                  <span style="font-weight:400;">Notify me when a new lead is captured</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                  <input type="checkbox" id="alert-new-feedback" checked style="width:auto;margin:0;" />
+                  <span style="font-weight:400;">Notify me when new feedback is received</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                  <input type="checkbox" id="alert-daily-digest" style="width:auto;margin:0;" />
+                  <span style="font-weight:400;">Send daily digest email (9 AM)</span>
+                </label>
+              </div>
+
+              <div style="display:flex;gap:10px;align-items:center;">
+                <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
+                <span id="settings-spinner" class="spinner hidden"></span>
+              </div>
+              <div id="settings-status" style="margin-top:16px;font-size:13px;font-weight:500;"></div>
+            </div>
+          </div>
+
+          <!-- TAB: SUPPORT -->
+          <div id="tab-support" class="tab-content hidden">
+            <div class="card" style="max-width:600px;">
+              <div class="card-header">
+                <div class="card-title">Contact Merchant Support</div>
+              </div>
+              <p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px;">Have questions or facing an issue? Our technical team will get back to you within 24 hours.</p>
+
+              <div class="form-group">
+                <label>Subject</label>
+                <input type="text" id="support-subject" placeholder="e.g., Widget not loading on my site" />
+              </div>
+
+              <div class="form-group">
+                <label>Your Message</label>
+                <textarea id="support-message" rows="4" placeholder="Describe your problem in detail..."></textarea>
+              </div>
+
+              <div style="display:flex;gap:10px;align-items:center;">
+                <button onclick="sendSupportMessage()" class="btn btn-primary">Submit Message</button>
+                <span id="support-spinner" class="spinner hidden"></span>
+              </div>
+              <div id="support-status" style="margin-top:16px;font-size:13px;font-weight:500;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    const SUPABASE_URL = "https://amtalgsyuedgayxkxijw.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtdGFsZ3N5dWVkZ2F5eGt4aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MzQxNjksImV4cCI6MjA5NTUxMDE2OX0.Wan4ywifJJi7w1WEPyeJY6uQhtYsZm3ilZuCC2IEf_Y";
+    const WIDGET_URL = "https://frictionpulse.vercel.app/widget.js";
+
+    let currentUser = null;
+    let currentSession = null;
+    let currentSiteKey = null;
+    let chartInstance = null;
+    let previewMode = 'desktop';
+
+    function showView(viewName) {
+      document.getElementById('view-auth').classList.add('hidden');
+      document.getElementById('view-onboarding').classList.add('hidden');
+      document.getElementById('view-dashboard').classList.add('hidden');
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+      if (viewName === 'onboarding') {
+        document.getElementById('domain').value = '';
+        document.getElementById('register-message').innerText = '';
+        document.getElementById('register-spinner').classList.add('hidden');
+      }
+    }
+
+    function openNewSiteFlow() {
+      document.getElementById('cancel-onboarding-btn').classList.remove('hidden');
+      showView('onboarding');
+    }
+
+    function getHeaders(includeAuth = true) {
+      const headers = {
+        "apikey": SUPABASE_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      };
+      if (includeAuth && currentSession && currentSession.access_token) {
+        headers["Authorization"] = `Bearer ${currentSession.access_token}`;
+      } else {
+        headers["Authorization"] = `Bearer ${SUPABASE_KEY}`;
+      }
+      return headers;
+    }
+
+    // ─── AUTH ───
+    async function signUpWithEmail() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("auth-message");
+      const btn = document.getElementById("signup-btn");
+      if (!email || !password) { msg.innerText = "Please enter both email and password."; msg.style.color = "var(--danger)"; return; }
+      btn.disabled = true; msg.innerText = "Creating account..."; msg.style.color = "var(--text-secondary)";
+      try {
+        const redirectUrl = window.location.href.split('#')[0];
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(redirectUrl)}`, {
+          method: "POST", headers: getHeaders(false), body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.msg || data.error_description || data.message || "Failed to create account");
+        if (data.session) {
+          localStorage.setItem('fp_access_token', data.session.access_token);
+          if (data.session.refresh_token) localStorage.setItem('fp_refresh_token', data.session.refresh_token);
+          currentSession = data.session; currentUser = data.user; checkUserSites();
+        } else {
+          msg.innerText = "Check your email to confirm! (If you already have an account, please click sign in)"; msg.style.color = "var(--success)";
+        }
+      } catch (err) { msg.innerText = err.message; msg.style.color = "var(--danger)"; } finally { btn.disabled = false; }
+    }
+
+    async function signInWithEmail() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("auth-message");
+      const btn = document.getElementById("signin-btn");
+      if (!email || !password) { msg.innerText = "Please enter both email and password."; msg.style.color = "var(--danger)"; return; }
+      btn.disabled = true; msg.innerText = "Signing in..."; msg.style.color = "var(--text-secondary)";
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: "POST", headers: getHeaders(false), body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error_description || data.msg || "Invalid login credentials");
+        localStorage.setItem('fp_access_token', data.access_token);
+        if (data.refresh_token) localStorage.setItem('fp_refresh_token', data.refresh_token);
+        currentSession = { access_token: data.access_token }; currentUser = data.user;
+        checkUserSites();
+      } catch (err) { msg.innerText = err.message; msg.style.color = "var(--danger)"; } finally { btn.disabled = false; }
+    }
+
+    window.addEventListener('load', () => {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        if (accessToken) {
+          window.history.replaceState(null, null, window.location.pathname);
+          if (refreshToken) localStorage.setItem('fp_refresh_token', refreshToken);
+          authenticateWithToken(accessToken);
+        }
+      } else {
+        const persistedToken = localStorage.getItem('fp_access_token');
+        if (persistedToken) authenticateWithToken(persistedToken); else showView('auth');
+      }
+    });
+
+    async function handleTokenRefresh() {
+      const refreshToken = localStorage.getItem('fp_refresh_token');
+      if (!refreshToken) throw new Error("No refresh token available");
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+        method: "POST", headers: getHeaders(false), body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      if (!response.ok) throw new Error("Failed to refresh token");
+      const data = await response.json();
+      localStorage.setItem('fp_access_token', data.access_token);
+      localStorage.setItem('fp_refresh_token', data.refresh_token);
+      currentSession = { access_token: data.access_token }; currentUser = data.user;
+      return data.access_token;
+    }
+
+    async function authenticateWithToken(token) {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: "GET", headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error("Authentication failed");
+        const user = await response.json();
+        currentSession = { access_token: token }; currentUser = user;
+        localStorage.setItem('fp_access_token', token);
+        document.getElementById('user-name').innerText = user.email ? user.email.split('@')[0] : 'Merchant';
+        document.getElementById('user-email').innerText = user.email || 'anonymous';
+        document.getElementById('user-avatar').innerText = user.email ? user.email[0].toUpperCase() : 'M';
+        checkUserSites();
+      } catch (err) {
+        try { await handleTokenRefresh(); checkUserSites(); }
+        catch (refreshErr) {
+          localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_refresh_token');
+          showToast("Session expired. Please login again.", "error"); showView('auth');
+        }
+      }
+    }
+
+    function logout() {
+      currentSession = null; currentUser = null; currentSiteKey = null;
+      localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_refresh_token');
+      document.getElementById('email').value = ''; document.getElementById('auth-message').innerText = '';
+      showView('auth');
+    }
+
+    async function checkUserSites() {
+      const queryUserId = currentUser ? currentUser.id : "anonymous";
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, {
+          method: "GET", headers: getHeaders()
+        });
+        if (!response.ok) throw new Error("Failed to fetch sites");
+        const sites = await response.json();
+        if (sites.length === 0) {
+          document.getElementById('cancel-onboarding-btn').classList.add('hidden');
+          showView('onboarding');
+        } else {
+          showView('dashboard'); renderSitesList(sites);
+        }
+      } catch (err) { console.error(err); showToast("Error loading account data.", "error"); showView('auth'); }
+    }
+
+    function generateSiteKey() { return 'sk_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36); }
+
+    async function registerDomain() {
+      const domainInput = document.getElementById("domain");
+      const domain = domainInput.value.trim();
+      const spinner = document.getElementById("register-spinner");
+      const btn = document.getElementById("register-btn");
+      const msg = document.getElementById("register-message");
+      if (!domain) { msg.innerText = "Please enter a valid domain."; msg.style.color = "var(--danger)"; return; }
+      btn.disabled = true; spinner.classList.remove("hidden"); msg.innerText = "Registering and seeding objections..."; msg.style.color = "var(--text-secondary)";
+      const siteKey = generateSiteKey();
+      try {
+        const siteResponse = await fetch(`${SUPABASE_URL}/rest/v1/sites`, {
+          method: "POST", headers: getHeaders(),
+          body: JSON.stringify({ user_id: currentUser ? currentUser.id : "anonymous", domain: domain, site_key: siteKey })
+        });
+        if (!siteResponse.ok) { const errData = await siteResponse.json(); throw new Error("Failed to register site: " + JSON.stringify(errData)); }
+        const defaultObjections = [
+          { site_key: siteKey, label: "Price is too high", counter_message: "We offer a 10% first-order discount! Use code WELCOME10 at checkout." },
+          { site_key: siteKey, label: "Not sure about quality", counter_message: "Check our 500+ 5-star reviews and 30-day money-back guarantee." },
+          { site_key: siteKey, label: "Shipping cost / time", counter_message: "Free shipping on orders over $50. Delivery in 3-5 business days." },
+          { site_key: siteKey, label: "Need to think about it", counter_message: "This item is selling fast! 12 people added it to cart today." },
+          { site_key: siteKey, label: "Out of stock / wrong size", counter_message: "Enter your email below and we'll notify you the moment it's back!" }
+        ];
+        const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
+          method: "POST", headers: getHeaders(), body: JSON.stringify(defaultObjections)
+        });
+        if (!objResponse.ok) { const errData = await objResponse.json(); throw new Error("Failed to seed objections: " + JSON.stringify(errData)); }
+        msg.innerText = "Domain registered successfully!"; msg.style.color = "var(--success)";
+        setTimeout(() => checkUserSites(), 800);
+      } catch (err) { msg.innerText = err.message; msg.style.color = "var(--danger)"; } finally { btn.disabled = false; spinner.classList.add("hidden"); }
+    }
+
+    async function fetchSites() {
+      const queryUserId = currentUser ? currentUser.id : "anonymous";
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, { method: "GET", headers: getHeaders() });
+      if (!response.ok) throw new Error("Failed to fetch sites");
+      return await response.json();
+    }
+
+    async function renderSitesList(preloadedSites = null) {
+      const list = document.getElementById("sites-list");
+      const emptyState = document.getElementById("sites-empty-state");
+      list.innerHTML = ""; emptyState.classList.add("hidden");
+      try {
+        const sites = preloadedSites || await fetchSites();
+        if (sites.length === 0) { emptyState.classList.remove("hidden"); return; }
+        sites.forEach(site => {
+          const div = document.createElement("div");
+          div.className = "site-card";
+          div.innerHTML = `
+            <div class="site-domain">${site.domain}</div>
+            <div class="site-key">${site.site_key}</div>
+            <div class="site-meta">
+              <div class="site-meta-item">
+                <div class="site-meta-value" id="site-views-${site.site_key}">—</div>
+                <div class="site-meta-label">Views</div>
+              </div>
+              <div class="site-meta-item">
+                <div class="site-meta-value" id="site-leads-${site.site_key}">—</div>
+                <div class="site-meta-label">Leads</div>
+              </div>
+            </div>
+          `;
+          div.onclick = () => { 
+            document.querySelectorAll(".site-card").forEach(el => el.classList.remove("active")); 
+            div.classList.add("active"); 
+            selectSite(site); 
+          };
+          list.appendChild(div);
+          // Load quick stats
+          loadQuickStats(site.site_key);
+        });
+        if (!currentSiteKey && sites.length > 0) list.firstChild.click();
+      } catch (err) { console.error("Error loading sites list", err); }
+    }
+
+    async function loadQuickStats(siteKey) {
+      try {
+        const viewsRes = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${siteKey}`, { headers: getHeaders() });
+        if (viewsRes.ok) {
+          const views = await viewsRes.json();
+          const el = document.getElementById(`site-views-${siteKey}`);
+          if (el) el.innerText = views.length;
+        }
+        const leadsRes = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=id&site_key=eq.${siteKey}`, { headers: getHeaders() });
+        if (leadsRes.ok) {
+          const leads = await leadsRes.json();
+          const el = document.getElementById(`site-leads-${siteKey}`);
+          if (el) el.innerText = leads.length;
+        }
+      } catch (e) {}
+    }
+
+    function selectSite(site) {
+      currentSiteKey = site.site_key;
+      document.getElementById("site-dashboard").classList.remove("hidden");
+      document.getElementById("current-site-title").innerText = site.domain;
+      document.getElementById("current-site-key").innerText = site.site_key;
+      document.getElementById("embed-code").value = `<script src="${WIDGET_URL}" data-site-key="${site.site_key}"><\/script>`;
+      document.getElementById('settings-email').value = currentUser ? currentUser.email : '';
+      loadSiteData(); loadLeads(); loadFeedback(); loadSettings();
+    }
+
+    async function loadSiteData() {
+      if (!currentSiteKey) return;
+      // Show skeleton first
+      document.getElementById('overview-skeleton').classList.remove('hidden');
+      document.getElementById('overview-content').classList.add('hidden');
+
+      try {
+        let loadedObjections = [];
+        const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        if (objResponse.ok) { loadedObjections = await objResponse.json(); renderObjectionsList(loadedObjections); }
+
+        const viewsResponse = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        let viewsCount = 0;
+        if (viewsResponse.ok) { const views = await viewsResponse.json(); viewsCount = views.length; document.getElementById("stat-views").innerText = viewsCount; }
+
+        const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=objection_id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        let votesCount = 0;
+        if (votesResponse.ok) {
+          const votes = await votesResponse.json();
+          votesCount = votes.length;
+          document.getElementById("stat-votes").innerText = votesCount;
+          if (loadedObjections.length > 0) updateChart(loadedObjections, votes);
+        }
+
+        const leadsCountRes = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        let leadsCount = 0;
+        if (leadsCountRes.ok) { const leads = await leadsCountRes.json(); leadsCount = leads.length; document.getElementById("stat-leads").innerText = leadsCount; }
+
+        const feedbackCountRes = await fetch(`${SUPABASE_URL}/rest/v1/feedback?select=id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        let feedbackCount = 0;
+        if (feedbackCountRes.ok) { const fb = await feedbackCountRes.json(); feedbackCount = fb.length; document.getElementById("stat-feedback").innerText = feedbackCount; }
+
+        // Update sidebar badges
+        const badgeLeads = document.getElementById('sidebar-leads-badge');
+        const badgeFeedback = document.getElementById('sidebar-feedback-badge');
+        if (leadsCount > 0) { badgeLeads.innerText = leadsCount; badgeLeads.style.display = 'inline-flex'; }
+        else badgeLeads.style.display = 'none';
+        if (feedbackCount > 0) { badgeFeedback.innerText = feedbackCount; badgeFeedback.style.display = 'inline-flex'; }
+        else badgeFeedback.style.display = 'none';
+
+        // Hide skeleton, show content
+        document.getElementById('overview-skeleton').classList.add('hidden');
+        document.getElementById('overview-content').classList.remove('hidden');
+      } catch (err) { console.error("Error loading site data", err); }
+    }
+
+    function renderObjectionsList(objections) {
+      const ul = document.getElementById("objections-list");
+      ul.innerHTML = "";
+      objections.forEach(obj => {
+        const div = document.createElement("div");
+        div.className = "objection-item";
+        div.innerHTML = `
+          <div class="objection-content">
+            <div class="objection-label">${obj.label}</div>
+            <div class="objection-message">↳ ${obj.counter_message}</div>
+          </div>
+          <div class="objection-actions">
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editObjection('${obj.id}', '${obj.label.replace(/'/g,"\'")}', '${obj.counter_message.replace(/'/g,"\'")}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteObjection('${obj.id}')">Delete</button>
+          </div>
+        `;
+        ul.appendChild(div);
+      });
+    }
+
+    function updateChart(objections, votes) {
+      const ctx = document.getElementById('objectionsChart').getContext('2d');
+      const voteCounts = {}; objections.forEach(obj => voteCounts[obj.id] = 0);
+      votes.forEach(vote => { if (vote.objection_id in voteCounts) voteCounts[vote.objection_id]++; });
+      const labels = objections.map(obj => obj.label);
+      const data = objections.map(obj => voteCounts[obj.id]);
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Votes',
+            data: data,
+            backgroundColor: 'rgba(255, 78, 17, 0.8)',
+            borderColor: 'rgba(255, 78, 17, 1)',
+            borderWidth: 1,
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, ticks: { stepSize: 1, color: '#8A8F98', font: { family: 'Inter' } }, grid: { color: 'rgba(255, 255, 255, 0.03)' } },
+            y: { ticks: { color: '#8A8F98', font: { family: 'Inter', size: 12 } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ─── LEADS ───
+    async function loadLeads() {
+      if (!currentSiteKey) return;
+      const container = document.getElementById('leads-container');
+      container.innerHTML = `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text"></div>
+        </div>
+      `;
+      try {
+        const leads = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        if (leads.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🎯</div>
+              <h3>No leads yet</h3>
+              <p>When visitors share their email or phone, they will appear here.</p>
+            </div>
+          `;
+          return;
+        }
+        let html = `<table class="data-table"><thead><tr><th>Contact</th><th>Objection</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+        leads.forEach(lead => {
+          const date = new Date(lead.created_at).toLocaleDateString();
+          const contact = lead.email || lead.phone || 'N/A';
+          const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
+          const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
+          const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
+          html += `<tr>
+            <td><strong>${contact}</strong></td>
+            <td style="color:var(--text-secondary);font-size:13px;">${lead.objection_id || 'General'}</td>
+            <td style="color:var(--text-muted);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">${lead.page_url || '-'}</td>
+            <td><span class="badge ${statusClass}">${lead.status}</span></td>
+            <td style="color:var(--text-muted);font-size:12px;">${date}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (err) { console.error(err); container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading leads</p></div>'; }
+    }
+
+    async function updateLeadStatus(id, newStatus) {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+          method: "PATCH", headers: getHeaders(), body: JSON.stringify({ status: newStatus })
+        });
+        if (!response.ok) throw new Error("Failed to update");
+        showToast(`Lead marked as ${newStatus}`, 'success');
+        loadLeads(); loadSiteData();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    function exportLeads() {
+      if (!currentSiteKey) return;
+      fetch(`${SUPABASE_URL}/rest/v1/leads?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() })
+        .then(r => r.ok ? r.json() : [])
+        .then(leads => {
+          if (leads.length === 0) { showToast('No leads to export', 'error'); return; }
+          const csv = [
+            ['Email', 'Phone', 'Objection ID', 'Page URL', 'Status', 'Date'],
+            ...leads.map(l => [l.email || '', l.phone || '', l.objection_id || '', l.page_url || '', l.status, l.created_at])
+          ].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = `leads-${currentSiteKey}.csv`; a.click(); URL.revokeObjectURL(url);
+          showToast('CSV exported successfully!', 'success');
+        });
+    }
+
+    // ─── FEEDBACK ───
+    async function loadFeedback() {
+      if (!currentSiteKey) return;
+      const container = document.getElementById('feedback-container');
+      container.innerHTML = `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text"></div>
+        </div>
+      `;
+      try {
+        const feedback = await fetch(`${SUPABASE_URL}/rest/v1/feedback?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        if (feedback.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">💬</div>
+              <h3>No feedback yet</h3>
+              <p>When visitors write custom feedback, it will appear here.</p>
+            </div>
+          `;
+          return;
+        }
+        let html = `<table class="data-table"><thead><tr><th>Message</th><th>Contact</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+        feedback.forEach(fb => {
+          const date = new Date(fb.created_at).toLocaleDateString();
+          const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
+          html += `<tr>
+            <td style="max-width:300px;"><div style="font-weight:500;font-size:14px;margin-bottom:4px;">${fb.message.substring(0, 80)}${fb.message.length > 80 ? '...' : ''}</div></td>
+            <td style="color:var(--text-secondary);font-size:13px;">${fb.email || 'Anonymous'}</td>
+            <td style="color:var(--text-muted);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">${fb.page_url || '-'}</td>
+            <td><span class="badge ${statusClass}">${fb.status}</span></td>
+            <td style="color:var(--text-muted);font-size:12px;">${date}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark Read</button></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (err) { console.error(err); container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading feedback</p></div>'; }
+    }
+
+    async function updateFeedbackStatus(id, newStatus) {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/feedback?id=eq.${id}`, {
+          method: "PATCH", headers: getHeaders(), body: JSON.stringify({ status: newStatus })
+        });
+        if (!response.ok) throw new Error("Failed to update");
+        showToast('Feedback marked as read', 'success');
+        loadFeedback(); loadSiteData();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    // ─── PREVIEW ───
+    function setPreviewMode(mode) {
+      previewMode = mode;
+      const phone = document.getElementById('preview-phone');
+      const desktopBtn = document.getElementById('preview-desktop-btn');
+      const mobileBtn = document.getElementById('preview-mobile-btn');
+      if (mode === 'mobile') {
+        phone.style.width = '320px'; phone.style.height = '600px'; phone.style.margin = '20px auto';
+        mobileBtn.classList.add('btn-primary'); mobileBtn.classList.remove('btn-ghost');
+        desktopBtn.classList.remove('btn-primary'); desktopBtn.classList.add('btn-ghost');
+      } else {
+        phone.style.width = '100%'; phone.style.height = '400px'; phone.style.margin = '0';
+        desktopBtn.classList.add('btn-primary'); desktopBtn.classList.remove('btn-ghost');
+        mobileBtn.classList.remove('btn-primary'); mobileBtn.classList.add('btn-ghost');
+      }
+      renderPreviewWidget();
+    }
+
+    function renderPreviewWidget() {
+      const phone = document.getElementById('preview-phone');
+      let existing = phone.querySelector('.preview-widget-btn');
+      if (existing) existing.remove();
+
+      const btn = document.createElement('div');
+      btn.className = 'preview-widget-btn';
+      const isMobile = previewMode === 'mobile';
+      btn.style.cssText = `
+        position: absolute;
+        bottom: 20px;
+        ${isMobile ? 'left: 50%; transform: translateX(-50%);' : 'right: 20px;'}
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        background: #0D0E12;
+        border: 1px solid rgba(255,255,255,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        z-index: 10;
+        transition: transform 0.2s;
+      `;
+      btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,78,17,0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255,78,17,0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>`;
+      btn.onmouseenter = () => btn.style.transform = isMobile ? 'translateX(-50%) scale(1.1)' : 'scale(1.1)';
+      btn.onmouseleave = () => btn.style.transform = isMobile ? 'translateX(-50%) scale(1)' : 'scale(1)';
+      btn.onclick = () => showToast('In the real widget, this opens the objection popup!', 'success');
+      phone.appendChild(btn);
+    }
+
+    // ─── SETTINGS ───
+    function selectColor(el) {
+      document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    async function loadSettings() {
+      if (!currentSiteKey) return;
+      try {
+        const settings = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts?select=*&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        if (settings.length > 0) {
+          const s = settings[0];
+          document.getElementById('settings-email').value = s.email || '';
+          document.getElementById('alert-new-lead').checked = s.notify_new_lead;
+          document.getElementById('alert-new-feedback').checked = s.notify_new_feedback;
+          document.getElementById('alert-daily-digest').checked = s.notify_daily_digest;
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    async function saveSettings() {
+      if (!currentSiteKey) return;
+      const email = document.getElementById('settings-email').value.trim();
+      const notifyLead = document.getElementById('alert-new-lead').checked;
+      const notifyFeedback = document.getElementById('alert-new-feedback').checked;
+      const notifyDigest = document.getElementById('alert-daily-digest').checked;
+      const spinner = document.getElementById('settings-spinner');
+      const status = document.getElementById('settings-status');
+      const btn = event.target;
+
+      spinner.classList.remove('hidden'); btn.disabled = true;
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts`, {
+          method: "POST", headers: getHeaders(),
+          body: JSON.stringify({
+            site_key: currentSiteKey, email: email, notify_new_lead: notifyLead,
+            notify_new_feedback: notifyFeedback, notify_daily_digest: notifyDigest
+          })
+        });
+        if (!response.ok) {
+          const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts?site_key=eq.${currentSiteKey}`, {
+            method: "PATCH", headers: getHeaders(),
+            body: JSON.stringify({ email: email, notify_new_lead: notifyLead, notify_new_feedback: notifyFeedback, notify_daily_digest: notifyDigest })
+          });
+          if (!updateRes.ok) throw new Error("Failed to save settings");
+        }
+        status.innerText = "Settings saved successfully!"; status.style.color = "var(--success)";
+        showToast('Settings saved!', 'success');
+      } catch (err) { status.innerText = err.message; status.style.color = "var(--danger)"; showToast(err.message, 'error'); }
+      finally { spinner.classList.add('hidden'); btn.disabled = false; }
+    }
+
+    // ─── TOAST ───
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span style="font-size:20px;">${type === 'success' ? '✅' : '❌'}</span><span style="font-size:14px;font-weight:500;">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    function copyToClipboard(text, successMsg) {
+      navigator.clipboard.writeText(text).then(() => showToast(successMsg, 'success')).catch(() => showToast('Failed to copy', 'error'));
+    }
+
+    // ─── NAVIGATION ───
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.nav-item[data-tab="${tabName}"]`).classList.add('active');
+
+      const titles = {
+        overview: 'Analytics',
+        objections: 'Configuration',
+        leads: 'Leads',
+        feedback: 'Feedback',
+        preview: 'Widget Preview',
+        settings: 'Settings',
+        support: 'Support'
+      };
+      document.getElementById('page-title').innerText = titles[tabName];
+
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+      if (tabName === 'preview') setTimeout(renderPreviewWidget, 100);
+      if (tabName === 'leads') loadLeads();
+      if (tabName === 'feedback') loadFeedback();
+      if (tabName === 'overview') loadSiteData();
+    }
+
+    function refreshData() {
+      if (currentSiteKey) {
+        loadSiteData();
+        showToast('Data refreshed', 'success');
+      }
+    }
+
+    // ─── OBJECTIONS ───
+    function toggleAddObjectionForm() {
+      const form = document.getElementById("add-objection-form");
+      if (form.classList.contains("hidden")) { form.classList.remove("hidden"); }
+      else { form.classList.add("hidden"); document.getElementById("new-obj-label").value = ''; document.getElementById("new-obj-message").value = ''; }
+    }
+
+    async function addObjection() {
+      if (!currentSiteKey) return;
+      const label = document.getElementById("new-obj-label").value.trim();
+      const message = document.getElementById("new-obj-message").value.trim();
+      const spinner = document.getElementById("add-obj-spinner");
+      if (!label || !message) { showToast("Please enter both a label and a counter message.", "error"); return; }
+      spinner.classList.remove("hidden");
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
+          method: "POST", headers: getHeaders(), body: JSON.stringify({ site_key: currentSiteKey, label: label, counter_message: message })
+        });
+        if (!response.ok) throw new Error("Failed to add objection");
+        toggleAddObjectionForm(); loadSiteData(); showToast('Objection added!', 'success');
+      } catch (err) { showToast(err.message, 'error'); } finally { spinner.classList.add("hidden"); }
+    }
+
+    async function editObjection(id, currentLabel, currentMessage) {
+      const newLabel = prompt("Update Objection Label:", currentLabel);
+      if (newLabel === null) return;
+      const newMessage = prompt("Update Counter Message:", currentMessage);
+      if (newMessage === null) return;
+      if (!newLabel.trim() || !newMessage.trim()) { showToast("Fields cannot be empty.", "error"); return; }
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, { method: "PATCH", headers: getHeaders(), body: JSON.stringify({ label: newLabel.trim(), counter_message: newMessage.trim() }) });
+        if (!response.ok) throw new Error("Failed to edit objection");
+        loadSiteData(); showToast('Objection updated!', 'success');
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function deleteObjection(id) {
+      if (!confirm("Are you sure you want to delete this counter-message?")) return;
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, { method: "DELETE", headers: getHeaders() });
+        if (!response.ok) throw new Error("Failed to delete objection");
+        loadSiteData(); showToast('Objection deleted!', 'success');
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    // ─── SUPPORT ───
+    async function sendSupportMessage() {
+      const subjectInput = document.getElementById("support-subject");
+      const messageInput = document.getElementById("support-message");
+      const subject = subjectInput.value.trim();
+      const message = messageInput.value.trim();
+      const spinner = document.getElementById("support-spinner");
+      const statusDiv = document.getElementById("support-status");
+      if (!subject || !message) { statusDiv.innerText = "Please fill in both subject and message."; statusDiv.style.color = "var(--danger)"; return; }
+      spinner.classList.remove("hidden"); statusDiv.innerText = "Sending message..."; statusDiv.style.color = "var(--text-secondary)";
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/support_messages`, {
+          method: "POST", headers: getHeaders(),
+          body: JSON.stringify({ merchant_email: currentUser ? currentUser.email : "anonymous", subject: subject, message: message })
+        });
+        if (!response.ok) { const errData = await response.json(); throw new Error("Failed to send message: " + JSON.stringify(errData)); }
+        statusDiv.innerText = "Message sent successfully! Our team will reach out soon."; statusDiv.style.color = "var(--success)";
+        subjectInput.value = ""; messageInput.value = ""; showToast('Support message sent!', 'success');
+      } catch (err) { statusDiv.innerText = err.message; statusDiv.style.color = "var(--danger)"; showToast(err.message, 'error'); }
+      finally { spinner.classList.add("hidden"); }
+    }
+  </script>
+</body>
+</html>

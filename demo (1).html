@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FrictionPulse Demo Store — Premium Running Shoes</title>
+
+  <meta name="description" content="See FrictionPulse in action on a live demo store. Try the widget to experience real-time objection capture.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent: #FF4E11;
+      --accent-light: rgba(255, 78, 17, 0.1);
+      --border: #e5e7eb;
+      --success: #00E676;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Demo Banner */
+    .demo-banner {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      text-align: center;
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: 500;
+      position: relative;
+      z-index: 100;
+    }
+
+    .demo-banner a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+      transition: opacity 0.2s;
+    }
+
+    .demo-banner a:hover { opacity: 0.8; }
+
+    /* Navigation */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* Product Section */
+    .product-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    /* Product Gallery */
+    .product-gallery {
+      position: sticky;
+      top: 100px;
+    }
+
+    .main-image {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 120px;
+      margin-bottom: 16px;
+      box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 100%);
+    }
+
+    .thumbnail-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .thumbnail {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      background: white;
+    }
+
+    .thumbnail:hover, .thumbnail.active {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* Product Info */
+    .product-info {
+      padding-top: 20px;
+    }
+
+    .product-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+
+    .product-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stars {
+      color: #fbbf24;
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
+
+    .rating-count {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .product-price {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .price-current {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .price-original {
+      font-size: 20px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .price-discount {
+      padding: 4px 10px;
+      background: var(--success);
+      color: white;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .stock-alert {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 1px solid #f59e0b;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      color: #92400e;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .product-desc {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+
+    .features-list {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    .features-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .features-list li::before {
+      content: '✓';
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--success);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .size-selector {
+      margin-bottom: 24px;
+    }
+
+    .size-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .size-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .size-option {
+      width: 52px;
+      height: 52px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .size-option:hover {
+      border-color: var(--text);
+    }
+
+    .size-option.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .size-option.out {
+      opacity: 0.4;
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+
+    .add-cart-btn {
+      width: 100%;
+      padding: 18px;
+      background: var(--text);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .add-cart-btn:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(255, 78, 17, 0.3);
+    }
+
+    .add-cart-btn.added {
+      background: var(--success);
+    }
+
+    .trust-badges {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .widget-hint {
+      margin-top: 32px;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--accent-light), rgba(255, 138, 0, 0.05));
+      border: 1px solid rgba(255, 78, 17, 0.15);
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .widget-hint-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .widget-hint p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .widget-hint strong {
+      color: var(--accent);
+    }
+
+    /* Reviews Section */
+    .reviews-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .review-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .review-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .review-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .review-meta h4 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .review-meta .stars {
+      font-size: 12px;
+    }
+
+    .review-text {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 900px) {
+      .product-container { grid-template-columns: 1fr; gap: 40px; }
+      .product-gallery { position: relative; top: 0; }
+      .reviews-grid { grid-template-columns: 1fr; }
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-banner">
+    🚀 This is a <strong>demo store</strong> powered by <a href="index.html">FrictionPulse</a> — 
+    Try clicking the widget in the corner to see objection capture in action!
+  </div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">DemoStore</a>
+    <div class="nav-links">
+      <a href="#">Products</a>
+      <a href="#">New Arrivals</a>
+      <a href="#">About</a>
+    </div>
+  </nav>
+
+  <div class="product-container">
+    <div class="product-gallery">
+      <div class="main-image">👟</div>
+      <div class="thumbnail-row">
+        <div class="thumbnail active">👟</div>
+        <div class="thumbnail">🏃</div>
+        <div class="thumbnail">👣</div>
+        <div class="thumbnail">✨</div>
+      </div>
+    </div>
+
+    <div class="product-info">
+      <div class="product-badge">🔥 Best Seller</div>
+      <h1 class="product-title">Premium Running Shoes</h1>
+
+      <div class="product-rating">
+        <span class="stars">★★★★★</span>
+        <span class="rating-count">4.8/5 from 342 verified reviews</span>
+      </div>
+
+      <div class="product-price">
+        <span class="price-current">$89.99</span>
+        <span class="price-original">$129.99</span>
+        <span class="price-discount">-31%</span>
+      </div>
+
+      <div class="stock-alert">
+        ⚡ Only 3 pairs left in stock — selling fast!
+      </div>
+
+      <p class="product-desc">
+        Experience ultimate comfort with our premium running shoes. Designed for athletes 
+        who demand performance. Features breathable mesh, responsive cushioning, and 
+        durable rubber outsole that lasts 2x longer than standard trainers.
+      </p>
+
+      <ul class="features-list">
+        <li>Breathable engineered mesh upper</li>
+        <li>Responsive foam midsole technology</li>
+        <li>Durable rubber outsole with grip pattern</li>
+        <li>Ultra-lightweight at only 240g per shoe</li>
+        <li>Available in 5 stunning colorways</li>
+      </ul>
+
+      <div class="size-selector">
+        <span class="size-label">Select Size</span>
+        <div class="size-options">
+          <div class="size-option">7</div>
+          <div class="size-option">8</div>
+          <div class="size-option active">9</div>
+          <div class="size-option">10</div>
+          <div class="size-option out">11</div>
+          <div class="size-option">12</div>
+        </div>
+      </div>
+
+      <button class="add-cart-btn" onclick="addToCart(this)">
+        <span>Add to Cart</span>
+        <span style="opacity:0.7;">— $89.99</span>
+      </button>
+
+      <div class="trust-badges">
+        <div class="trust-badge">🔒 Secure Checkout</div>
+        <div class="trust-badge">🚚 Free Shipping</div>
+        <div class="trust-badge">↩️ 30-Day Returns</div>
+      </div>
+
+      <div class="widget-hint">
+        <div class="widget-hint-icon">💡</div>
+        <p>
+          <strong>Notice the widget in the corner?</strong><br>
+          Click it to see how FrictionPulse captures objections and 
+          instantly counters them with smart responses.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <section class="reviews-section">
+    <h2 class="section-title">What runners are saying</h2>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">JM</div>
+          <div class="review-meta">
+            <h4>James Miller</h4>
+            <span class="stars">★★★★★</span>
+          </div>
+        </div>
+        <p class="review-text">"Best running shoes I've ever owned. The cushioning is incredible and they feel like running on clouds. Worth every penny!"</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">SK</div>
+          <div class="review-meta">
+            <h4>Sarah Kim</h4>
+            <span class="stars">★★★★★</span>
+          </div>
+        </div>
+        <p class="review-text">"Lightweight, breathable, and the grip is amazing on wet surfaces. I've recommended these to my entire running club."</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">AL</div>
+          <div class="review-meta">
+            <h4>Alex Lopez</h4>
+            <span class="stars">★★★★☆</span>
+          </div>
+        </div>
+        <p class="review-text">"Great shoes overall. Sizing runs slightly small so I'd recommend going half a size up. Otherwise perfect for daily training."</p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function addToCart(btn) {
+      btn.innerHTML = '<span>✓ Added to Cart!</span>';
+      btn.classList.add('added');
+      setTimeout(() => {
+        btn.innerHTML = '<span>Add to Cart</span><span style="opacity:0.7;">— $89.99</span>';
+        btn.classList.remove('added');
+      }, 2000);
+    }
+
+    // Size selector
+    document.querySelectorAll('.size-option').forEach(opt => {
+      if (!opt.classList.contains('out')) {
+        opt.addEventListener('click', () => {
+          document.querySelectorAll('.size-option').forEach(o => o.classList.remove('active'));
+          opt.classList.add('active');
+        });
+      }
+    });
+
+    // Thumbnail selector
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+      });
+    });
+  </script>
+
+  <!-- FrictionPulse Widget -->
+  <script src="widget.js" data-site-key="sk_9g6a9ca8pmptxtsni"></script>
+</body>
+</html>
