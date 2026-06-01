@@ -509,6 +509,164 @@
 
     .data-table tr:last-child td { border-bottom: none; }
 
+    /* Mobile card view for data tables (hidden on desktop) */
+    .data-cards { display: none; }
+    .truncate-cell {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .actions-cell { white-space: nowrap; }
+    .actions-cell .btn { margin-right: 4px; }
+    .message-cell { max-width: 320px; }
+    .message-preview {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .data-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .data-card-unread { border-left: 3px solid var(--accent); }
+    .data-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .data-card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .data-card-body { margin-bottom: 12px; }
+    .data-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-card-row:last-child { border-bottom: none; }
+    .data-card-label {
+      flex-shrink: 0;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .data-card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .feedback-message {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+      animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+    .modal-close:hover { background: var(--glass); color: var(--text); }
+    .modal-field { margin-bottom: 16px; }
+    .modal-field-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .modal-field-value {
+      font-size: 14px;
+      color: var(--text);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .modal-field-value a { color: var(--accent); }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 768px) {
+      /* Switch from table to card view on mobile */
+      .data-table { display: none; }
+      .data-cards { display: block; }
+      .table-wrapper { display: none; }
+      .modal { padding: 20px; border-radius: 16px; max-height: 90vh; }
+      .modal-title { font-size: 18px; }
+    }
+
     /* Badges */
     .badge {
       display: inline-flex;
@@ -1007,6 +1165,17 @@
   </style>
 </head>
 <body>
+
+  <!-- DETAIL MODAL -->
+  <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Details</div>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
 
   <!-- VIEW: AUTH -->
   <div id="view-auth" class="auth-layout">
@@ -1813,6 +1982,72 @@
     }
 
     // ─── LEADS ───
+    // ─── DETAIL MODAL ───
+    function openModal(title, html) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-body').innerHTML = html;
+      document.getElementById('detail-modal').classList.add('show');
+      document.body.classList.add('no-scroll');
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').classList.remove('show');
+      document.body.classList.remove('no-scroll');
+    }
+
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function viewLeadDetail(lead) {
+      const date = new Date(lead.created_at).toLocaleString();
+      const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
+      const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
+      const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
+      const emailLink = lead.email ? `<a href="mailto:${escapeHtml(lead.email)}?subject=Re:%20Your%20inquiry">${escapeHtml(lead.email)}</a>` : '—';
+      const phoneLink = lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}">${escapeHtml(lead.phone)}</a>` : '—';
+      const pageLink = lead.page_url ? `<a href="${escapeHtml(lead.page_url)}" target="_blank" rel="noopener">${escapeHtml(lead.page_url)}</a>` : '—';
+      const html = `
+        <div class="modal-field"><div class="modal-field-label">Contact</div><div class="modal-field-value">${emailLink}${lead.email && lead.phone ? '<br>' : ''}${phoneLink}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Objection</div><div class="modal-field-value">${escapeHtml(lead.objection_id || 'General')}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Page URL</div><div class="modal-field-value">${pageLink}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Status</div><div class="modal-field-value"><span class="badge ${statusClass}">${escapeHtml(lead.status)}</span></div></div>
+        <div class="modal-field"><div class="modal-field-label">Captured</div><div class="modal-field-value">${date}</div></div>
+        ${lead.user_agent ? `<div class="modal-field"><div class="modal-field-label">User Agent</div><div class="modal-field-value" style="font-size:12px;color:var(--text-muted);">${escapeHtml(lead.user_agent)}</div></div>` : ''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button>
+          ${lead.email ? `<a href="mailto:${escapeHtml(lead.email)}" class="btn btn-ghost">✉️ Email</a>` : ''}
+          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        </div>
+      `;
+      openModal('Lead Details', html);
+    }
+
+    function viewFeedbackDetail(fb) {
+      const date = new Date(fb.created_at).toLocaleString();
+      const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
+      const pageLink = fb.page_url ? `<a href="${escapeHtml(fb.page_url)}" target="_blank" rel="noopener">${escapeHtml(fb.page_url)}</a>` : '—';
+      const html = `
+        <div class="modal-field"><div class="modal-field-label">Full Message</div><div class="modal-field-value feedback-message" style="background:var(--bg-elevated);padding:16px;border-radius:12px;">${escapeHtml(fb.message)}</div></div>
+        <div class="modal-field"><div class="modal-field-label">From</div><div class="modal-field-value">${fb.email ? `<a href="mailto:${escapeHtml(fb.email)}">${escapeHtml(fb.email)}</a>` : 'Anonymous'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Page URL</div><div class="modal-field-value">${pageLink}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Status</div><div class="modal-field-value"><span class="badge ${statusClass}">${escapeHtml(fb.status)}</span></div></div>
+        <div class="modal-field"><div class="modal-field-label">Submitted</div><div class="modal-field-value">${date}</div></div>
+        <div class="modal-actions">
+          ${fb.status === 'unread' ? `<button class="btn btn-primary" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark as Read</button>` : ''}
+          ${fb.email ? `<a href="mailto:${escapeHtml(fb.email)}?subject=Re:%20Your%20feedback" class="btn btn-ghost">✉️ Reply</a>` : ''}
+          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        </div>
+      `;
+      openModal('Feedback Details', html);
+    }
+
     async function loadLeads() {
       if (!currentSiteKey) return;
       const container = document.getElementById('leads-container');
@@ -1836,24 +2071,54 @@
           `;
           return;
         }
-        let html = `<table class="data-table"><thead><tr><th>Contact</th><th>Objection</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+        let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Contact</th><th>Objection</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
         leads.forEach(lead => {
-          const date = new Date(lead.created_at).toLocaleDateString();
+          const date = new Date(lead.created_at).toLocaleString();
           const contact = lead.email || lead.phone || 'N/A';
           const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
           const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
           const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
+          const leadJson = JSON.stringify(lead).replace(/'/g, "&#39;");
           html += `<tr>
-            <td><strong>${contact}</strong></td>
-            <td style="color:var(--text-secondary);font-size:13px;">${lead.objection_id || 'General'}</td>
-            <td style="color:var(--text-muted);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">${lead.page_url || '-'}</td>
-            <td><span class="badge ${statusClass}">${lead.status}</span></td>
-            <td style="color:var(--text-muted);font-size:12px;">${date}</td>
-            <td><button class="btn btn-ghost btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button></td>
+            <td data-label="Contact"><strong>${contact}</strong></td>
+            <td data-label="Objection" style="color:var(--text-secondary);font-size:13px;">${lead.objection_id || 'General'}</td>
+            <td data-label="Page" class="truncate-cell" title="${lead.page_url || ''}">${lead.page_url || '-'}</td>
+            <td data-label="Status"><span class="badge ${statusClass}">${lead.status}</span></td>
+            <td data-label="Date" style="color:var(--text-muted);font-size:12px;">${date}</td>
+            <td data-label="Actions" class="actions-cell">
+              <button class="btn btn-ghost btn-sm" onclick="viewLeadDetail(${leadJson})">👁️ View</button>
+              <button class="btn btn-ghost btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button>
+            </td>
           </tr>`;
         });
         html += '</tbody></table></div>';
-        container.innerHTML = html;
+        // Mobile card view (auto-rendered for narrow screens via CSS)
+        let cardsHtml = '<div class="data-cards">';
+        leads.forEach(lead => {
+          const date = new Date(lead.created_at).toLocaleString();
+          const contact = lead.email || lead.phone || 'N/A';
+          const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
+          const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
+          const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
+          const leadJson = JSON.stringify(lead).replace(/'/g, "&#39;");
+          cardsHtml += `<div class="data-card">
+            <div class="data-card-header">
+              <strong class="data-card-title">${contact}</strong>
+              <span class="badge ${statusClass}">${lead.status}</span>
+            </div>
+            <div class="data-card-body">
+              <div class="data-card-row"><span class="data-card-label">Objection</span><span>${lead.objection_id || 'General'}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${lead.page_url || ''}">${lead.page_url || '—'}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Date</span><span>${date}</span></div>
+            </div>
+            <div class="data-card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="viewLeadDetail(${leadJson})">👁️ Details</button>
+              <button class="btn btn-primary btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button>
+            </div>
+          </div>`;
+        });
+        cardsHtml += '</div>';
+        container.innerHTML = html + cardsHtml;
       } catch (err) { console.error(err); container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading leads</p></div>'; }
     }
 
@@ -1864,6 +2129,7 @@
         });
         if (!response.ok) throw new Error("Failed to update");
         showToast(`Lead marked as ${newStatus}`, 'success');
+        closeModal();
         loadLeads(); loadSiteData();
       } catch (err) { showToast(err.message, 'error'); }
     }
@@ -1908,21 +2174,50 @@
           `;
           return;
         }
-        let html = `<table class="data-table"><thead><tr><th>Message</th><th>Contact</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+        let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Message</th><th>Contact</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
         feedback.forEach(fb => {
-          const date = new Date(fb.created_at).toLocaleDateString();
+          const date = new Date(fb.created_at).toLocaleString();
           const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
+          const fbJson = JSON.stringify(fb).replace(/'/g, "&#39;");
+          const preview = fb.message.length > 80 ? fb.message.substring(0, 80) + '…' : fb.message;
           html += `<tr>
-            <td style="max-width:300px;"><div style="font-weight:500;font-size:14px;margin-bottom:4px;">${fb.message.substring(0, 80)}${fb.message.length > 80 ? '...' : ''}</div></td>
-            <td style="color:var(--text-secondary);font-size:13px;">${fb.email || 'Anonymous'}</td>
-            <td style="color:var(--text-muted);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">${fb.page_url || '-'}</td>
-            <td><span class="badge ${statusClass}">${fb.status}</span></td>
-            <td style="color:var(--text-muted);font-size:12px;">${date}</td>
-            <td><button class="btn btn-ghost btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark Read</button></td>
+            <td data-label="Message" class="message-cell"><div class="message-preview">${preview}</div></td>
+            <td data-label="Contact" style="color:var(--text-secondary);font-size:13px;">${fb.email || 'Anonymous'}</td>
+            <td data-label="Page" class="truncate-cell" title="${fb.page_url || ''}">${fb.page_url || '-'}</td>
+            <td data-label="Status"><span class="badge ${statusClass}">${fb.status}</span></td>
+            <td data-label="Date" style="color:var(--text-muted);font-size:12px;">${date}</td>
+            <td data-label="Actions" class="actions-cell">
+              <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetail(${fbJson})">👁️ View</button>
+              ${fb.status === 'unread' ? `<button class="btn btn-ghost btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark Read</button>` : ''}
+            </td>
           </tr>`;
         });
         html += '</tbody></table></div>';
-        container.innerHTML = html;
+        // Mobile card view
+        let cardsHtml = '<div class="data-cards">';
+        feedback.forEach(fb => {
+          const date = new Date(fb.created_at).toLocaleString();
+          const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
+          const fbJson = JSON.stringify(fb).replace(/'/g, "&#39;");
+          const preview = fb.message.length > 120 ? fb.message.substring(0, 120) + '…' : fb.message;
+          cardsHtml += `<div class="data-card ${fb.status === 'unread' ? 'data-card-unread' : ''}">
+            <div class="data-card-header">
+              <strong class="data-card-title">${fb.email || 'Anonymous'}</strong>
+              <span class="badge ${statusClass}">${fb.status}</span>
+            </div>
+            <div class="data-card-body">
+              <div class="feedback-message">${preview}</div>
+              <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${fb.page_url || ''}">${fb.page_url || '—'}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Date</span><span>${date}</span></div>
+            </div>
+            <div class="data-card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetail(${fbJson})">👁️ Read full</button>
+              ${fb.status === 'unread' ? `<button class="btn btn-primary btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark Read</button>` : ''}
+            </div>
+          </div>`;
+        });
+        cardsHtml += '</div>';
+        container.innerHTML = html + cardsHtml;
       } catch (err) { console.error(err); container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading feedback</p></div>'; }
     }
 
@@ -1933,6 +2228,7 @@
         });
         if (!response.ok) throw new Error("Failed to update");
         showToast('Feedback marked as read', 'success');
+        closeModal();
         loadFeedback(); loadSiteData();
       } catch (err) { showToast(err.message, 'error'); }
     }
@@ -2079,7 +2375,10 @@
       });
       // Close sidebar on Escape
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeSidebar();
+        if (e.key === 'Escape') {
+          closeSidebar();
+          closeModal();
+        }
       });
     });
 
