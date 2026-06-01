@@ -26,6 +26,10 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html, body {
+      overflow-x: hidden;
+    }
+
     body {
       font-family: 'Inter', -apple-system, sans-serif;
       background: var(--bg);
@@ -464,11 +468,25 @@
     }
 
     @media (max-width: 900px) {
-      .product-container { grid-template-columns: 1fr; gap: 40px; }
+      .product-container { grid-template-columns: 1fr; gap: 40px; padding: 40px 20px; }
       .product-gallery { position: relative; top: 0; }
       .reviews-grid { grid-template-columns: 1fr; }
+      .reviews-section { padding: 40px 20px; }
       nav { padding: 0 20px; }
       .nav-links { display: none; }
+      .main-image { font-size: 80px; }
+    }
+
+    @media (max-width: 480px) {
+      .product-container { padding: 30px 16px; gap: 24px; }
+      .product-title { font-size: 28px; }
+      .price-current { font-size: 28px; }
+      .reviews-section { padding: 30px 16px; }
+      .thumbnail { width: 60px; height: 60px; font-size: 24px; }
+      .size-options { gap: 6px; }
+      .size-option { width: 44px; height: 44px; font-size: 13px; }
+      .add-cart-btn { padding: 14px; font-size: 15px; }
+      .trust-badges { flex-direction: column; gap: 12px; align-items: center; }
     }
   </style>
 </head>
