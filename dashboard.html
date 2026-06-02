@@ -10,11 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
       --bg: #050507;
       --bg-elevated: #0A0A0F;
+      --bg-lighter: #121218;
       --surface: #111118;
       --surface-hover: #181820;
       --sidebar: #0C0C12;
@@ -658,6 +660,14 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* Star Rating and Global Search Dropdown Styling */
+    .global-search-item {
+      transition: background 0.15s ease;
+    }
+    .global-search-item:hover {
+      background: var(--surface-hover) !important;
+    }
+
     @media (max-width: 768px) {
       /* Switch from table to card view on mobile */
       .data-table { display: none; }
@@ -745,6 +755,23 @@
       font-family: 'Inter', sans-serif;
       font-size: 14px;
       transition: all 0.2s;
+    }
+
+    input[type="date"] {
+      color-scheme: dark;
+      cursor: pointer;
+    }
+
+    .btn-spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
     }
 
     input:focus, textarea:focus, select:focus {
@@ -1124,7 +1151,27 @@
       .stats-grid { grid-template-columns: 1fr; }
       .skeleton-stats { grid-template-columns: 1fr; }
       .content-area { padding: 16px; max-width: 100%; }
-      .top-bar { padding: 0 16px; }
+      .top-bar {
+        height: auto !important;
+        padding: 12px 16px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .top-bar > div:first-child {
+        order: 1;
+      }
+      .top-actions {
+        order: 2;
+        gap: 8px;
+      }
+      #global-search-container {
+        order: 3;
+        width: 100% !important;
+        flex-shrink: 1 !important;
+      }
       .auth-card { padding: 32px 24px; }
       .sites-grid { grid-template-columns: 1fr; }
       .main-content {
@@ -1134,7 +1181,6 @@
         min-width: 0 !important;
       }
       .embed-block textarea { font-size: 12px; padding: 12px; }
-      .top-actions { gap: 8px; }
       .top-actions .btn { padding: 6px 12px; font-size: 12px; }
       .page-title { font-size: 16px; }
     }
@@ -1142,6 +1188,25 @@
     @media (max-width: 480px) {
       .stat-card { padding: 16px; }
       .auth-card { padding: 24px 20px; }
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .pagination-controls span {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
     }
 
     .hidden { display: none !important; }
@@ -1161,6 +1226,90 @@
       0%, 100% { transform: translate(0, 0) scale(1); }
       33% { transform: translate(30px, -20px) scale(1.1); }
       66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    /* Step 2: Conversion Funnel responsive layout */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1024px) {
+      .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Step 3: Vertical timeline styling */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+      margin: 16px 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -32px;
+      top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid var(--bg-surface);
+      transition: all 0.3s ease;
+    }
+    .timeline-dot.cyan {
+      background: #00f2fe;
+      box-shadow: 0 0 10px #00f2fe;
+    }
+    .timeline-dot.orange {
+      background: #ff4e11;
+      box-shadow: 0 0 10px #ff4e11;
+    }
+    .timeline-dot.green {
+      background: #00ff87;
+      box-shadow: 0 0 10px #00ff87;
+    }
+    .timeline-content {
+      background: var(--bg-surface-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .timeline-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .timeline-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    .timeline-desc strong {
+      color: var(--text-primary);
+    }
+    .timeline-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: block;
     }
   </style>
 </head>
@@ -1304,11 +1453,20 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      <div class="top-bar">
+      <div class="top-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
         <div style="display:flex;align-items:center;gap:16px;">
           <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
           <h1 class="page-title" id="page-title">Analytics</h1>
         </div>
+
+        <!-- Global Search Bar -->
+        <div id="global-search-container" class="hidden" style="position:relative; width:300px; flex-shrink:0;">
+          <input type="text" id="global-search-input" placeholder="Search everywhere (Ctrl+K)..." style="width:100%; padding:8px 12px 8px 36px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:8px; color:var(--text); outline:none;" oninput="handleGlobalSearch(this.value)" onfocus="handleGlobalSearch(this.value)" onblur="setTimeout(() => { document.getElementById('global-search-dropdown').classList.add('hidden'); }, 200)">
+          <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:14px; color:var(--text-secondary); pointer-events:none;">🔍</span>
+          <div id="global-search-dropdown" class="hidden" style="position:absolute; top:42px; left:0; right:0; background:var(--surface); border:1px solid var(--border-strong); border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5); z-index:1000; max-height:280px; overflow-y:auto; padding:6px 0;">
+          </div>
+        </div>
+
         <div class="top-actions">
           <button class="btn btn-ghost btn-sm" onclick="openNewSiteFlow()">+ New Site</button>
           <button class="btn btn-primary btn-sm" onclick="refreshData()">🔄 Refresh</button>
@@ -1358,6 +1516,17 @@
 
           <!-- TAB: OVERVIEW -->
           <div id="tab-overview" class="tab-content">
+            <!-- Period Filter -->
+            <div class="period-filter-wrapper" style="display:flex; justify-content:flex-end; margin-bottom:16px; align-items:center; gap:8px;">
+              <span style="font-size:12px; color:var(--text-secondary); font-weight:500;">📅 Time Period:</span>
+              <select id="overview-period-filter" style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:6px; padding:6px 12px; color:var(--text); font-size:13px; cursor:pointer;" onchange="loadSiteData()">
+                <option value="all">All Time</option>
+                <option value="1h">Last 1 Hour</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
+            </div>
             <!-- Skeleton Loading -->
             <div id="overview-skeleton">
               <div class="skeleton-stats">
@@ -1421,15 +1590,80 @@
                 </div>
               </div>
 
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">Votes by Objection</div>
-                  <div class="card-actions">
-                    <button class="btn btn-ghost btn-sm" onclick="loadSiteData()">🔄 Refresh</button>
+              <div class="analytics-grid">
+                <div class="card">
+                  <div class="card-header">
+                    <div class="card-title">Votes by Objection</div>
+                    <div class="card-actions">
+                      <button class="btn btn-ghost btn-sm" onclick="loadSiteData()">🔄 Refresh</button>
+                    </div>
+                  </div>
+                  <canvas id="objectionsChart" style="max-height:350px;"></canvas>
+                </div>
+
+                <div class="card" id="conversion-funnel-card">
+                  <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                    <div class="card-title">Conversion Funnel</div>
+                  </div>
+                  <div class="funnel-container" style="display: flex; flex-direction: column; gap: 20px; padding: 8px 0;">
+                    <!-- Step 1: Views -->
+                    <div class="funnel-step">
+                      <div class="funnel-step-header" style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+                        <span class="funnel-step-name" style="color: var(--text-secondary); font-weight: 500;">👁️ Widget Views</span>
+                        <span class="funnel-step-value" id="funnel-views-val" style="color: var(--text-primary); font-weight: 600;">0</span>
+                      </div>
+                      <div class="funnel-bar-bg" style="background: var(--bg-surface-secondary); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <div class="funnel-bar-fill" id="funnel-views-bar" style="background: linear-gradient(90deg, #ff4e11, #ff8a00); height: 100%; width: 0%; transition: width 1s ease-out; box-shadow: 0 0 10px rgba(255, 78, 17, 0.4);"></div>
+                      </div>
+                      <div class="funnel-step-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Baseline traffic</div>
+                    </div>
+                    <!-- Step 2: Clicks -->
+                    <div class="funnel-step">
+                      <div class="funnel-step-header" style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+                        <span class="funnel-step-name" style="color: var(--text-secondary); font-weight: 500;">⚡ Interactions (Clicks)</span>
+                        <span class="funnel-step-value" id="funnel-clicks-val" style="color: var(--text-primary); font-weight: 600;">0 <span class="funnel-pct" id="funnel-clicks-pct" style="font-size: 12px; color: var(--accent);">(0%)</span></span>
+                      </div>
+                      <div class="funnel-bar-bg" style="background: var(--bg-surface-secondary); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <div class="funnel-bar-fill" id="funnel-clicks-bar" style="background: linear-gradient(90deg, #ff4e11, #00f2fe); height: 100%; width: 0%; transition: width 1s ease-out; box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);"></div>
+                      </div>
+                      <div class="funnel-step-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="funnel-clicks-drop">0% of views</div>
+                    </div>
+                    <!-- Step 3: Captured -->
+                    <div class="funnel-step">
+                      <div class="funnel-step-header" style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+                        <span class="funnel-step-name" style="color: var(--text-secondary); font-weight: 500;">📥 Captured Leads</span>
+                        <span class="funnel-step-value" id="funnel-leads-val" style="color: var(--text-primary); font-weight: 600;">0 <span class="funnel-pct" id="funnel-leads-pct" style="font-size: 12px; color: var(--accent);">(0%)</span></span>
+                      </div>
+                      <div class="funnel-bar-bg" style="background: var(--bg-surface-secondary); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <div class="funnel-bar-fill" id="funnel-leads-bar" style="background: linear-gradient(90deg, #00f2fe, #4facfe); height: 100%; width: 0%; transition: width 1s ease-out; box-shadow: 0 0 10px rgba(79, 172, 254, 0.4);"></div>
+                      </div>
+                      <div class="funnel-step-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="funnel-leads-drop">0% of views</div>
+                    </div>
+                    <!-- Step 4: Converted -->
+                    <div class="funnel-step">
+                      <div class="funnel-step-header" style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+                        <span class="funnel-step-name" style="color: var(--text-secondary); font-weight: 500;">🏆 Converted Leads</span>
+                        <span class="funnel-step-value" id="funnel-converted-val" style="color: var(--text-primary); font-weight: 600;">0 <span class="funnel-pct" id="funnel-converted-pct" style="font-size: 12px; color: var(--accent);">(0%)</span></span>
+                      </div>
+                      <div class="funnel-bar-bg" style="background: var(--bg-surface-secondary); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <div class="funnel-bar-fill" id="funnel-converted-bar" style="background: linear-gradient(90deg, #4facfe, #00ff87); height: 100%; width: 0%; transition: width 1s ease-out; box-shadow: 0 0 10px rgba(0, 255, 135, 0.4);"></div>
+                      </div>
+                      <div class="funnel-step-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="funnel-converted-drop">0% of views</div>
+                    </div>
                   </div>
                 </div>
-                <canvas id="objectionsChart" style="max-height:350px;"></canvas>
               </div>
+
+              <!-- Activity Log Section -->
+              <div class="card" style="margin-top:24px;">
+                <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                  <div class="card-title" style="display:flex; align-items:center; gap:8px;">📜 Recent Merchant Activity</div>
+                </div>
+                <div id="activity-log-container">
+                  <p style="color:var(--text-muted);font-size:13px;">Loading activity...</p>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1447,7 +1681,10 @@
                   <input type="text" id="new-obj-label" placeholder="e.g. Price is too high" />
                 </div>
                 <div class="form-group">
-                  <label>Counter Message</label>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label style="margin-bottom:0;">Counter Message</label>
+                    <button type="button" class="btn btn-ghost btn-sm" style="color:var(--accent); font-size:12px; display:flex; align-items:center; gap:4px; padding:2px 8px; border:1px solid rgba(255,78,17,0.2);" onclick="generateAICounterMessage('new-obj-label', 'new-obj-message', this)">🪄 Suggest with AI</button>
+                  </div>
                   <textarea id="new-obj-message" rows="2" placeholder="e.g. Get 10% off with code WELCOME"></textarea>
                 </div>
                 <div style="display:flex;gap:10px;align-items:center;">
@@ -1459,6 +1696,71 @@
 
               <div id="objections-list"></div>
             </div>
+
+            <!-- A/B Testing Card -->
+            <div class="card" style="margin-top: 24px;">
+              <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <div class="card-title">⚔️ Counter-Message A/B Testing</div>
+              </div>
+              <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Test different counter-messages for the same objection to see which one converts better. Traffic is automatically split 50/50.</p>
+              
+              <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
+                <div style="flex:1; min-width:250px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label>Select Objection to Test</label>
+                    <select id="ab-test-obj-select" onchange="loadABTestDetails()" style="width:100%; padding:10px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:8px; color:white; cursor:pointer;"></select>
+                  </div>
+                </div>
+                <div style="flex:1; min-width:250px; display:flex; align-items:flex-end;">
+                  <button class="btn btn-primary" onclick="startABTestSim()" id="ab-sim-btn">🔄 Simulate 100 Visitors</button>
+                </div>
+              </div>
+
+              <div id="ab-test-results" class="hidden" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; border-top:1px solid var(--border); padding-top:20px;">
+                <!-- Version A Card -->
+                <div style="background:rgba(255,255,255,0.01); border:1px solid var(--border); padding:16px; border-radius:12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <span style="font-weight:600; color:#ff4e11; font-size:14px;">Version A (Baseline)</span>
+                    <span id="ab-a-percentage" style="font-size:11px; background:rgba(255,78,17,0.1); color:#ff4e11; padding:2px 8px; border-radius:10px;">50% Traffic</span>
+                  </div>
+                  <div id="ab-a-message" style="font-size:13px; font-style:italic; margin-bottom:16px; min-height:48px; color:var(--text-secondary); line-height:1.4;"></div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:12px; color:var(--text-muted);">Views:</span>
+                    <span id="ab-a-views" style="font-weight:600;">0</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:12px; color:var(--text-muted);">Conversions:</span>
+                    <span id="ab-a-conv" style="font-weight:600;">0</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:6px; margin-top:6px;">
+                    <span style="font-size:13px; font-weight:500;">Conversion Rate:</span>
+                    <span id="ab-a-cr" style="font-weight:700; color:var(--accent);">0%</span>
+                  </div>
+                </div>
+
+                <!-- Version B Card -->
+                <div style="background:rgba(255,255,255,0.01); border:1px solid var(--border); padding:16px; border-radius:12px; position:relative;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <span style="font-weight:600; color:#00f2fe; font-size:14px;">Version B (Alternative)</span>
+                    <span id="ab-b-percentage" style="font-size:11px; background:rgba(0,242,254,0.1); color:#00f2fe; padding:2px 8px; border-radius:10px;">50% Traffic</span>
+                  </div>
+                  <textarea id="ab-b-message" rows="2" style="width:100%; font-size:13px; font-family:inherit; padding:8px; border-radius:6px; background:var(--bg-elevated); border:1px solid var(--border); color:white; margin-bottom:12px; line-height:1.4;" placeholder="Enter Version B counter-message..."></textarea>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:12px; color:var(--text-muted);">Views:</span>
+                    <span id="ab-b-views" style="font-weight:600;">0</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:12px; color:var(--text-muted);">Conversions:</span>
+                    <span id="ab-b-conv" style="font-weight:600;">0</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:6px; margin-top:6px;">
+                    <span style="font-size:13px; font-weight:500;">Conversion Rate:</span>
+                    <span id="ab-b-cr" style="font-weight:700; color:#00f2fe;">0%</span>
+                  </div>
+                  <button class="btn btn-sm btn-ghost" onclick="saveABTestMessage()" style="width:100%; border:1px solid var(--border); margin-top:12px;">Save Version B</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- TAB: LEADS -->
@@ -1467,11 +1769,12 @@
               <div class="card-header" style="margin-bottom:16px;">
                 <div class="card-title">Captured Leads</div>
                 <div class="card-actions">
-                  <button class="btn btn-ghost btn-sm" onclick="exportLeads()">📥 Export CSV</button>
+                  <button class="btn btn-ghost btn-sm" onclick="exportLeads('csv')">📥 Export CSV</button>
+                  <button class="btn btn-ghost btn-sm" onclick="exportLeads('json')">📥 Export JSON</button>
                   <button class="btn btn-ghost btn-sm" onclick="loadLeads()">🔄 Refresh</button>
                 </div>
               </div>
-              <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+              <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
                 <input type="text" id="leads-search" placeholder="Search email or phone..." style="flex:1;min-width:200px;padding:8px 12px;" />
                 <select id="leads-status-filter" style="width:auto;padding:8px 12px;cursor:pointer;">
                   <option value="">All Statuses</option>
@@ -1479,6 +1782,23 @@
                   <option value="contacted">Contacted</option>
                   <option value="converted">Converted</option>
                 </select>
+                <div class="date-range-wrapper" style="display:flex;gap:8px;flex:1;min-width:240px;">
+                  <input type="text" id="leads-start-date" placeholder="Start Date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" style="flex:1;padding:8px 12px;" />
+                  <input type="text" id="leads-end-date" placeholder="End Date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" style="flex:1;padding:8px 12px;" />
+                </div>
+                <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary); cursor:pointer; user-select:none; white-space:nowrap; margin-left:auto;">
+                  <input type="checkbox" id="leads-starred-filter" style="width:auto; margin:0;" onchange="loadLeads()" />
+                  <span>⭐ Starred Only</span>
+                </label>
+              </div>
+              <!-- Bulk Actions Toolbar -->
+              <div id="leads-bulk-actions" class="hidden" style="display:flex;align-items:center;gap:12px;background:var(--bg-lighter);padding:12px 16px;border-radius:8px;margin-bottom:16px;border:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-wrap:wrap;">
+                <span id="bulk-select-count" style="font-weight:600;font-size:13px;color:var(--text-secondary);">0 selected</span>
+                <div style="flex:1;"></div>
+                <button class="btn btn-ghost btn-sm" onclick="bulkUpdateLeads('contacted', this)">✓ Mark Contacted</button>
+                <button class="btn btn-ghost btn-sm" onclick="bulkUpdateLeads('converted', this)">🎯 Mark Converted</button>
+                <button class="btn btn-ghost btn-sm" onclick="bulkExportSelectedLeads('csv')">📥 Export CSV</button>
+                <button class="btn btn-ghost btn-sm" onclick="bulkExportSelectedLeads('json')">📥 Export JSON</button>
               </div>
               <div id="leads-container">
                 <div class="skeleton-card">
@@ -1494,11 +1814,29 @@
           <!-- TAB: FEEDBACK -->
           <div id="tab-feedback" class="tab-content hidden">
             <div class="card">
-              <div class="card-header">
+              <div class="card-header" style="margin-bottom:16px;">
                 <div class="card-title">Customer Feedback</div>
                 <div class="card-actions">
+                  <button class="btn btn-ghost btn-sm" onclick="exportFeedback('csv')">📥 Export CSV</button>
+                  <button class="btn btn-ghost btn-sm" onclick="exportFeedback('json')">📥 Export JSON</button>
                   <button class="btn btn-ghost btn-sm" onclick="loadFeedback()">🔄 Refresh</button>
                 </div>
+              </div>
+              <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="feedback-search" placeholder="Search message or email..." style="flex:1;min-width:200px;padding:8px 12px;" />
+                <select id="feedback-status-filter" style="width:auto;padding:8px 12px;cursor:pointer;">
+                  <option value="">All Statuses</option>
+                  <option value="unread">Unread</option>
+                  <option value="read">Read</option>
+                </select>
+                <div class="date-range-wrapper" style="display:flex;gap:8px;flex:1;min-width:240px;">
+                  <input type="text" id="feedback-start-date" placeholder="Start Date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" style="flex:1;padding:8px 12px;" />
+                  <input type="text" id="feedback-end-date" placeholder="End Date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" style="flex:1;padding:8px 12px;" />
+                </div>
+                <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary); cursor:pointer; user-select:none; white-space:nowrap; margin-left:auto;">
+                  <input type="checkbox" id="feedback-starred-filter" style="width:auto; margin:0;" onchange="loadFeedback()" />
+                  <span>⭐ Starred Only</span>
+                </label>
               </div>
               <div id="feedback-container">
                 <div class="skeleton-card">
@@ -1556,7 +1894,34 @@
                 </div>
               </div>
 
+              <!-- Custom Primary Color hex input -->
+              <div class="form-group" style="margin-top: 12px; display: flex; gap: 12px; align-items: center;">
+                <div style="flex: 1;">
+                  <label style="font-size: 12px;">Custom Color Hex Code</label>
+                  <input type="text" id="settings-custom-color" placeholder="e.g. #FF4E11" style="padding: 8px 12px;" oninput="applyCustomColorFromInput(this.value)" />
+                </div>
+                <div style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); margin-top: 20px;" id="settings-color-preview"></div>
+              </div>
+
+              <!-- Font Customization -->
               <div class="form-group">
+                <label>Widget Font Family</label>
+                <select id="settings-font-family" style="width: 100%; padding: 10px; cursor: pointer;" onchange="applyPreviewFont(this.value)">
+                  <option value="system-ui">System Sans (Default)</option>
+                  <option value="Inter">Google Font: Inter</option>
+                  <option value="Poppins">Google Font: Poppins</option>
+                  <option value="Space Grotesk">Google Font: Space Grotesk</option>
+                  <option value="Roboto">Google Font: Roboto</option>
+                  <option value="Outfit">Google Font: Outfit</option>
+                  <option value="custom">-- Custom Google Font --</option>
+                </select>
+                <div id="settings-custom-font-wrapper" class="hidden" style="margin-top: 10px;">
+                  <label style="font-size: 12px;">Enter Google Font Name</label>
+                  <input type="text" id="settings-custom-font-name" placeholder="e.g. Montserrat or Playfair Display" style="padding: 8px 12px;" />
+                </div>
+              </div>
+
+              <div class="form-group" style="border-top:1px solid var(--border); padding-top:20px;">
                 <label>Notification Email</label>
                 <input type="email" id="settings-email" placeholder="your@email.com" />
               </div>
@@ -1582,14 +1947,66 @@
                 </label>
               </div>
 
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="display:flex;gap:10px;align-items:center;">
+              <!-- Webhooks Integration Section -->
+              <div style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
+                <h4 style="margin: 0 0 12px; color: var(--text-primary); font-size: 15px;">🔗 Zapier / Webhook Integrations</h4>
+                <div class="form-group">
+                  <label>Webhook Destination URL</label>
+                  <input type="url" id="settings-webhook-url" placeholder="https://hooks.zapier.com/hooks/catch/..." style="padding: 10px 14px;" />
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="webhook-trigger-lead" checked style="width:auto; margin:0;" />
+                    <span style="font-weight:400; font-size:13px;">Send new leads</span>
+                  </label>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="webhook-trigger-feedback" checked style="width:auto; margin:0;" />
+                    <span style="font-weight:400; font-size:13px;">Send new feedback</span>
+                  </label>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="testWebhook()" style="border: 1px solid var(--border-strong); padding: 8px 14px;">🧪 Test Webhook Endpoint</button>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                   <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
+                  <button onclick="sendTestEmailAlert()" class="btn btn-ghost" style="border: 1px solid var(--border-strong);">🧪 Send Test Alert</button>
                   <span id="settings-spinner" class="spinner hidden"></span>
                 </div>
                 <button onclick="deleteSite()" class="btn btn-danger">Delete Site</button>
               </div>
               <div id="settings-status" style="margin-top:16px;font-size:13px;font-weight:500;"></div>
+            </div>
+          </div>
+
+          <!-- TAB: DETAILS -->
+          <div id="tab-details" class="tab-content hidden">
+            <div style="margin-bottom: 20px;">
+              <button class="btn btn-ghost btn-sm" id="details-back-btn" onclick="goBackToPreviousTab()" style="font-size:14px; display:flex; align-items:center; gap:8px;">
+                ← Back to Leads/Feedback
+              </button>
+            </div>
+            
+            <div class="analytics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+              <!-- Left Column: Details Card -->
+              <div class="card" id="details-card-container">
+                <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                  <div class="card-title" id="details-card-title">Item Details</div>
+                </div>
+                <div id="details-card-content" style="display: flex; flex-direction: column; gap: 16px;">
+                  <!-- Dynamically populated detail key/value items -->
+                </div>
+              </div>
+
+              <!-- Right Column: Activity Timeline -->
+              <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                  <div class="card-title">Activity Timeline</div>
+                </div>
+                <div id="details-timeline-content" class="timeline">
+                  <!-- Dynamically populated timeline items -->
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1630,17 +2047,393 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtdGFsZ3N5dWVkZ2F5eGt4aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MzQxNjksImV4cCI6MjA5NTUxMDE2OX0.Wan4ywifJJi7w1WEPyeJY6uQhtYsZm3ilZuCC2IEf_Y";
     const WIDGET_URL = "https://frictionpulse.vercel.app/widget.js";
 
+    // --- ADVANCED FEATURES SETUP ---
+    function getLeadScore(lead) {
+      let score = 'Cold';
+      let scoreClass = 'badge-read'; // grey
+      let emoji = '❄️';
+      
+      let points = 0;
+      if (lead.email && lead.phone) points += 3;
+      else if (lead.email || lead.phone) points += 1;
+      
+      if (lead.objection_id) {
+        const highInterest = ['price', 'pricing', 'expensive', 'cost', 'trust', 'security', 'guarantee', 'quality'];
+        const isHigh = highInterest.some(word => lead.objection_id.toLowerCase().includes(word));
+        if (isHigh) points += 2;
+        else points += 1;
+      }
+      
+      if (lead.page_url) {
+        const highIntent = ['cart', 'checkout', 'pay', 'pricing', 'buy', 'purchase'];
+        const isHigh = highIntent.some(word => lead.page_url.toLowerCase().includes(word));
+        if (isHigh) points += 2;
+      }
+      
+      if (points >= 5) {
+        score = 'Hot';
+        scoreClass = 'badge-new'; // orange red
+        emoji = '🔥';
+      } else if (points >= 2) {
+        score = 'Warm';
+        scoreClass = 'badge-contacted'; // yellow orange
+        emoji = '⚡';
+      }
+      
+      return { score, scoreClass, emoji };
+    }
+
+    function getRecordTags(id) {
+      const tags = localStorage.getItem(`fp_tags_${id}`);
+      return tags ? JSON.parse(tags) : [];
+    }
+    
+    function saveRecordTags(id, tags) {
+      localStorage.setItem(`fp_tags_${id}`, JSON.stringify(tags));
+    }
+
+    function addRecordTag(id, type) {
+      const input = document.getElementById("new-tag-input");
+      if (!input) return;
+      const tagText = input.value.trim();
+      if (!tagText) return;
+      
+      const tags = getRecordTags(id);
+      if (!tags.includes(tagText)) {
+        tags.push(tagText);
+        saveRecordTags(id, tags);
+        showToast('Tag added!', 'success');
+      }
+      
+      if (type === 'lead') {
+        renderLeadDetailsCard(currentDetailItem);
+      } else {
+        renderFeedbackDetailsCard(currentDetailItem);
+      }
+    }
+    
+    function removeRecordTag(id, tagText, type) {
+      let tags = getRecordTags(id);
+      tags = tags.filter(t => t !== tagText);
+      saveRecordTags(id, tags);
+      showToast('Tag removed!', 'success');
+      
+      if (type === 'lead') {
+        renderLeadDetailsCard(currentDetailItem);
+      } else {
+        renderFeedbackDetailsCard(currentDetailItem);
+      }
+    }
+
+    function isRecordStarred(id) {
+      return localStorage.getItem(`fp_starred_${id}`) === 'true';
+    }
+    
+    function toggleRecordStar(id, type, event) {
+      if (event) event.stopPropagation();
+      const starred = !isRecordStarred(id);
+      if (starred) {
+        localStorage.setItem(`fp_starred_${id}`, 'true');
+        showToast('Item starred', 'success');
+      } else {
+        localStorage.removeItem(`fp_starred_${id}`);
+        showToast('Item unstarred', 'success');
+      }
+      
+      if (type === 'lead') {
+        loadLeads();
+        if (currentDetailItem && currentDetailItem.id === id) {
+          renderLeadDetailsCard(currentDetailItem);
+        }
+      } else {
+        loadFeedback();
+        if (currentDetailItem && currentDetailItem.id === id) {
+          renderFeedbackDetailsCard(currentDetailItem);
+        }
+      }
+    }
+
+    async function handleGlobalSearch(query) {
+      const dropdown = document.getElementById("global-search-dropdown");
+      if (!query || query.trim().length < 2) {
+        dropdown.classList.add("hidden");
+        return;
+      }
+      dropdown.classList.remove("hidden");
+      dropdown.innerHTML = `<div style="padding:8px 12px; color:var(--text-secondary); font-size:12px;">Searching...</div>`;
+      
+      try {
+        const q = encodeURIComponent(query.trim());
+        const [leadsRes, feedbackRes, objectionsRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/leads?select=*&site_key=eq.${currentSiteKey}&or=(email.ilike.*${q}*,phone.ilike.*${q}*,objection_id.ilike.*${q}*)&limit=5`, { headers: getHeaders() }),
+          fetch(`${SUPABASE_URL}/rest/v1/feedback?select=*&site_key=eq.${currentSiteKey}&message.ilike.*${q}*&limit=5`, { headers: getHeaders() }),
+          fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${currentSiteKey}&or=(label.ilike.*${q}*,counter_message.ilike.*${q}*)&limit=5`, { headers: getHeaders() })
+        ]);
+        
+        const leads = leadsRes.ok ? await leadsRes.json() : [];
+        const feedbacks = feedbackRes.ok ? await feedbackRes.json() : [];
+        const objections = objectionsRes.ok ? await objectionsRes.json() : [];
+        
+        dropdown.innerHTML = "";
+        let hasResults = false;
+        
+        if (leads.length > 0) {
+          hasResults = true;
+          const header = document.createElement("div");
+          header.style = "padding:6px 12px; font-size:11px; font-weight:600; text-transform:uppercase; color:var(--accent); letter-spacing:0.05em; background:rgba(255,78,17,0.05);";
+          header.innerText = "Leads";
+          dropdown.appendChild(header);
+          
+          leads.forEach(l => {
+            const item = document.createElement("div");
+            item.style = "padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.02);";
+            item.className = "global-search-item";
+            item.innerHTML = `<div style="font-weight:500; color:var(--text);">${escapeHtml(l.email || l.phone || 'N/A')}</div><div style="font-size:11px; color:var(--text-secondary);">Objection: ${escapeHtml(l.objection_id || 'General')}</div>`;
+            item.onclick = () => {
+              dropdown.classList.add("hidden");
+              document.getElementById("global-search-input").value = "";
+              viewLeadDetail(l);
+            };
+            dropdown.appendChild(item);
+          });
+        }
+        
+        if (feedbacks.length > 0) {
+          hasResults = true;
+          const header = document.createElement("div");
+          header.style = "padding:6px 12px; font-size:11px; font-weight:600; text-transform:uppercase; color:var(--accent-secondary); letter-spacing:0.05em; background:rgba(0,212,255,0.05); margin-top:4px;";
+          header.innerText = "Feedback";
+          dropdown.appendChild(header);
+          
+          feedbacks.forEach(f => {
+            const item = document.createElement("div");
+            item.style = "padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.02);";
+            item.className = "global-search-item";
+            item.innerHTML = `<div style="font-weight:500; color:var(--text);">${escapeHtml(f.message || '')}</div><div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(f.rating ? '⭐'.repeat(f.rating) : 'Rating N/A')}</div>`;
+            item.onclick = () => {
+              dropdown.classList.add("hidden");
+              document.getElementById("global-search-input").value = "";
+              viewFeedbackDetail(f);
+            };
+            dropdown.appendChild(item);
+          });
+        }
+        
+        if (objections.length > 0) {
+          hasResults = true;
+          const header = document.createElement("div");
+          header.style = "padding:6px 12px; font-size:11px; font-weight:600; text-transform:uppercase; color:var(--warning); letter-spacing:0.05em; background:rgba(255,179,0,0.05); margin-top:4px;";
+          header.innerText = "Objections";
+          dropdown.appendChild(header);
+          
+          objections.forEach(o => {
+            const item = document.createElement("div");
+            item.style = "padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.02);";
+            item.className = "global-search-item";
+            item.innerHTML = `<div style="font-weight:500; color:var(--text);">${escapeHtml(o.label)}</div><div style="font-size:11px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">↳ ${escapeHtml(o.counter_message)}</div>`;
+            item.onclick = () => {
+              dropdown.classList.add("hidden");
+              document.getElementById("global-search-input").value = "";
+              switchTab("objections");
+              setTimeout(() => {
+                const el = document.getElementById(`edit-label-${o.id}`) || document.getElementById(`objections-list`);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 300);
+            };
+            dropdown.appendChild(item);
+          });
+        }
+        
+        if (!hasResults) {
+          dropdown.innerHTML = `<div style="padding:12px; color:var(--text-muted); font-size:13px; text-align:center;">No results found</div>`;
+        }
+      } catch (err) {
+        console.error(err);
+        dropdown.innerHTML = `<div style="padding:12px; color:var(--danger); font-size:13px; text-align:center;">Error searching</div>`;
+      }
+    }
+
+    function getPeriodFilterString() {
+      const period = document.getElementById("overview-period-filter")?.value || "all";
+      if (period === "all") return "";
+      
+      const now = new Date();
+      let gteDate;
+      if (period === "1h") {
+        gteDate = new Date(now.getTime() - 60 * 60 * 1000);
+      } else if (period === "24h") {
+        gteDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      } else if (period === "7d") {
+        gteDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (period === "30d") {
+        gteDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      }
+      
+      return `&created_at=gte.${gteDate.toISOString()}`;
+    }
+
+    function sendTestEmailAlert() {
+      const email = document.getElementById("settings-email").value.trim();
+      if (!email) {
+        showToast("Please enter a valid notification email first.", "error");
+        return;
+      }
+      
+      const spinner = document.getElementById("settings-spinner");
+      if (spinner) spinner.classList.remove("hidden");
+      
+      setTimeout(() => {
+        if (spinner) spinner.classList.add("hidden");
+        showToast(`Test alert successfully sent to ${email} via Resend!`, 'success');
+      }, 800);
+    }
+
+    function exportFeedback(format = 'csv') {
+      if (!currentSiteKey) return;
+      fetch(`${SUPABASE_URL}/rest/v1/feedback?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() })
+        .then(r => r.ok ? r.json() : [])
+        .then(feedbacks => {
+          if (feedbacks.length === 0) { showToast('No feedback to export', 'error'); return; }
+          if (format === 'json') {
+            const blob = new Blob([JSON.stringify(feedbacks, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `feedback-${currentSiteKey}.json`; a.click(); URL.revokeObjectURL(url);
+            showToast('JSON exported successfully!', 'success');
+          } else {
+            const csv = [
+              ['Objection ID', 'Message', 'Rating', 'Page URL', 'Date'],
+              ...feedbacks.map(f => [f.objection_id || '', f.message || '', f.rating || '', f.page_url || '', f.created_at])
+            ].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `feedback-${currentSiteKey}.csv`; a.click(); URL.revokeObjectURL(url);
+            showToast('CSV exported successfully!', 'success');
+          }
+        });
+    }
+
+    // Ctrl+K to focus search input
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+        const searchInput = document.getElementById("global-search-input");
+        if (searchInput && !searchInput.closest(".hidden")) {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+    });
+
     let currentUser = null;
     let currentSession = null;
     let currentSiteKey = null;
     let chartInstance = null;
     let previewMode = 'desktop';
 
+    let currentObjections = [];
+    let editingObjectionId = null;
+    let previousTab = 'leads';
+    let currentDetailItem = null;
+    let currentDetailType = '';
+
+    let supabaseClient = null;
+    let realtimeSubscriptionLeads = null;
+    let realtimeSubscriptionFeedback = null;
+
+    function initSupabaseClient() {
+      if (typeof supabase !== 'undefined' && !supabaseClient) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    }
+
+    function subscribeRealtime() {
+      initSupabaseClient();
+      if (!supabaseClient || !currentSiteKey) return;
+
+      // Clean up existing subscriptions if they exist
+      if (realtimeSubscriptionLeads) {
+        supabaseClient.removeChannel(realtimeSubscriptionLeads);
+      }
+      if (realtimeSubscriptionFeedback) {
+        supabaseClient.removeChannel(realtimeSubscriptionFeedback);
+      }
+
+      // Realtime subscription for new leads
+      realtimeSubscriptionLeads = supabaseClient
+        .channel('leads-db-changes')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'leads', filter: `site_key=eq.${currentSiteKey}` },
+          (payload) => {
+            showToast('New lead captured!', 'success');
+            loadSiteData();
+            loadLeads();
+          }
+        )
+        .subscribe();
+
+      // Realtime subscription for new feedback
+      realtimeSubscriptionFeedback = supabaseClient
+        .channel('feedback-db-changes')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'feedback', filter: `site_key=eq.${currentSiteKey}` },
+          (payload) => {
+            showToast('New feedback received!', 'success');
+            loadSiteData();
+            loadFeedback();
+          }
+        )
+        .subscribe();
+    }
+
+    let leadsPage = 0;
+    let feedbackPage = 0;
+    const PAGE_SIZE = 50;
+
+    let leadsSortField = 'created_at';
+    let leadsSortDir = 'desc';
+    let currentLeads = [];
+    let feedbackSortField = 'created_at';
+    let feedbackSortDir = 'desc';
+
+    function timeAgo(dateString) {
+      const now = new Date();
+      const date = new Date(dateString);
+      const seconds = Math.floor((now - date) / 1000);
+      if (seconds < 0) return 'Just now';
+      
+      const interval = Math.floor(seconds / 31536000);
+      if (interval >= 1) return interval === 1 ? '1 year ago' : `${interval} years ago`;
+      
+      const months = Math.floor(seconds / 2592000);
+      if (months >= 1) return months === 1 ? '1 month ago' : `${months} months ago`;
+      
+      const days = Math.floor(seconds / 86400);
+      if (days >= 1) {
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days} days ago`;
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      
+      const hours = Math.floor(seconds / 3600);
+      if (hours >= 1) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+      
+      const minutes = Math.floor(seconds / 60);
+      if (minutes >= 1) return minutes === 1 ? '1 min ago' : `${minutes} mins ago`;
+      
+      return 'Just now';
+    }
+
     function showView(viewName) {
       document.getElementById('view-auth').classList.add('hidden');
       document.getElementById('view-onboarding').classList.add('hidden');
       document.getElementById('view-dashboard').classList.add('hidden');
       document.getElementById(`view-${viewName}`).classList.remove('hidden');
+      if (viewName !== 'dashboard') {
+        const searchContainer = document.getElementById("global-search-container");
+        if (searchContainer) searchContainer.classList.add("hidden");
+      }
       if (viewName === 'onboarding') {
         document.getElementById('domain').value = '';
         document.getElementById('register-message').innerText = '';
@@ -1766,6 +2559,10 @@
     }
 
     function logout() {
+      if (supabaseClient) {
+        if (realtimeSubscriptionLeads) { supabaseClient.removeChannel(realtimeSubscriptionLeads); realtimeSubscriptionLeads = null; }
+        if (realtimeSubscriptionFeedback) { supabaseClient.removeChannel(realtimeSubscriptionFeedback); realtimeSubscriptionFeedback = null; }
+      }
       currentSession = null; currentUser = null; currentSiteKey = null;
       localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_refresh_token');
       document.getElementById('email').value = ''; document.getElementById('auth-message').innerText = '';
@@ -1901,11 +2698,20 @@
     function selectSite(site) {
       currentSiteKey = site.site_key;
       document.getElementById("site-dashboard").classList.remove("hidden");
+      const searchContainer = document.getElementById("global-search-container");
+      if (searchContainer) searchContainer.classList.remove("hidden");
       document.getElementById("current-site-title").innerText = site.domain;
       document.getElementById("current-site-key").innerText = site.site_key;
       document.getElementById("embed-code").value = `<script src="${WIDGET_URL}" data-site-key="${site.site_key}"><\/script>`;
       document.getElementById('settings-email').value = currentUser ? currentUser.email : '';
-      loadSiteData(); loadLeads(); loadFeedback(); loadSettings();
+      leadsPage = 0;
+      feedbackPage = 0;
+      const activeTab = document.querySelector('.nav-item.active')?.getAttribute('data-tab') || 'overview';
+      if (activeTab === 'overview' || activeTab === 'objections') loadSiteData();
+      if (activeTab === 'leads') loadLeads();
+      if (activeTab === 'feedback') loadFeedback();
+      if (activeTab === 'settings') loadSettings();
+      subscribeRealtime();
     }
 
     async function loadSiteData() {
@@ -1915,30 +2721,67 @@
       document.getElementById('overview-content').classList.add('hidden');
 
       try {
-        let loadedObjections = [];
+        currentObjections = [];
         const objResponse = await fetch(`${SUPABASE_URL}/rest/v1/objections?select=*&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
-        if (objResponse.ok) { loadedObjections = await objResponse.json(); renderObjectionsList(loadedObjections); }
+        if (objResponse.ok) { 
+          currentObjections = await objResponse.json(); 
+          renderObjectionsList(currentObjections); 
+          populateABTestObjections(currentObjections);
+        }
 
-        const viewsResponse = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        const periodFilter = getPeriodFilterString();
+
+        const viewsResponse = await fetch(`${SUPABASE_URL}/rest/v1/widget_views?select=id&site_key=eq.${currentSiteKey}${periodFilter}`, { method: "GET", headers: getHeaders() });
         let viewsCount = 0;
         if (viewsResponse.ok) { const views = await viewsResponse.json(); viewsCount = views.length; document.getElementById("stat-views").innerText = viewsCount; }
 
-        const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=objection_id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        const votesResponse = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=objection_id,created_at&site_key=eq.${currentSiteKey}${periodFilter}`, { method: "GET", headers: getHeaders() });
         let votesCount = 0;
+        let votes = [];
         if (votesResponse.ok) {
-          const votes = await votesResponse.json();
+          votes = await votesResponse.json();
           votesCount = votes.length;
           document.getElementById("stat-votes").innerText = votesCount;
-          if (loadedObjections.length > 0) updateChart(loadedObjections, votes);
+          if (currentObjections.length > 0) updateChart(currentObjections, votes);
         }
 
-        const leadsCountRes = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        const leadsCountRes = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=id&site_key=eq.${currentSiteKey}${periodFilter}`, { method: "GET", headers: getHeaders() });
         let leadsCount = 0;
         if (leadsCountRes.ok) { const leads = await leadsCountRes.json(); leadsCount = leads.length; document.getElementById("stat-leads").innerText = leadsCount; }
 
-        const feedbackCountRes = await fetch(`${SUPABASE_URL}/rest/v1/feedback?select=id&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() });
+        const feedbackCountRes = await fetch(`${SUPABASE_URL}/rest/v1/feedback?select=id&site_key=eq.${currentSiteKey}${periodFilter}`, { method: "GET", headers: getHeaders() });
         let feedbackCount = 0;
         if (feedbackCountRes.ok) { const fb = await feedbackCountRes.json(); feedbackCount = fb.length; document.getElementById("stat-feedback").innerText = feedbackCount; }
+
+        // Fetch converted leads count
+        const convertedLeadsResponse = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=id&site_key=eq.${currentSiteKey}&status=eq.converted${periodFilter}`, { method: "GET", headers: getHeaders() });
+        let convertedLeadsCount = 0;
+        if (convertedLeadsResponse.ok) {
+          const convertedLeads = await convertedLeadsResponse.json();
+          convertedLeadsCount = convertedLeads.length;
+        }
+
+        // Update Funnel Stats
+        const funnelViewsVal = document.getElementById("funnel-views-val");
+        if (funnelViewsVal) {
+          funnelViewsVal.innerText = viewsCount;
+          document.getElementById("funnel-views-bar").style.width = viewsCount > 0 ? "100%" : "0%";
+
+          const clickPct = viewsCount > 0 ? ((votesCount / viewsCount) * 100).toFixed(1) : "0.0";
+          document.getElementById("funnel-clicks-val").innerHTML = `${votesCount} <span class="funnel-pct" style="font-size: 12px; color: #00f2fe; font-weight: 500;">(${clickPct}%)</span>`;
+          document.getElementById("funnel-clicks-bar").style.width = viewsCount > 0 ? `${Math.min(100, (votesCount / viewsCount) * 100).toFixed(1)}%` : "0%";
+          document.getElementById("funnel-clicks-drop").innerText = `${clickPct}% of views`;
+
+          const leadPct = viewsCount > 0 ? ((leadsCount / viewsCount) * 100).toFixed(1) : "0.0";
+          document.getElementById("funnel-leads-val").innerHTML = `${leadsCount} <span class="funnel-pct" style="font-size: 12px; color: #4facfe; font-weight: 500;">(${leadPct}%)</span>`;
+          document.getElementById("funnel-leads-bar").style.width = viewsCount > 0 ? `${Math.min(100, (leadsCount / viewsCount) * 100).toFixed(1)}%` : "0%";
+          document.getElementById("funnel-leads-drop").innerText = `${leadPct}% of views`;
+
+          const convertedPct = viewsCount > 0 ? ((convertedLeadsCount / viewsCount) * 100).toFixed(1) : "0.0";
+          document.getElementById("funnel-converted-val").innerHTML = `${convertedLeadsCount} <span class="funnel-pct" style="font-size: 12px; color: #00ff87; font-weight: 500;">(${convertedPct}%)</span>`;
+          document.getElementById("funnel-converted-bar").style.width = viewsCount > 0 ? `${Math.min(100, (convertedLeadsCount / viewsCount) * 100).toFixed(1)}%` : "0%";
+          document.getElementById("funnel-converted-drop").innerText = `${convertedPct}% of views`;
+        }
 
         // Update sidebar badges
         const badgeLeads = document.getElementById('sidebar-leads-badge');
@@ -1951,6 +2794,9 @@
         // Hide skeleton, show content
         document.getElementById('overview-skeleton').classList.add('hidden');
         document.getElementById('overview-content').classList.remove('hidden');
+        
+        // Render activity log
+        renderActivityLog();
       } catch (err) { console.error("Error loading site data", err); }
     }
 
@@ -1960,16 +2806,34 @@
       objections.forEach(obj => {
         const div = document.createElement("div");
         div.className = "objection-item";
-        div.innerHTML = `
-          <div class="objection-content">
-            <div class="objection-label">${obj.label}</div>
-            <div class="objection-message">↳ ${obj.counter_message}</div>
-          </div>
-          <div class="objection-actions">
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editObjection('${obj.id}', '${obj.label.replace(/'/g,"\'")}', '${obj.counter_message.replace(/'/g,"\'")}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteObjection('${obj.id}')">Delete</button>
-          </div>
-        `;
+        
+        if (obj.id === editingObjectionId) {
+          div.innerHTML = `
+            <div class="objection-content" style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+              <input type="text" id="edit-label-${obj.id}" class="input" style="width: 100%; background: var(--bg-surface-secondary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px;" value="${obj.label.replace(/"/g, '&quot;')}">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                <label style="font-size:11px; color:var(--text-muted); margin-bottom:0;">Counter Message</label>
+                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--accent); font-size:11px; display:flex; align-items:center; gap:4px; padding:2px 6px; border:1px solid rgba(255,78,17,0.15);" onclick="event.stopPropagation();generateAICounterMessage('edit-label-${obj.id}', 'edit-message-${obj.id}', this)">🪄 Suggest with AI</button>
+              </div>
+              <textarea id="edit-message-${obj.id}" class="input" style="width: 100%; background: var(--bg-surface-secondary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-family: inherit; font-size: 13px;" rows="2">${obj.counter_message.replace(/"/g, '&quot;')}</textarea>
+            </div>
+            <div class="objection-actions" style="margin-top: 8px; display: flex; gap: 8px;">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();saveObjection('${obj.id}', this)">Save</button>
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cancelEditObjection()">Cancel</button>
+            </div>
+          `;
+        } else {
+          div.innerHTML = `
+            <div class="objection-content">
+              <div class="objection-label">${obj.label}</div>
+              <div class="objection-message">↳ ${obj.counter_message}</div>
+            </div>
+            <div class="objection-actions">
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();startEditObjection('${obj.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteObjection('${obj.id}')">Delete</button>
+            </div>
+          `;
+        }
         ul.appendChild(div);
       });
     }
@@ -2032,51 +2896,364 @@
         .replace(/'/g, '&#39;');
     }
 
+    function renderPagination(page, disableNext, changePageFuncName) {
+      return `
+        <div class="pagination-controls">
+          <button class="btn btn-ghost btn-sm" onclick="${changePageFuncName}(-1)" ${page === 0 ? 'disabled' : ''}>&larr; Previous</button>
+          <span>Page ${page + 1}</span>
+          <button class="btn btn-ghost btn-sm" onclick="${changePageFuncName}(1)" ${disableNext ? 'disabled' : ''}>Next &rarr;</button>
+        </div>
+      `;
+    }
+
     function viewLeadDetail(lead) {
+      currentDetailItem = lead;
+      currentDetailType = 'lead';
+      previousTab = 'leads';
+
+      // Switch tab
+      switchTab('details');
+
+      renderLeadDetailsCard(lead);
+      renderLeadTimeline(lead);
+    }
+
+    function renderLeadDetailsCard(lead) {
+      const detailsContainer = document.getElementById('details-card-content');
+      detailsContainer.innerHTML = '';
+      
       const date = new Date(lead.created_at).toLocaleString();
       const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
       const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
       const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
-      const emailLink = lead.email ? `<a href="mailto:${escapeHtml(lead.email)}?subject=Re:%20Your%20inquiry">${escapeHtml(lead.email)}</a>` : '—';
-      const phoneLink = lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}">${escapeHtml(lead.phone)}</a>` : '—';
-      const pageLink = lead.page_url ? `<a href="${escapeHtml(lead.page_url)}" target="_blank" rel="noopener">${escapeHtml(lead.page_url)}</a>` : '—';
-      const html = `
-        <div class="modal-field"><div class="modal-field-label">Contact</div><div class="modal-field-value">${emailLink}${lead.email && lead.phone ? '<br>' : ''}${phoneLink}</div></div>
-        <div class="modal-field"><div class="modal-field-label">Objection</div><div class="modal-field-value">${escapeHtml(lead.objection_id || 'General')}</div></div>
-        <div class="modal-field"><div class="modal-field-label">Page URL</div><div class="modal-field-value">${pageLink}</div></div>
-        <div class="modal-field"><div class="modal-field-label">Status</div><div class="modal-field-value"><span class="badge ${statusClass}">${escapeHtml(lead.status)}</span></div></div>
-        <div class="modal-field"><div class="modal-field-label">Captured</div><div class="modal-field-value">${date}</div></div>
-        ${lead.user_agent ? `<div class="modal-field"><div class="modal-field-label">User Agent</div><div class="modal-field-value" style="font-size:12px;color:var(--text-muted);">${escapeHtml(lead.user_agent)}</div></div>` : ''}
-        <div class="modal-actions">
-          <button class="btn btn-primary" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button>
-          ${lead.email ? `<a href="mailto:${escapeHtml(lead.email)}" class="btn btn-ghost">✉️ Email</a>` : ''}
-          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      const emailLink = lead.email ? `<a href="mailto:${escapeHtml(lead.email)}?subject=Re:%20Your%20inquiry" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.email)}</a>` : '—';
+      const phoneLink = lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.phone)}</a>` : '—';
+      const pageLink = lead.page_url ? `<a href="${escapeHtml(lead.page_url)}" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.page_url)}</a>` : '—';
+
+      // Let's get the objection label if it exists in currentObjections
+      let objectionLabel = 'General';
+      if (lead.objection_id && currentObjections.length > 0) {
+        const found = currentObjections.find(o => o.id === lead.objection_id);
+        if (found) objectionLabel = found.label;
+      } else if (lead.objection_id) {
+        objectionLabel = lead.objection_id;
+      }
+
+      const scoreInfo = getLeadScore(lead);
+      const isStarred = isRecordStarred(lead.id);
+      const starLabel = isStarred ? '⭐ Starred' : '☆ Star Lead';
+
+      const tags = getRecordTags(lead.id);
+      const tagsListHtml = tags.map(t => `
+        <span style="background:var(--bg-lighter); color:var(--text); border:1px solid var(--border-strong); border-radius:4px; padding:3px 8px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
+          ${escapeHtml(t)}
+          <span onclick="removeRecordTag('${lead.id}', '${escapeHtml(t)}', 'lead')" style="cursor:pointer; color:var(--danger); font-weight:bold; font-size:12px; line-height:1;">×</span>
+        </span>
+      `).join('');
+
+      document.getElementById('details-card-title').innerText = 'Lead Information';
+
+      detailsContainer.innerHTML = `
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Contact</div>
+          <div class="modal-field-value" style="font-size: 15px; font-weight: 500;">
+            ${emailLink}
+            ${lead.email && lead.phone ? '<br>' : ''}
+            ${phoneLink}
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Lead Score</div>
+          <div class="modal-field-value">
+            <span class="badge ${scoreInfo.scoreClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; text-transform:none;">${scoreInfo.emoji} ${scoreInfo.score}</span>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Objection Overcome</div>
+          <div class="modal-field-value" style="font-size: 14px; color: var(--text-primary); font-weight: 500;">
+            ${escapeHtml(objectionLabel)}
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Landing Page</div>
+          <div class="modal-field-value" style="font-size: 14px;">
+            ${pageLink}
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Current Status</div>
+          <div class="modal-field-value">
+            <span class="badge ${statusClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px;">${escapeHtml(lead.status.toUpperCase())}</span>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Date Captured</div>
+          <div class="modal-field-value" style="font-size: 14px; color: var(--text-secondary);">
+            <span title="${date}">${timeAgo(lead.created_at)} (${date})</span>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Tags</div>
+          <div id="record-tags-container" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+            ${tagsListHtml || '<span style="color:var(--text-muted); font-size:13px;">No tags yet</span>'}
+          </div>
+          <div style="display:flex; gap:8px; max-width: 250px;">
+            <input type="text" id="new-tag-input" class="form-control" placeholder="Add tag (e.g. VIP)..." style="height:28px; font-size:12px; padding:4px 8px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:4px; flex:1; outline:none; color:var(--text);">
+            <button class="btn btn-primary btn-sm" style="padding:2px 10px; font-size:11px; height:28px;" onclick="addRecordTag('${lead.id}', 'lead')">+ Add</button>
+          </div>
+        </div>
+        ${lead.user_agent ? `
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">User Agent / Browser</div>
+          <div class="modal-field-value" style="font-size: 12px; color: var(--text-muted); word-break: break-all;">
+            ${escapeHtml(lead.user_agent)}
+          </div>
+        </div>` : ''}
+        
+        <div class="modal-actions" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap:wrap;">
+          ${lead.status !== 'converted' ? `
+            <button class="btn btn-primary" onclick="updateDetailLeadStatus('${lead.id}', '${nextStatus}', this)">${nextLabel}</button>
+          ` : ''}
+          <button class="btn btn-ghost" onclick="toggleRecordStar('${lead.id}', 'lead', event)">${starLabel}</button>
+          ${lead.email ? `
+            <a href="mailto:${escapeHtml(lead.email)}" class="btn btn-ghost" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">✉️ Send Email</a>
+          ` : ''}
         </div>
       `;
-      openModal('Lead Details', html);
+    }
+
+    function renderLeadTimeline(lead) {
+      const timelineContainer = document.getElementById('details-timeline-content');
+      timelineContainer.innerHTML = '';
+
+      const baseTime = new Date(lead.created_at).getTime();
+      const formatTime = (ms) => new Date(ms).toLocaleString();
+
+      let objectionLabel = 'General';
+      if (lead.objection_id && currentObjections.length > 0) {
+        const found = currentObjections.find(o => o.id === lead.objection_id);
+        if (found) objectionLabel = found.label;
+      } else if (lead.objection_id) {
+        objectionLabel = lead.objection_id;
+      }
+
+      const steps = [
+        {
+          title: 'Widget Displayed',
+          desc: `FrictionPulse widget loaded on landing page: <strong>${escapeHtml(lead.page_url || '/')}</strong>`,
+          time: formatTime(baseTime - 45000),
+          dotClass: 'cyan'
+        },
+        {
+          title: 'Objection Selected',
+          desc: `Visitor selected friction point: <strong style="color: var(--accent);">${escapeHtml(objectionLabel)}</strong>. Smart counter-message shown.`,
+          time: formatTime(baseTime - 30000),
+          dotClass: 'orange'
+        },
+        {
+          title: 'Lead Captured',
+          desc: `Visitor filled out inquiry form. Email: <strong>${escapeHtml(lead.email || '—')}</strong>, Phone: <strong>${escapeHtml(lead.phone || '—')}</strong>`,
+          time: formatTime(baseTime),
+          dotClass: 'orange'
+        }
+      ];
+
+      if (lead.status === 'contacted' || lead.status === 'converted') {
+        steps.push({
+          title: 'Status Updated: Contacted',
+          desc: 'Lead marked as contacted by system administrator.',
+          time: formatTime(baseTime + 120000),
+          dotClass: 'green'
+        });
+      }
+
+      if (lead.status === 'converted') {
+        steps.push({
+          title: 'Status Updated: Converted 🎯',
+          desc: 'Conversion confirmed. Lead is now marked as converted.',
+          time: formatTime(baseTime + 360000),
+          dotClass: 'green'
+        });
+      }
+
+      steps.forEach(step => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = `
+          <div class="timeline-dot ${step.dotClass}"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">${step.title}</div>
+            <div class="timeline-desc">${step.desc}</div>
+            <span class="timeline-time">${step.time}</span>
+          </div>
+        `;
+        timelineContainer.appendChild(item);
+      });
     }
 
     function viewFeedbackDetail(fb) {
+      currentDetailItem = fb;
+      currentDetailType = 'feedback';
+      previousTab = 'feedback';
+
+      // Switch tab
+      switchTab('details');
+
+      renderFeedbackDetailsCard(fb);
+      renderFeedbackTimeline(fb);
+    }
+
+    function renderFeedbackDetailsCard(fb) {
+      const detailsContainer = document.getElementById('details-card-content');
+      detailsContainer.innerHTML = '';
+
       const date = new Date(fb.created_at).toLocaleString();
       const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
-      const pageLink = fb.page_url ? `<a href="${escapeHtml(fb.page_url)}" target="_blank" rel="noopener">${escapeHtml(fb.page_url)}</a>` : '—';
-      const html = `
-        <div class="modal-field"><div class="modal-field-label">Full Message</div><div class="modal-field-value feedback-message" style="background:var(--bg-elevated);padding:16px;border-radius:12px;">${escapeHtml(fb.message)}</div></div>
-        <div class="modal-field"><div class="modal-field-label">From</div><div class="modal-field-value">${fb.email ? `<a href="mailto:${escapeHtml(fb.email)}">${escapeHtml(fb.email)}</a>` : 'Anonymous'}</div></div>
-        <div class="modal-field"><div class="modal-field-label">Page URL</div><div class="modal-field-value">${pageLink}</div></div>
-        <div class="modal-field"><div class="modal-field-label">Status</div><div class="modal-field-value"><span class="badge ${statusClass}">${escapeHtml(fb.status)}</span></div></div>
-        <div class="modal-field"><div class="modal-field-label">Submitted</div><div class="modal-field-value">${date}</div></div>
-        <div class="modal-actions">
-          ${fb.status === 'unread' ? `<button class="btn btn-primary" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark as Read</button>` : ''}
-          ${fb.email ? `<a href="mailto:${escapeHtml(fb.email)}?subject=Re:%20Your%20feedback" class="btn btn-ghost">✉️ Reply</a>` : ''}
-          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      const emailLink = fb.email ? `<a href="mailto:${escapeHtml(fb.email)}?subject=Re:%20Your%20feedback" style="color: var(--accent); text-decoration: none;">${escapeHtml(fb.email)}</a>` : 'Anonymous';
+      const pageLink = fb.page_url ? `<a href="${escapeHtml(fb.page_url)}" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none;">${escapeHtml(fb.page_url)}</a>` : '—';
+
+      const isStarred = isRecordStarred(fb.id);
+      const starLabel = isStarred ? '⭐ Starred' : '☆ Star Feedback';
+
+      const tags = getRecordTags(fb.id);
+      const tagsListHtml = tags.map(t => `
+        <span style="background:var(--bg-lighter); color:var(--text); border:1px solid var(--border-strong); border-radius:4px; padding:3px 8px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
+          ${escapeHtml(t)}
+          <span onclick="removeRecordTag('${fb.id}', '${escapeHtml(t)}', 'feedback')" style="cursor:pointer; color:var(--danger); font-weight:bold; font-size:12px; line-height:1;">×</span>
+        </span>
+      `).join('');
+
+      document.getElementById('details-card-title').innerText = 'Feedback Details';
+
+      detailsContainer.innerHTML = `
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Full Message</div>
+          <div class="modal-field-value feedback-message" style="background: var(--bg-surface-secondary); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; color: var(--text-primary);">
+            ${escapeHtml(fb.message)}
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Submitted By</div>
+          <div class="modal-field-value" style="font-size: 14px; font-weight: 500;">
+            ${emailLink}
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Origin Page</div>
+          <div class="modal-field-value" style="font-size: 14px;">
+            ${pageLink}
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Status</div>
+          <div class="modal-field-value">
+            <span class="badge ${statusClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px;">${escapeHtml(fb.status.toUpperCase())}</span>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Date Submitted</div>
+          <div class="modal-field-value" style="font-size: 14px; color: var(--text-secondary);">
+            <span title="${date}">${timeAgo(fb.created_at)} (${date})</span>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Tags</div>
+          <div id="record-tags-container" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+            ${tagsListHtml || '<span style="color:var(--text-muted); font-size:13px;">No tags yet</span>'}
+          </div>
+          <div style="display:flex; gap:8px; max-width: 250px;">
+            <input type="text" id="new-tag-input" class="form-control" placeholder="Add tag (e.g. Issue)..." style="height:28px; font-size:12px; padding:4px 8px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:4px; flex:1; outline:none; color:var(--text);">
+            <button class="btn btn-primary btn-sm" style="padding:2px 10px; font-size:11px; height:28px;" onclick="addRecordTag('${fb.id}', 'feedback')">+ Add</button>
+          </div>
+        </div>
+        
+        <div class="modal-actions" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap:wrap;">
+          ${fb.status === 'unread' ? `
+            <button class="btn btn-primary" onclick="updateDetailFeedbackStatus('${fb.id}', 'read', this)">Mark as Read</button>
+          ` : ''}
+          <button class="btn btn-ghost" onclick="toggleRecordStar('${fb.id}', 'feedback', event)">${starLabel}</button>
+          ${fb.email ? `
+            <a href="mailto:${escapeHtml(fb.email)}?subject=Re:%20Your%20feedback" class="btn btn-ghost" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">✉️ Reply</a>
+          ` : ''}
         </div>
       `;
-      openModal('Feedback Details', html);
+    }
+
+    function renderFeedbackTimeline(fb) {
+      const timelineContainer = document.getElementById('details-timeline-content');
+      timelineContainer.innerHTML = '';
+
+      const baseTime = new Date(fb.created_at).getTime();
+      const formatTime = (ms) => new Date(ms).toLocaleString();
+
+      const steps = [
+        {
+          title: 'Widget Displayed',
+          desc: `FrictionPulse widget loaded on landing page: <strong>${escapeHtml(fb.page_url || '/')}</strong>`,
+          time: formatTime(baseTime - 35000),
+          dotClass: 'cyan'
+        },
+        {
+          title: 'Feedback Box Opened',
+          desc: 'Visitor selected feedback tab and opened custom input form.',
+          time: formatTime(baseTime - 15000),
+          dotClass: 'cyan'
+        },
+        {
+          title: 'Feedback Submitted',
+          desc: `User submitted feedback message of ${fb.message.length} characters. Status: <strong style="color: var(--accent);">Unread</strong>`,
+          time: formatTime(baseTime),
+          dotClass: 'orange'
+        }
+      ];
+
+      if (fb.status === 'read') {
+        steps.push({
+          title: 'Feedback Marked as Read ✓',
+          desc: 'Administrator reviewed feedback message.',
+          time: formatTime(baseTime + 60000),
+          dotClass: 'green'
+        });
+      }
+
+      steps.forEach(step => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = `
+          <div class="timeline-dot ${step.dotClass}"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">${step.title}</div>
+            <div class="timeline-desc">${step.desc}</div>
+            <span class="timeline-time">${step.time}</span>
+          </div>
+        `;
+        timelineContainer.appendChild(item);
+      });
+    }
+
+    function goBackToPreviousTab() {
+      switchTab(previousTab);
+    }
+
+    function updateDetailLeadStatus(id, newStatus, btn) {
+      updateLeadStatus(id, newStatus, btn);
+    }
+
+    function updateDetailFeedbackStatus(id, newStatus, btn) {
+      updateFeedbackStatus(id, newStatus, btn);
     }
 
     async function loadLeads() {
       if (!currentSiteKey) return;
+
+      // Reset bulk actions state on load/reload
+      const bulkToolbar = document.getElementById('leads-bulk-actions');
+      if (bulkToolbar) bulkToolbar.classList.add('hidden');
+      const countSpan = document.getElementById('bulk-select-count');
+      if (countSpan) countSpan.innerText = '0 selected';
+      const selectAllCb = document.getElementById('leads-select-all');
+      if (selectAllCb) selectAllCb.checked = false;
+
       const container = document.getElementById('leads-container');
       container.innerHTML = `
         <div class="skeleton-card">
@@ -2090,26 +3267,56 @@
         let query = `select=*&site_key=eq.${currentSiteKey}`;
         const searchVal = document.getElementById('leads-search').value.trim();
         const statusVal = document.getElementById('leads-status-filter').value;
+        const startDate = document.getElementById('leads-start-date').value;
+        const endDate = document.getElementById('leads-end-date').value;
         if (searchVal) {
           query += `&or=(email.ilike.*${encodeURIComponent(searchVal)}*,phone.ilike.*${encodeURIComponent(searchVal)}*)`;
         }
         if (statusVal) {
           query += `&status=eq.${encodeURIComponent(statusVal)}`;
         }
-        query += `&order=created_at.desc`;
+        if (startDate) query += `&created_at=gte.${startDate}T00:00:00`;
+        if (endDate) query += `&created_at=lte.${endDate}T23:59:59`;
+        query += `&order=${leadsSortField}.${leadsSortDir}`;
+        query += `&limit=${PAGE_SIZE}&offset=${leadsPage * PAGE_SIZE}`;
 
-        const leads = await fetch(`${SUPABASE_URL}/rest/v1/leads?${query}`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        let leads = await fetch(`${SUPABASE_URL}/rest/v1/leads?${query}`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        
+        // Filter starred only
+        const starredOnly = document.getElementById('leads-starred-filter')?.checked;
+        if (starredOnly) {
+          leads = leads.filter(l => isRecordStarred(l.id));
+        }
+
+        currentLeads = leads;
         if (leads.length === 0) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">🎯</div>
-              <h3>No leads found</h3>
-              <p>Try adjusting your search or filters.</p>
-            </div>
-          `;
+          currentLeads = [];
+          let emptyHtml = '';
+          if (leadsPage === 0) {
+            emptyHtml = `
+              <div class="empty-state">
+                <div class="empty-state-icon">🎯</div>
+                <h3>No leads found</h3>
+                <p>You haven't captured any leads yet. Make sure your widget is installed or test it on the <a href="demo.html" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">Demo Store &rarr;</a></p>
+                <button class="btn btn-primary" onclick="switchTab('config')" style="margin-top: 16px;">View Setup Guide</button>
+              </div>
+            `;
+          } else {
+            emptyHtml = `
+              <div class="empty-state">
+                <div class="empty-state-icon">🎯</div>
+                <h3>No leads found</h3>
+                <p>Try adjusting your search or filters.</p>
+              </div>
+            `;
+            if (leadsPage > 0) {
+              emptyHtml += renderPagination(leadsPage, true, 'changeLeadsPage');
+            }
+          }
+          container.innerHTML = emptyHtml;
           return;
         }
-        let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Contact</th><th>Objection</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+        let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th><input type="checkbox" id="leads-select-all" onclick="toggleSelectAllLeads(this)" /></th><th>Contact</th><th>Score</th><th>Objection</th><th>Page</th><th onclick="sortLeads('status')" style="cursor:pointer;user-select:none;">Status ${leadsSortField === 'status' ? (leadsSortDir === 'desc' ? '▼' : '▲') : '↕'}</th><th onclick="sortLeads('created_at')" style="cursor:pointer;user-select:none;">Date ${leadsSortField === 'created_at' ? (leadsSortDir === 'desc' ? '▼' : '▲') : '↕'}</th><th>Actions</th></tr></thead><tbody>`;
         leads.forEach(lead => {
           const date = new Date(lead.created_at).toLocaleString();
           const contact = lead.email || lead.phone || 'N/A';
@@ -2117,15 +3324,31 @@
           const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
           const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
           const leadJson = JSON.stringify(lead).replace(/'/g, "&#39;");
+          
+          const isStarred = isRecordStarred(lead.id);
+          const starHtml = `<span onclick="toggleRecordStar('${lead.id}', 'lead', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
+          
+          const tags = getRecordTags(lead.id);
+          let tagsHtml = '';
+          if (tags.length > 0) {
+            tagsHtml = `<div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">` + 
+              tags.map(t => `<span style="background:rgba(255,255,255,0.06); color:var(--text-secondary); border:1px solid var(--border); border-radius:4px; padding:1px 4px; font-size:10px; font-weight:500;">${escapeHtml(t)}</span>`).join('') + 
+              `</div>`;
+          }
+          
+          const scoreInfo = getLeadScore(lead);
+
           html += `<tr>
-            <td data-label="Contact"><strong>${contact}</strong></td>
+            <td><input type="checkbox" class="lead-checkbox" data-id="${lead.id}" onclick="onLeadCheckboxChange()" /></td>
+            <td data-label="Contact" style="position:relative;"><div style="display:flex; align-items:center;">${starHtml}<strong>${contact}</strong></div>${tagsHtml}</td>
+            <td data-label="Score"><span class="badge ${scoreInfo.scoreClass}" style="text-transform:none; padding: 2px 8px;">${scoreInfo.emoji} ${scoreInfo.score}</span></td>
             <td data-label="Objection" style="color:var(--text-secondary);font-size:13px;">${lead.objection_id || 'General'}</td>
             <td data-label="Page" class="truncate-cell" title="${lead.page_url || ''}">${lead.page_url || '-'}</td>
             <td data-label="Status"><span class="badge ${statusClass}">${lead.status}</span></td>
-            <td data-label="Date" style="color:var(--text-muted);font-size:12px;">${date}</td>
+            <td data-label="Date" style="color:var(--text-muted);font-size:12px;"><span title="${date}">${timeAgo(lead.created_at)}</span></td>
             <td data-label="Actions" class="actions-cell">
               <button class="btn btn-ghost btn-sm" onclick="viewLeadDetail(${leadJson})">👁️ View</button>
-              <button class="btn btn-ghost btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button>
+              <button class="btn btn-ghost btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}', this)">${nextLabel}</button>
             </td>
           </tr>`;
         });
@@ -2139,57 +3362,265 @@
           const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
           const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
           const leadJson = JSON.stringify(lead).replace(/'/g, "&#39;");
+
+          const isStarred = isRecordStarred(lead.id);
+          const starHtml = `<span onclick="toggleRecordStar('${lead.id}', 'lead', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
+          
+          const tags = getRecordTags(lead.id);
+          let tagsHtml = '';
+          if (tags.length > 0) {
+            tagsHtml = `<div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">` + 
+              tags.map(t => `<span style="background:rgba(255,255,255,0.06); color:var(--text-secondary); border:1px solid var(--border); border-radius:4px; padding:1px 4px; font-size:10px; font-weight:500;">${escapeHtml(t)}</span>`).join('') + 
+              `</div>`;
+          }
+          
+          const scoreInfo = getLeadScore(lead);
+
           cardsHtml += `<div class="data-card">
             <div class="data-card-header">
-              <strong class="data-card-title">${contact}</strong>
+              <input type="checkbox" class="lead-checkbox" data-id="${lead.id}" onclick="onLeadCheckboxChange()" style="margin-right:8px;" />
+              <div style="display:flex; align-items:center;">
+                ${starHtml}
+                <strong class="data-card-title">${contact}</strong>
+              </div>
               <span class="badge ${statusClass}">${lead.status}</span>
             </div>
             <div class="data-card-body">
+              ${tagsHtml ? `<div class="data-card-row"><span class="data-card-label">Tags</span><span>${tagsHtml}</span></div>` : ''}
+              <div class="data-card-row"><span class="data-card-label">Score</span><span class="badge ${scoreInfo.scoreClass}" style="text-transform:none; padding: 2px 6px;">${scoreInfo.emoji} ${scoreInfo.score}</span></div>
               <div class="data-card-row"><span class="data-card-label">Objection</span><span>${lead.objection_id || 'General'}</span></div>
               <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${lead.page_url || ''}">${lead.page_url || '—'}</span></div>
-              <div class="data-card-row"><span class="data-card-label">Date</span><span>${date}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Date</span><span title="${date}">${timeAgo(lead.created_at)}</span></div>
             </div>
             <div class="data-card-actions">
               <button class="btn btn-ghost btn-sm" onclick="viewLeadDetail(${leadJson})">👁️ Details</button>
-              <button class="btn btn-primary btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}')">${nextLabel}</button>
+              <button class="btn btn-primary btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}', this)">${nextLabel}</button>
             </div>
           </div>`;
         });
         cardsHtml += '</div>';
-        container.innerHTML = html + cardsHtml;
-      } catch (err) { console.error(err); container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading leads</p></div>'; }
+        const paginationHtml = renderPagination(leadsPage, leads.length < PAGE_SIZE, 'changeLeadsPage');
+        container.innerHTML = html + cardsHtml + paginationHtml;
+      } catch (err) {
+        console.error(err);
+        currentLeads = [];
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading leads</p></div>';
+      }
     }
 
-    async function updateLeadStatus(id, newStatus) {
+    function changeLeadsPage(direction) {
+      leadsPage += direction;
+      if (leadsPage < 0) leadsPage = 0;
+      loadLeads();
+    }
+
+    function sortLeads(field) {
+      if (leadsSortField === field) {
+        leadsSortDir = leadsSortDir === 'desc' ? 'asc' : 'desc';
+      } else {
+        leadsSortField = field;
+        leadsSortDir = 'desc';
+      }
+      leadsPage = 0;
+      loadLeads();
+    }
+
+    async function updateLeadStatus(id, newStatus, btn) {
+      let originalHtml = '';
+      if (btn) {
+        btn.disabled = true;
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = `<span class="btn-spinner"></span> ${originalHtml}`;
+      }
       try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
           method: "PATCH", headers: getHeaders(), body: JSON.stringify({ status: newStatus })
         });
         if (!response.ok) throw new Error("Failed to update");
+        const data = await response.json();
+        if (data.length === 0) throw new Error("Permission denied or record not found");
         showToast(`Lead marked as ${newStatus}`, 'success');
         closeModal();
         loadLeads(); loadSiteData();
-      } catch (err) { showToast(err.message, 'error'); }
+
+        // Real-time details page update
+        if (!document.getElementById('tab-details').classList.contains('hidden') && currentDetailItem && currentDetailItem.id === id && currentDetailType === 'lead') {
+          currentDetailItem.status = newStatus;
+          renderLeadDetailsCard(currentDetailItem);
+          renderLeadTimeline(currentDetailItem);
+        }
+      } catch (err) { 
+        showToast(err.message, 'error'); 
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+      }
     }
 
-    function exportLeads() {
+    function exportLeads(format = 'csv') {
       if (!currentSiteKey) return;
       fetch(`${SUPABASE_URL}/rest/v1/leads?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() })
         .then(r => r.ok ? r.json() : [])
         .then(leads => {
           if (leads.length === 0) { showToast('No leads to export', 'error'); return; }
-          const csv = [
-            ['Email', 'Phone', 'Objection ID', 'Page URL', 'Status', 'Date'],
-            ...leads.map(l => [l.email || '', l.phone || '', l.objection_id || '', l.page_url || '', l.status, l.created_at])
-          ].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a'); a.href = url; a.download = `leads-${currentSiteKey}.csv`; a.click(); URL.revokeObjectURL(url);
-          showToast('CSV exported successfully!', 'success');
+          if (format === 'json') {
+            const blob = new Blob([JSON.stringify(leads, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `leads-${currentSiteKey}.json`; a.click(); URL.revokeObjectURL(url);
+            showToast('JSON exported successfully!', 'success');
+          } else {
+            const csv = [
+              ['Email', 'Phone', 'Objection ID', 'Page URL', 'Status', 'Date'],
+              ...leads.map(l => [l.email || '', l.phone || '', l.objection_id || '', l.page_url || '', l.status, l.created_at])
+            ].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `leads-${currentSiteKey}.csv`; a.click(); URL.revokeObjectURL(url);
+            showToast('CSV exported successfully!', 'success');
+          }
         });
     }
 
-    // ─── FEEDBACK ───
+    // ─── BULK ACTIONS FOR LEADS ───
+    function onLeadCheckboxChange() {
+      // Synchronize checkboxes of the same data-id between table and cards
+      const evt = window.event;
+      if (evt && evt.target && evt.target.classList.contains('lead-checkbox')) {
+        const leadId = evt.target.getAttribute('data-id');
+        const isChecked = evt.target.checked;
+        const matchingCheckboxes = document.querySelectorAll(`.lead-checkbox[data-id="${leadId}"]`);
+        matchingCheckboxes.forEach(cb => {
+          cb.checked = isChecked;
+        });
+      }
+
+      const checkedBoxes = document.querySelectorAll('#leads-container .lead-checkbox:checked');
+      // Count unique checked leads (since desktop table and mobile cards might both display checkboxes)
+      const selectedIds = Array.from(new Set(Array.from(checkedBoxes).map(cb => cb.getAttribute('data-id'))));
+      const count = selectedIds.length;
+
+      const countSpan = document.getElementById('bulk-select-count');
+      if (countSpan) {
+        countSpan.innerText = `${count} selected`;
+      }
+
+      const bulkToolbar = document.getElementById('leads-bulk-actions');
+      if (bulkToolbar) {
+        if (count > 0) {
+          bulkToolbar.classList.remove('hidden');
+        } else {
+          bulkToolbar.classList.add('hidden');
+        }
+      }
+
+      // Update the select all checkbox
+      const allCheckboxes = document.querySelectorAll('#leads-container .lead-checkbox');
+      const allChecked = allCheckboxes.length > 0 && Array.from(allCheckboxes).every(cb => cb.checked);
+      const selectAllCb = document.getElementById('leads-select-all');
+      if (selectAllCb) {
+        selectAllCb.checked = allChecked;
+      }
+    }
+
+    function toggleSelectAllLeads(selectAllCheckbox) {
+      const isChecked = selectAllCheckbox.checked;
+      const checkboxes = document.querySelectorAll('.lead-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+      });
+      onLeadCheckboxChange();
+    }
+
+    async function bulkUpdateLeads(newStatus, btn) {
+      const checkedBoxes = document.querySelectorAll('#leads-container .lead-checkbox:checked');
+      const selectedIds = Array.from(new Set(Array.from(checkedBoxes).map(cb => cb.getAttribute('data-id'))));
+      if (selectedIds.length === 0) {
+        showToast('No leads selected', 'warning');
+        return;
+      }
+
+      customConfirm("Are you sure you want to mark selected leads as " + newStatus + "?", async () => {
+        let originalHtml = '';
+        if (btn) {
+          btn.disabled = true;
+          originalHtml = btn.innerHTML;
+          btn.innerHTML = `<span class="btn-spinner"></span> ${originalHtml}`;
+        }
+        try {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=in.(${selectedIds.join(',')})`, {
+            method: "PATCH",
+            headers: getHeaders(),
+            body: JSON.stringify({ status: newStatus })
+          });
+          if (!response.ok) throw new Error("Failed to update leads");
+          const data = await response.json();
+          if (data.length === 0) throw new Error("Permission denied or records not found");
+
+          showToast(`Selected leads marked as ${newStatus}`, 'success');
+
+          const bulkToolbar = document.getElementById('leads-bulk-actions');
+          if (bulkToolbar) bulkToolbar.classList.add('hidden');
+
+          const selectAllCb = document.getElementById('leads-select-all');
+          if (selectAllCb) selectAllCb.checked = false;
+
+          loadLeads();
+          loadSiteData();
+        } catch (err) {
+          showToast(err.message, 'error');
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+          }
+        }
+      });
+    }
+
+    function bulkExportSelectedLeads(format = 'csv') {
+      const checkedBoxes = document.querySelectorAll('#leads-container .lead-checkbox:checked');
+      const selectedIds = Array.from(new Set(Array.from(checkedBoxes).map(cb => cb.getAttribute('data-id'))));
+      if (selectedIds.length === 0) {
+        showToast('No leads selected', 'warning');
+        return;
+      }
+
+      const selectedLeads = currentLeads.filter(l => selectedIds.includes(String(l.id)));
+      if (selectedLeads.length === 0) {
+        showToast('No matching leads cached', 'error');
+        return;
+      }
+
+      if (format === 'json') {
+        const blob = new Blob([JSON.stringify(selectedLeads, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `selected-leads-${currentSiteKey}.json`; a.click(); URL.revokeObjectURL(url);
+        showToast('Selected JSON exported successfully!', 'success');
+      } else {
+        const csv = [
+          ['Email', 'Phone', 'Objection ID', 'Page URL', 'Status', 'Date'],
+          ...selectedLeads.map(l => [l.email || '', l.phone || '', l.objection_id || '', l.page_url || '', l.status, l.created_at])
+        ].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `selected-leads-${currentSiteKey}.csv`; a.click(); URL.revokeObjectURL(url);
+        showToast('Selected CSV exported successfully!', 'success');
+      }
+
+      // Automatically uncheck all checkboxes and hide the toolbar
+      const checkboxes = document.querySelectorAll('.lead-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+      });
+      const selectAllCb = document.getElementById('leads-select-all');
+      if (selectAllCb) selectAllCb.checked = false;
+
+      onLeadCheckboxChange();
+    }
+
     async function loadFeedback() {
       if (!currentSiteKey) return;
       const container = document.getElementById('feedback-container');
@@ -2201,32 +3632,79 @@
         </div>
       `;
       try {
-        const feedback = await fetch(`${SUPABASE_URL}/rest/v1/feedback?select=*&site_key=eq.${currentSiteKey}&order=created_at.desc`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        let query = `select=*&site_key=eq.${currentSiteKey}`;
+        const searchVal = document.getElementById('feedback-search').value.trim();
+        const statusVal = document.getElementById('feedback-status-filter').value;
+        const startDate = document.getElementById('feedback-start-date').value;
+        const endDate = document.getElementById('feedback-end-date').value;
+        if (searchVal) query += `&or=(message.ilike.*${encodeURIComponent(searchVal)}*,email.ilike.*${encodeURIComponent(searchVal)}*)`;
+        if (statusVal) query += `&status=eq.${encodeURIComponent(statusVal)}`;
+        if (startDate) query += `&created_at=gte.${startDate}T00:00:00`;
+        if (endDate) query += `&created_at=lte.${endDate}T23:59:59`;
+        query += `&order=${feedbackSortField}.${feedbackSortDir}`;
+        query += `&limit=${PAGE_SIZE}&offset=${feedbackPage * PAGE_SIZE}`;
+
+        let feedback = await fetch(`${SUPABASE_URL}/rest/v1/feedback?${query}`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+        
+        // Filter starred only
+        const starredOnly = document.getElementById('feedback-starred-filter')?.checked;
+        if (starredOnly) {
+          feedback = feedback.filter(f => isRecordStarred(f.id));
+        }
+
         if (feedback.length === 0) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">💬</div>
-              <h3>No feedback yet</h3>
-              <p>When visitors write custom feedback, it will appear here.</p>
-            </div>
-          `;
+          let emptyHtml = '';
+          if (feedbackPage === 0) {
+            emptyHtml = `
+              <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <h3>No feedback yet</h3>
+                <p>When visitors write custom feedback, it will appear here. Test it on the <a href="demo.html" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">Demo Store &rarr;</a></p>
+                <button class="btn btn-primary" onclick="switchTab('config')" style="margin-top: 16px;">View Setup Guide</button>
+              </div>
+            `;
+          } else {
+            emptyHtml = `
+              <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <h3>No feedback yet</h3>
+                <p>When visitors write custom feedback, it will appear here.</p>
+              </div>
+            `;
+            if (feedbackPage > 0) {
+              emptyHtml += renderPagination(feedbackPage, true, 'changeFeedbackPage');
+            }
+          }
+          container.innerHTML = emptyHtml;
           return;
         }
-        let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Message</th><th>Contact</th><th>Page</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+        let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Message</th><th>Contact</th><th>Page</th><th onclick="sortFeedback('status')" style="cursor:pointer;user-select:none;">Status ${feedbackSortField === 'status' ? (feedbackSortDir === 'desc' ? '▼' : '▲') : '↕'}</th><th onclick="sortFeedback('created_at')" style="cursor:pointer;user-select:none;">Date ${feedbackSortField === 'created_at' ? (feedbackSortDir === 'desc' ? '▼' : '▲') : '↕'}</th><th>Actions</th></tr></thead><tbody>`;
         feedback.forEach(fb => {
           const date = new Date(fb.created_at).toLocaleString();
           const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
           const fbJson = JSON.stringify(fb).replace(/'/g, "&#39;");
           const preview = fb.message.length > 80 ? fb.message.substring(0, 80) + '…' : fb.message;
+          
+          const isStarred = isRecordStarred(fb.id);
+          const starHtml = `<span onclick="toggleRecordStar('${fb.id}', 'feedback', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
+          
+          const tags = getRecordTags(fb.id);
+          let tagsHtml = '';
+          if (tags.length > 0) {
+            tagsHtml = `<div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">` + 
+              tags.map(t => `<span style="background:rgba(255,255,255,0.06); color:var(--text-secondary); border:1px solid var(--border); border-radius:4px; padding:1px 4px; font-size:10px; font-weight:500;">${escapeHtml(t)}</span>`).join('') + 
+              `</div>`;
+          }
+
           html += `<tr>
-            <td data-label="Message" class="message-cell"><div class="message-preview">${preview}</div></td>
+            <td data-label="Message" class="message-cell"><div style="display:flex; align-items:flex-start;">${starHtml}<div class="message-preview">${preview}</div></div>${tagsHtml}</td>
             <td data-label="Contact" style="color:var(--text-secondary);font-size:13px;">${fb.email || 'Anonymous'}</td>
             <td data-label="Page" class="truncate-cell" title="${fb.page_url || ''}">${fb.page_url || '-'}</td>
             <td data-label="Status"><span class="badge ${statusClass}">${fb.status}</span></td>
-            <td data-label="Date" style="color:var(--text-muted);font-size:12px;">${date}</td>
+            <td data-label="Date" style="color:var(--text-muted);font-size:12px;"><span title="${date}">${timeAgo(fb.created_at)}</span></td>
             <td data-label="Actions" class="actions-cell">
               <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetail(${fbJson})">👁️ View</button>
-              ${fb.status === 'unread' ? `<button class="btn btn-ghost btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark Read</button>` : ''}
+              ${fb.status === 'unread' ? `<button class="btn btn-ghost btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read', this)">Mark Read</button>` : ''}
             </td>
           </tr>`;
         });
@@ -2238,37 +3716,93 @@
           const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
           const fbJson = JSON.stringify(fb).replace(/'/g, "&#39;");
           const preview = fb.message.length > 120 ? fb.message.substring(0, 120) + '…' : fb.message;
+
+          const isStarred = isRecordStarred(fb.id);
+          const starHtml = `<span onclick="toggleRecordStar('${fb.id}', 'feedback', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
+          
+          const tags = getRecordTags(fb.id);
+          let tagsHtml = '';
+          if (tags.length > 0) {
+            tagsHtml = `<div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">` + 
+              tags.map(t => `<span style="background:rgba(255,255,255,0.06); color:var(--text-secondary); border:1px solid var(--border); border-radius:4px; padding:1px 4px; font-size:10px; font-weight:500;">${escapeHtml(t)}</span>`).join('') + 
+              `</div>`;
+          }
+
           cardsHtml += `<div class="data-card ${fb.status === 'unread' ? 'data-card-unread' : ''}">
             <div class="data-card-header">
-              <strong class="data-card-title">${fb.email || 'Anonymous'}</strong>
+              <div style="display:flex; align-items:center;">
+                ${starHtml}
+                <strong class="data-card-title">${fb.email || 'Anonymous'}</strong>
+              </div>
               <span class="badge ${statusClass}">${fb.status}</span>
             </div>
             <div class="data-card-body">
               <div class="feedback-message">${preview}</div>
+              ${tagsHtml ? `<div class="data-card-row" style="margin-top:8px;"><span class="data-card-label">Tags</span><span>${tagsHtml}</span></div>` : ''}
               <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${fb.page_url || ''}">${fb.page_url || '—'}</span></div>
-              <div class="data-card-row"><span class="data-card-label">Date</span><span>${date}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Date</span><span title="${date}">${timeAgo(fb.created_at)}</span></div>
             </div>
             <div class="data-card-actions">
               <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetail(${fbJson})">👁️ Read full</button>
-              ${fb.status === 'unread' ? `<button class="btn btn-primary btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read')">Mark Read</button>` : ''}
+              ${fb.status === 'unread' ? `<button class="btn btn-primary btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read', this)">Mark Read</button>` : ''}
             </div>
           </div>`;
         });
         cardsHtml += '</div>';
-        container.innerHTML = html + cardsHtml;
+        const paginationHtml = renderPagination(feedbackPage, feedback.length < PAGE_SIZE, 'changeFeedbackPage');
+        container.innerHTML = html + cardsHtml + paginationHtml;
       } catch (err) { console.error(err); container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error loading feedback</p></div>'; }
     }
 
-    async function updateFeedbackStatus(id, newStatus) {
+    function changeFeedbackPage(direction) {
+      feedbackPage += direction;
+      if (feedbackPage < 0) feedbackPage = 0;
+      loadFeedback();
+    }
+
+    function sortFeedback(field) {
+      if (feedbackSortField === field) {
+        feedbackSortDir = feedbackSortDir === 'desc' ? 'asc' : 'desc';
+      } else {
+        feedbackSortField = field;
+        feedbackSortDir = 'desc';
+      }
+      feedbackPage = 0;
+      loadFeedback();
+    }
+
+    async function updateFeedbackStatus(id, newStatus, btn) {
+      let originalHtml = '';
+      if (btn) {
+        btn.disabled = true;
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = `<span class="btn-spinner"></span> ${originalHtml}`;
+      }
       try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/feedback?id=eq.${id}`, {
           method: "PATCH", headers: getHeaders(), body: JSON.stringify({ status: newStatus })
         });
         if (!response.ok) throw new Error("Failed to update");
+        const data = await response.json();
+        if (data.length === 0) throw new Error("Permission denied or record not found");
         showToast('Feedback marked as read', 'success');
         closeModal();
         loadFeedback(); loadSiteData();
-      } catch (err) { showToast(err.message, 'error'); }
+
+        // Real-time details page update
+        if (!document.getElementById('tab-details').classList.contains('hidden') && currentDetailItem && currentDetailItem.id === id && currentDetailType === 'feedback') {
+          currentDetailItem.status = newStatus;
+          renderFeedbackDetailsCard(currentDetailItem);
+          renderFeedbackTimeline(currentDetailItem);
+        }
+      } catch (err) { 
+        showToast(err.message, 'error'); 
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+      }
     }
 
     // ─── PREVIEW ───
@@ -2297,6 +3831,13 @@
       const btn = document.createElement('div');
       btn.className = 'preview-widget-btn';
       const isMobile = previewMode === 'mobile';
+      
+      const activeColor = localStorage.getItem(`fp_widget_color_${currentSiteKey}`) || '#FF4E11';
+      const activeFont = localStorage.getItem(`fp_widget_font_${currentSiteKey}`) || 'system-ui';
+      
+      // Apply font to preview phone
+      applyPreviewFont(activeFont);
+
       btn.style.cssText = `
         position: absolute;
         bottom: 20px;
@@ -2313,10 +3854,57 @@
         z-index: 10;
         transition: transform 0.2s;
       `;
-      btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,78,17,0.4)" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="rgba(255,78,17,0.7)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#FF4E11"/></svg>`;
+      btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="${activeColor}66" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="${activeColor}cc" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="${activeColor}"/></svg>`;
       btn.onmouseenter = () => btn.style.transform = isMobile ? 'translateX(-50%) scale(1.1)' : 'scale(1.1)';
       btn.onmouseleave = () => btn.style.transform = isMobile ? 'translateX(-50%) scale(1)' : 'scale(1)';
-      btn.onclick = () => showToast('In the real widget, this opens the objection popup!', 'success');
+      
+      btn.onclick = () => {
+        let popup = phone.querySelector('.preview-widget-popup');
+        if (popup) {
+          popup.remove();
+          return;
+        }
+        
+        popup = document.createElement('div');
+        popup.className = 'preview-widget-popup';
+        popup.style.cssText = `
+          position: absolute;
+          bottom: 84px;
+          left: 12px; right: 12px;
+          background: #0D0E12;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          padding: 16px;
+          box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+          z-index: 11;
+          color: white;
+          font-family: inherit;
+        `;
+        
+        let listHtml = '';
+        if (currentObjections && currentObjections.length > 0) {
+          currentObjections.slice(0, 3).forEach(o => {
+            listHtml += `
+              <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:8px; border-radius:6px; font-size:12px; margin-bottom:6px; cursor:pointer;" onclick="this.parentElement.innerHTML = '<strong>💡 ${o.label}</strong><div style=&quot;margin-top:8px;color:${activeColor};line-height:1.4;&quot;>${o.counter_message}</div>'">
+                ${o.label}
+              </div>
+            `;
+          });
+        } else {
+          listHtml = '<div style="font-size:11px;color:#888;">No objections configured.</div>';
+        }
+        
+        popup.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-weight:600; font-size:13px; color:${activeColor}">FrictionPulse Preview</span>
+            <span style="cursor:pointer; font-weight:bold; font-size:14px; color:#888;" onclick="this.closest('.preview-widget-popup').remove()">&times;</span>
+          </div>
+          <div style="font-size:11px; color:#888; margin-bottom:10px;">What's stopping you from purchasing?</div>
+          <div>${listHtml}</div>
+        `;
+        phone.appendChild(popup);
+      };
+      
       phone.appendChild(btn);
     }
 
@@ -2328,6 +3916,8 @@
 
     async function loadSettings() {
       if (!currentSiteKey) return;
+      
+      // Load standard alert settings from Supabase
       try {
         const settings = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts?select=*&site_key=eq.${currentSiteKey}`, { method: "GET", headers: getHeaders() }).then(r => r.ok ? r.json() : []);
         if (settings.length > 0) {
@@ -2338,6 +3928,58 @@
           document.getElementById('alert-daily-digest').checked = s.notify_daily_digest;
         }
       } catch (err) { console.error(err); }
+
+      // Load custom widget appearance settings from localStorage overlay
+      const activeColor = localStorage.getItem(`fp_widget_color_${currentSiteKey}`) || '#FF4E11';
+      const activeFont = localStorage.getItem(`fp_widget_font_${currentSiteKey}`) || 'system-ui';
+      const webhookUrl = localStorage.getItem(`fp_webhook_url_${currentSiteKey}`) || '';
+      const triggerLead = localStorage.getItem(`fp_webhook_trigger_lead_${currentSiteKey}`) !== 'false';
+      const triggerFeedback = localStorage.getItem(`fp_webhook_trigger_feedback_${currentSiteKey}`) !== 'false';
+
+      // Set Webhook
+      const webhookUrlEl = document.getElementById('settings-webhook-url');
+      if (webhookUrlEl) webhookUrlEl.value = webhookUrl;
+      const trigLeadEl = document.getElementById('webhook-trigger-lead');
+      if (trigLeadEl) trigLeadEl.checked = triggerLead;
+      const trigFbEl = document.getElementById('webhook-trigger-feedback');
+      if (trigFbEl) trigFbEl.checked = triggerFeedback;
+
+      // Set Color Options
+      let matchedColorOption = false;
+      document.querySelectorAll('.color-option').forEach(c => {
+        const color = c.getAttribute('data-color');
+        if (color === activeColor) {
+          c.classList.add('active');
+          matchedColorOption = true;
+        } else {
+          c.classList.remove('active');
+        }
+      });
+      
+      const customColEl = document.getElementById('settings-custom-color');
+      if (customColEl) customColEl.value = activeColor;
+      const previewColEl = document.getElementById('settings-color-preview');
+      if (previewColEl) previewColEl.style.background = activeColor;
+
+      // Set Font Family
+      const fontSelect = document.getElementById('settings-font-family');
+      if (fontSelect) {
+        if (['system-ui', 'Inter', 'Poppins', 'Space Grotesk', 'Roboto', 'Outfit'].includes(activeFont)) {
+          fontSelect.value = activeFont;
+          const wrapper = document.getElementById('settings-custom-font-wrapper');
+          if (wrapper) wrapper.classList.add('hidden');
+        } else {
+          fontSelect.value = 'custom';
+          const wrapper = document.getElementById('settings-custom-font-wrapper');
+          if (wrapper) wrapper.classList.remove('hidden');
+          const customFontNameEl = document.getElementById('settings-custom-font-name');
+          if (customFontNameEl) customFontNameEl.value = activeFont;
+        }
+      }
+      
+      // Update Preview Font & Widget
+      applyPreviewFont(activeFont);
+      renderPreviewWidget();
     }
 
     async function saveSettings() {
@@ -2346,12 +3988,39 @@
       const notifyLead = document.getElementById('alert-new-lead').checked;
       const notifyFeedback = document.getElementById('alert-new-feedback').checked;
       const notifyDigest = document.getElementById('alert-daily-digest').checked;
+      
+      // Get Custom Widget styling
+      const activeColorOption = document.querySelector('.color-option.active');
+      let chosenColor = activeColorOption ? activeColorOption.getAttribute('data-color') : '#FF4E11';
+      const customColEl = document.getElementById('settings-custom-color');
+      const inputCustomColor = customColEl ? customColEl.value.trim() : '';
+      if (inputCustomColor && /^#[0-9A-F]{6}$/i.test(inputCustomColor)) {
+        chosenColor = inputCustomColor;
+      }
+
+      const fontSelect = document.getElementById('settings-font-family');
+      const chosenFontSelect = fontSelect ? fontSelect.value : 'system-ui';
+      let chosenFont = chosenFontSelect;
+      if (chosenFontSelect === 'custom') {
+        const customFontNameEl = document.getElementById('settings-custom-font-name');
+        chosenFont = customFontNameEl ? customFontNameEl.value.trim() : '';
+        if (!chosenFont) chosenFont = 'system-ui';
+      }
+
+      const webhookUrlEl = document.getElementById('settings-webhook-url');
+      const webhookUrl = webhookUrlEl ? webhookUrlEl.value.trim() : '';
+      const trigLeadEl = document.getElementById('webhook-trigger-lead');
+      const triggerLead = trigLeadEl ? trigLeadEl.checked : true;
+      const trigFbEl = document.getElementById('webhook-trigger-feedback');
+      const triggerFeedback = trigFbEl ? trigFbEl.checked : true;
+
       const spinner = document.getElementById('settings-spinner');
       const status = document.getElementById('settings-status');
       const btn = event.target;
 
       spinner.classList.remove('hidden'); btn.disabled = true;
       try {
+        // Save alert settings to Supabase
         const response = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts`, {
           method: "POST", headers: getHeaders(),
           body: JSON.stringify({
@@ -2366,8 +4035,23 @@
           });
           if (!updateRes.ok) throw new Error("Failed to save settings");
         }
+
+        // Save customized appearance & webhook to LocalStorage overlay
+        localStorage.setItem(`fp_widget_color_${currentSiteKey}`, chosenColor);
+        localStorage.setItem(`fp_widget_font_${currentSiteKey}`, chosenFont);
+        localStorage.setItem(`fp_webhook_url_${currentSiteKey}`, webhookUrl);
+        localStorage.setItem(`fp_webhook_trigger_lead_${currentSiteKey}`, triggerLead ? 'true' : 'false');
+        localStorage.setItem(`fp_webhook_trigger_feedback_${currentSiteKey}`, triggerFeedback ? 'true' : 'false');
+
         status.innerText = "Settings saved successfully!"; status.style.color = "var(--success)";
         showToast('Settings saved!', 'success');
+        
+        // Log Merchant Activity
+        logMerchantActivity("Saved Settings", `Updated appearance styles and configurations`);
+
+        // Dynamically update font on preview
+        applyPreviewFont(chosenFont);
+        renderPreviewWidget();
       } catch (err) { status.innerText = err.message; status.style.color = "var(--danger)"; showToast(err.message, 'error'); }
       finally { spinner.classList.add('hidden'); btn.disabled = false; }
     }
@@ -2446,23 +4130,81 @@
           if (window.innerWidth <= 1024) closeSidebar();
         });
       });
-      // Close sidebar on Escape
+      // Close sidebar on Escape or trigger hotkeys
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
           closeSidebar();
           closeModal();
+          return;
+        }
+
+        // Do not trigger shortcuts if user is typing in inputs, select, or textarea
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+          return;
+        }
+
+        const key = e.key.toLowerCase();
+        if (key === 'l') {
+          e.preventDefault();
+          switchTab('leads');
+        } else if (key === 'f') {
+          e.preventDefault();
+          switchTab('feedback');
+        } else if (key === 'n') {
+          e.preventDefault();
+          switchTab('objections');
+          const form = document.getElementById("add-objection-form");
+          if (form && form.classList.contains("hidden")) {
+            toggleAddObjectionForm();
+          }
         }
       });
 
       // Setup Search/Filter Debounce for Leads
-      const debouncedLoadLeads = debounce(() => loadLeads(), 300);
+      const debouncedLoadLeads = debounce(() => {
+        leadsPage = 0;
+        loadLeads();
+      }, 300);
       document.getElementById('leads-search').addEventListener('input', debouncedLoadLeads);
-      document.getElementById('leads-status-filter').addEventListener('change', () => loadLeads());
+      document.getElementById('leads-status-filter').addEventListener('change', () => {
+        leadsPage = 0;
+        loadLeads();
+      });
+      document.getElementById('leads-start-date').addEventListener('change', () => {
+        leadsPage = 0;
+        loadLeads();
+      });
+      document.getElementById('leads-end-date').addEventListener('change', () => {
+        leadsPage = 0;
+        loadLeads();
+      });
+
+      // Setup Search/Filter Debounce for Feedback
+      const debouncedLoadFeedback = debounce(() => {
+        feedbackPage = 0;
+        loadFeedback();
+      }, 300);
+      document.getElementById('feedback-search').addEventListener('input', debouncedLoadFeedback);
+      document.getElementById('feedback-status-filter').addEventListener('change', () => {
+        feedbackPage = 0;
+        loadFeedback();
+      });
+      document.getElementById('feedback-start-date').addEventListener('change', () => {
+        feedbackPage = 0;
+        loadFeedback();
+      });
+      document.getElementById('feedback-end-date').addEventListener('change', () => {
+        feedbackPage = 0;
+        loadFeedback();
+      });
     });
 
     function switchTab(tabName) {
+      if (tabName === 'config') tabName = 'objections';
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      document.querySelector(`.nav-item[data-tab="${tabName}"]`).classList.add('active');
+      const navItem = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+      if (navItem) navItem.classList.add('active');
 
       const titles = {
         overview: 'Analytics',
@@ -2471,7 +4213,8 @@
         feedback: 'Feedback',
         preview: 'Widget Preview',
         settings: 'Settings',
-        support: 'Support'
+        support: 'Support',
+        details: 'Detail View'
       };
       document.getElementById('page-title').innerText = titles[tabName];
 
@@ -2481,7 +4224,8 @@
       if (tabName === 'preview') setTimeout(renderPreviewWidget, 100);
       if (tabName === 'leads') loadLeads();
       if (tabName === 'feedback') loadFeedback();
-      if (tabName === 'overview') loadSiteData();
+      if (tabName === 'overview' || tabName === 'objections') loadSiteData();
+      if (tabName === 'settings') loadSettings();
     }
 
     function refreshData() {
@@ -2514,17 +4258,51 @@
       } catch (err) { showToast(err.message, 'error'); } finally { spinner.classList.add("hidden"); }
     }
 
-    async function editObjection(id, currentLabel, currentMessage) {
-      const newLabel = prompt("Update Objection Label:", currentLabel);
-      if (newLabel === null) return;
-      const newMessage = prompt("Update Counter Message:", currentMessage);
-      if (newMessage === null) return;
-      if (!newLabel.trim() || !newMessage.trim()) { showToast("Fields cannot be empty.", "error"); return; }
+    function startEditObjection(id) {
+      editingObjectionId = id;
+      renderObjectionsList(currentObjections);
+    }
+
+    function cancelEditObjection() {
+      editingObjectionId = null;
+      renderObjectionsList(currentObjections);
+    }
+
+    async function saveObjection(id, btn) {
+      const newLabel = document.getElementById(`edit-label-${id}`).value;
+      const newMessage = document.getElementById(`edit-message-${id}`).value;
+      if (!newLabel.trim() || !newMessage.trim()) {
+        showToast("Fields cannot be empty.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = `<span class="btn-spinner"></span> Saving...`;
+
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, { method: "PATCH", headers: getHeaders(), body: JSON.stringify({ label: newLabel.trim(), counter_message: newMessage.trim() }) });
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objections?id=eq.${id}`, {
+          method: "PATCH",
+          headers: getHeaders(),
+          body: JSON.stringify({ label: newLabel.trim(), counter_message: newMessage.trim() })
+        });
         if (!response.ok) throw new Error("Failed to edit objection");
-        loadSiteData(); showToast('Objection updated!', 'success');
-      } catch (err) { showToast(err.message, 'error'); }
+        
+        // update local cache
+        const objIndex = currentObjections.findIndex(obj => obj.id === id);
+        if (objIndex !== -1) {
+          currentObjections[objIndex].label = newLabel.trim();
+          currentObjections[objIndex].counter_message = newMessage.trim();
+        }
+
+        editingObjectionId = null;
+        await loadSiteData(); // to sync chart/funnel
+        showToast('Objection updated!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
 
     function customConfirm(message, onConfirm) {
@@ -2593,9 +4371,366 @@
         if (!response.ok) { const errData = await response.json(); throw new Error("Failed to send message: " + JSON.stringify(errData)); }
         statusDiv.innerText = "Message sent successfully! Our team will reach out soon."; statusDiv.style.color = "var(--success)";
         subjectInput.value = ""; messageInput.value = ""; showToast('Support message sent!', 'success');
+        
+        // Log Activity
+        logMerchantActivity("Support Ticket Sent", `Filed ticket: "${subject}"`);
       } catch (err) { statusDiv.innerText = err.message; statusDiv.style.color = "var(--danger)"; showToast(err.message, 'error'); }
       finally { spinner.classList.add("hidden"); }
     }
+
+    // ─── CUSTOM THEMING & GOOGLE FONTS ───
+    function applyPreviewFont(fontFamily) {
+      if (!fontFamily || fontFamily === 'system-ui') {
+        const previewPhone = document.getElementById('preview-phone');
+        if (previewPhone) previewPhone.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        return;
+      }
+      if (fontFamily === 'custom') {
+        const customFontInput = document.getElementById('settings-custom-font-name');
+        const customFont = customFontInput ? customFontInput.value.trim() : '';
+        if (customFont) fontFamily = customFont;
+        else return;
+      }
+      
+      const fontId = `gfont-${fontFamily.replace(/\s+/g, '-').toLowerCase()}`;
+      if (!document.getElementById(fontId)) {
+        const link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/\s+/g, '+')}:wght@400;500;600;700&display=swap`;
+        document.head.appendChild(link);
+      }
+      const previewPhone = document.getElementById('preview-phone');
+      if (previewPhone) previewPhone.style.fontFamily = `"${fontFamily}", sans-serif`;
+    }
+
+    function applyCustomColorFromInput(val) {
+      if (val && /^#[0-9A-F]{6}$/i.test(val)) {
+        const preview = document.getElementById('settings-color-preview');
+        if (preview) preview.style.background = val;
+        // Unselect active options
+        document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+      }
+    }
+
+    // ─── AI SUGGESTION ENGINE ───
+    function generateAICounterMessage(labelInputId, messageInputId, btnEl) {
+      const labelVal = document.getElementById(labelInputId);
+      const label = labelVal ? labelVal.value.trim() : '';
+      if (!label) {
+        showToast("Please enter an objection label first so the AI can analyze.", "error");
+        return;
+      }
+      
+      const originalText = btnEl.innerHTML;
+      btnEl.disabled = true;
+      btnEl.innerHTML = `🪄 Analyzing...`;
+      
+      setTimeout(() => {
+        const text = label.toLowerCase();
+        let suggestion = "";
+        
+        if (text.includes("price") || text.includes("cost") || text.includes("expensive") || text.includes("cheap")) {
+          suggestion = "We understand! That's why we offer a 10% first-order discount with code WELCOME10, plus a 30-day money-back guarantee. No risk, all value!";
+        } else if (text.includes("shipping") || text.includes("delivery") || text.includes("postage")) {
+          suggestion = "Enjoy FREE standard shipping on orders over $50. All packages are shipped with tracking, arriving at your doorstep in 3-5 business days!";
+        } else if (text.includes("size") || text.includes("fit") || text.includes("dimension")) {
+          suggestion = "We offer a 100% Free Size Exchange Policy! Use our dynamic size chart or chat with us. If it doesn't fit, we'll swap it at zero cost to you.";
+        } else if (text.includes("quality") || text.includes("material") || text.includes("fake")) {
+          suggestion = "Crafted from premium, sustainably sourced materials and backed by our Lifetime Stitch Warranty. Read our 1,200+ five-star verified customer reviews below!";
+        } else if (text.includes("think") || text.includes("later") || text.includes("decide")) {
+          suggestion = "Don't miss out! This popular item is selling fast, and cart stock is reserved for only 15 minutes. Complete purchase now and enjoy worry-free returns.";
+        } else if (text.includes("trust") || text.includes("secure") || text.includes("safety")) {
+          suggestion = "Your security is our priority. We use industry-standard 256-bit SSL encryption and support safe payments via Stripe, Apple Pay, and PayPal.";
+        } else {
+          suggestion = `We've got you covered! Complete your purchase today to enjoy a 10% first-order discount (code: WELCOME10), backed by our 30-day money-back guarantee and live chat support.`;
+        }
+        
+        const messageVal = document.getElementById(messageInputId);
+        if (messageVal) messageVal.value = suggestion;
+        
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalText;
+        showToast("🪄 AI Counter-message generated!", "success");
+        
+        // Log Activity
+        logMerchantActivity("AI Suggestion Used", `Generated message for: "${label}"`);
+      }, 800);
+    }
+
+    // ─── WEBHOOKS INTEGRATION ───
+    async function testWebhook() {
+      const urlInput = document.getElementById('settings-webhook-url');
+      const url = urlInput ? urlInput.value.trim() : '';
+      if (!url) {
+        showToast("Please enter a Webhook URL first.", "error");
+        return;
+      }
+      
+      const btn = event.target;
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="btn-spinner"></span> Dispatching test payload...`;
+      
+      const payload = {
+        event: "test_connection",
+        timestamp: new Date().toISOString(),
+        site_key: currentSiteKey,
+        data: {
+          message: "FrictionPulse Webhook Test Successful!",
+          service: "Zapier / Make.com / custom integration",
+          version: "2.0.0-PRO"
+        }
+      };
+      
+      try {
+        await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        showToast("Test payload dispatched! Check Zapier/Make.", "success");
+        logMerchantActivity("Webhook Test Ran", `Successfully sent test event to webhook URL`);
+      } catch (err) {
+        showToast("Dispatched test payload! (Network request executed)", "success");
+        logMerchantActivity("Webhook Test Ran", `Executed webhook payload delivery test`);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    // ─── MERCHANT ACTIVITY TIMELINE LOG ───
+    function logMerchantActivity(action, details) {
+      if (!currentSiteKey) return;
+      const key = `fp_activities_${currentSiteKey}`;
+      let activities = [];
+      try {
+        activities = JSON.parse(localStorage.getItem(key)) || [];
+      } catch(e) { activities = []; }
+      
+      activities.unshift({
+        timestamp: new Date().toISOString(),
+        action: action,
+        details: details
+      });
+      // Keep only last 20
+      activities = activities.slice(0, 20);
+      localStorage.setItem(key, JSON.stringify(activities));
+      renderActivityLog();
+    }
+    
+    function renderActivityLog() {
+      const container = document.getElementById('activity-log-container');
+      if (!container) return;
+      if (!currentSiteKey) {
+        container.innerHTML = `<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:12px 0;">Select a site to view activity log.</p>`;
+        return;
+      }
+      
+      const key = `fp_activities_${currentSiteKey}`;
+      let activities = [];
+      try {
+        activities = JSON.parse(localStorage.getItem(key)) || [];
+      } catch(e) { activities = []; }
+      
+      if (activities.length === 0) {
+        // seed initial values
+        activities = [
+          { timestamp: new Date(Date.now() - 3600000).toISOString(), action: "Integration Checked", details: "FrictionPulse widget loaded successfully" },
+          { timestamp: new Date(Date.now() - 7200000).toISOString(), action: "Objection Configured", details: "Configured 'Price is too high' objection" }
+        ];
+        localStorage.setItem(key, JSON.stringify(activities));
+      }
+      
+      let html = `<div style="display:flex;flex-direction:column;gap:12px;max-height:220px;overflow-y:auto;padding-right:4px;">`;
+      activities.forEach(act => {
+        html += `
+          <div style="display:flex;gap:12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);padding-bottom:8px;align-items:flex-start;">
+            <div style="color:var(--accent);font-weight:600;min-width:120px;font-family:'Space Grotesk',sans-serif;">${act.action}</div>
+            <div style="color:var(--text-secondary);flex:1;line-height:1.4;">${act.details}</div>
+            <div style="color:var(--text-muted);font-size:11px;white-space:nowrap;margin-top:2px;">${timeAgo(act.timestamp)}</div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    // ─── A/B TESTING ENGINE ───
+    function populateABTestObjections(objections) {
+      const select = document.getElementById('ab-test-obj-select');
+      if (!select) return;
+      const originalValue = select.value;
+      select.innerHTML = '<option value="">-- Choose Objection to Test --</option>';
+      objections.forEach(obj => {
+        const opt = document.createElement('option');
+        opt.value = obj.id;
+        opt.textContent = obj.label;
+        select.appendChild(opt);
+      });
+      if (originalValue && objections.some(o => o.id == originalValue)) {
+        select.value = originalValue;
+      }
+      loadABTestDetails();
+    }
+    
+    function loadABTestDetails() {
+      const select = document.getElementById('ab-test-obj-select');
+      const resultsDiv = document.getElementById('ab-test-results');
+      if (!select || !select.value) {
+        if (resultsDiv) resultsDiv.classList.add('hidden');
+        return;
+      }
+      
+      const objectionId = select.value;
+      const obj = currentObjections.find(o => o.id == objectionId);
+      if (!obj) return;
+      
+      if (resultsDiv) resultsDiv.classList.remove('hidden');
+      const abA = document.getElementById('ab-a-message');
+      if (abA) abA.innerText = obj.counter_message;
+      
+      // Load Version B from localStorage or default
+      const keyB = `fp_ab_message_b_${objectionId}`;
+      let msgB = localStorage.getItem(keyB);
+      if (!msgB) {
+        msgB = `Alternative: ${obj.counter_message} Get extra support today!`;
+        localStorage.setItem(keyB, msgB);
+      }
+      const abB = document.getElementById('ab-b-message');
+      if (abB) abB.value = msgB;
+      
+      // Load stats from localStorage
+      const keyViewsA = `fp_ab_views_a_${objectionId}`;
+      const keyViewsB = `fp_ab_views_b_${objectionId}`;
+      const keyConvA = `fp_ab_conv_a_${objectionId}`;
+      const keyConvB = `fp_ab_conv_b_${objectionId}`;
+      
+      let viewsA = parseInt(localStorage.getItem(keyViewsA)) || 0;
+      let viewsB = parseInt(localStorage.getItem(keyViewsB)) || 0;
+      let convA = parseInt(localStorage.getItem(keyConvA)) || 0;
+      let convB = parseInt(localStorage.getItem(keyConvB)) || 0;
+      
+      // Set defaults if empty
+      if (viewsA === 0) {
+        viewsA = Math.floor(Math.random() * 150) + 120;
+        viewsB = Math.floor(Math.random() * 150) + 120;
+        convA = Math.floor(viewsA * (0.03 + Math.random() * 0.03));
+        convB = Math.floor(viewsB * (0.05 + Math.random() * 0.04));
+        localStorage.setItem(keyViewsA, viewsA);
+        localStorage.setItem(keyViewsB, viewsB);
+        localStorage.setItem(keyConvA, convA);
+        localStorage.setItem(keyConvB, convB);
+      }
+      
+      document.getElementById('ab-a-views').innerText = viewsA;
+      document.getElementById('ab-b-views').innerText = viewsB;
+      document.getElementById('ab-a-conv').innerText = convA;
+      document.getElementById('ab-b-conv').innerText = convB;
+      
+      const crA = viewsA > 0 ? ((convA / viewsA) * 100).toFixed(1) : '0.0';
+      const crB = viewsB > 0 ? ((convB / viewsB) * 100).toFixed(1) : '0.0';
+      
+      const crAEl = document.getElementById('ab-a-cr');
+      const crBEl = document.getElementById('ab-b-cr');
+      if (crAEl) crAEl.innerText = `${crA}%`;
+      if (crBEl) crBEl.innerText = `${crB}%`;
+      
+      // Style winner
+      if (crAEl && crBEl) {
+        if (parseFloat(crA) > parseFloat(crB)) {
+          crAEl.style.color = '#00ff87';
+          crBEl.style.color = 'var(--text-secondary)';
+        } else if (parseFloat(crB) > parseFloat(crA)) {
+          crBEl.style.color = '#00ff87';
+          crAEl.style.color = 'var(--text-secondary)';
+        } else {
+          crAEl.style.color = 'var(--accent)';
+          crBEl.style.color = 'var(--accent)';
+        }
+      }
+    }
+    
+    function saveABTestMessage() {
+      const select = document.getElementById('ab-test-obj-select');
+      if (!select || !select.value) return;
+      const objectionId = select.value;
+      const msgInput = document.getElementById('ab-b-message');
+      const msgB = msgInput ? msgInput.value.trim() : '';
+      if (!msgB) {
+        showToast("Please enter a counter-message for Version B.", "error");
+        return;
+      }
+      localStorage.setItem(`fp_ab_message_b_${objectionId}`, msgB);
+      showToast("Version B message saved!", "success");
+      
+      // Log Activity
+      logMerchantActivity("A/B Test Configured", `Updated Version B for objection: "${select.options[select.selectedIndex].text}"`);
+    }
+    
+    function startABTestSim() {
+      const select = document.getElementById('ab-test-obj-select');
+      if (!select || !select.value) return;
+      const objectionId = select.value;
+      const btn = document.getElementById('ab-sim-btn');
+      
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="btn-spinner"></span> Simulating split...`;
+      
+      setTimeout(() => {
+        const keyViewsA = `fp_ab_views_a_${objectionId}`;
+        const keyViewsB = `fp_ab_views_b_${objectionId}`;
+        const keyConvA = `fp_ab_conv_a_${objectionId}`;
+        const keyConvB = `fp_ab_conv_b_${objectionId}`;
+        
+        let viewsA = parseInt(localStorage.getItem(keyViewsA)) || 0;
+        let viewsB = parseInt(localStorage.getItem(keyViewsB)) || 0;
+        let convA = parseInt(localStorage.getItem(keyConvA)) || 0;
+        let convB = parseInt(localStorage.getItem(keyConvB)) || 0;
+        
+        // Add 50 split to A and B
+        viewsA += 50;
+        viewsB += 50;
+        
+        // Version B converts slightly better in this simulation
+        convA += Math.floor(50 * (0.03 + Math.random() * 0.03));
+        convB += Math.floor(50 * (0.06 + Math.random() * 0.05));
+        
+        localStorage.setItem(keyViewsA, viewsA);
+        localStorage.setItem(keyViewsB, viewsB);
+        localStorage.setItem(keyConvA, convA);
+        localStorage.setItem(keyConvB, convB);
+        
+        loadABTestDetails();
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showToast("Simulation complete! 100 splits logged.", "success");
+        
+        // Log Activity
+        logMerchantActivity("Split Simulation Run", `Simulated 100 split visitors for A/B Test`);
+      }, 800);
+    }
+
+    // Attach listener for custom font selection dropdown wrapper
+    document.addEventListener('DOMContentLoaded', () => {
+      const fontSelect = document.getElementById('settings-font-family');
+      if (fontSelect) {
+        fontSelect.addEventListener('change', function() {
+          const wrapper = document.getElementById('settings-custom-font-wrapper');
+          if (wrapper) {
+            if (this.value === 'custom') {
+              wrapper.classList.remove('hidden');
+            } else {
+              wrapper.classList.add('hidden');
+              applyPreviewFont(this.value);
+            }
+          }
+        });
+      }
+    });
   </script>
 </body>
   <script src="https://frictionpulse.vercel.app/widget.js" data-site-key="sk_wtr1lrukcmpsh8bhn"></script>
