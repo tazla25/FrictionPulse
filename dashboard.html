@@ -5450,12 +5450,16 @@
       console.log("[updatePlanUI] Resolved tier:", tier, "status:", status);
       
       currentPlanTier = tier;
+      console.log("[updatePlanUI] currentPlanTier set to:", currentPlanTier);
       
       // A. Update Billing Tab badge
       const planBadgeEl = document.getElementById('billing-plan-badge');
       if (planBadgeEl) {
         planBadgeEl.innerText = tier.charAt(0).toUpperCase() + tier.slice(1);
         planBadgeEl.className = `badge-plan badge-plan-${tier}`;
+        console.log("[updatePlanUI] Updated billing-plan-badge");
+      } else {
+        console.warn("[updatePlanUI] billing-plan-badge NOT FOUND");
       }
       
       // B. Update Billing Tab status
@@ -5463,12 +5467,14 @@
       if (statusValEl) {
         statusValEl.innerText = status.charAt(0).toUpperCase() + status.slice(1);
         statusValEl.style.color = status === 'active' ? 'var(--success)' : 'var(--danger)';
+        console.log("[updatePlanUI] Updated billing-status-val");
       }
       
       // C. Update Billing Tab period end
       const periodEndValEl = document.getElementById('billing-period-end-val');
       if (periodEndValEl) {
         periodEndValEl.innerText = periodEnd;
+        console.log("[updatePlanUI] Updated billing-period-end-val");
       }
       
       // D. Update Sidebar user plan badge
@@ -5476,6 +5482,9 @@
       if (sidebarBadgeEl) {
         sidebarBadgeEl.innerText = tier.toUpperCase();
         sidebarBadgeEl.className = `badge-plan badge-plan-${tier}`;
+        console.log("[updatePlanUI] Updated sidebar-plan-badge");
+      } else {
+        console.warn("[updatePlanUI] sidebar-plan-badge NOT FOUND");
       }
       
       // E. Update pricing cards and buttons
@@ -5491,6 +5500,7 @@
             btn.disabled = true;
             btn.classList.add('btn-ghost');
             btn.classList.remove('btn-primary');
+            console.log(`[updatePlanUI] Set card ${p} to active-tier`);
           } else {
             card.classList.remove('active-tier');
             btn.disabled = false;
@@ -5505,7 +5515,10 @@
             } else {
               btn.innerText = 'Upgrade Plan';
             }
+            console.log(`[updatePlanUI] Set card ${p} to inactive`);
           }
+        } else {
+           console.warn(`[updatePlanUI] Missing card or btn for plan ${p}`);
         }
       });
     }
