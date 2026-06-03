@@ -162,6 +162,11 @@
       color: var(--text);
     }
 
+    .nav-item.logout-nav-item:hover {
+      background: rgba(255, 82, 82, 0.1) !important;
+      color: #FF5252 !important;
+    }
+
     .nav-item.active {
       background: linear-gradient(135deg, rgba(255,78,17,0.1), rgba(255,138,0,0.05));
       color: var(--accent);
@@ -1441,16 +1446,23 @@
           <span class="icon">💳</span>
           <span>Billing</span>
         </button>
+        <button class="nav-item logout-nav-item" onclick="logout()" style="color: var(--danger); margin-top: 12px;">
+          <span class="icon">🚪</span>
+          <span>Logout</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
         <div class="user-card">
           <div class="user-avatar" id="user-avatar">M</div>
           <div class="user-info">
-            <div class="user-name" id="user-name">Merchant</div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <div class="user-name" id="user-name">Merchant</div>
+              <span id="sidebar-plan-badge" class="badge-plan badge-plan-free" style="font-size: 8px; padding: 1px 4px; border-radius: 4px; font-weight: 700; text-transform: uppercase;">FREE</span>
+            </div>
             <div class="user-email" id="user-email">Loading...</div>
           </div>
-          <button onclick="logout()" class="btn btn-ghost btn-sm" style="padding:6px;">🚪</button>
+          <button onclick="logout()" class="btn btn-ghost btn-sm" style="padding:6px;" title="Logout">🚪</button>
         </div>
       </div>
     </aside>
@@ -3054,14 +3066,38 @@
       }
     }
 
-    function logout() {
+    async function logout() {
       if (supabaseClient) {
-        if (realtimeSubscriptionLeads) { supabaseClient.removeChannel(realtimeSubscriptionLeads); realtimeSubscriptionLeads = null; }
-        if (realtimeSubscriptionFeedback) { supabaseClient.removeChannel(realtimeSubscriptionFeedback); realtimeSubscriptionFeedback = null; }
+        if (realtimeSubscriptionLeads) { 
+          try { supabaseClient.removeChannel(realtimeSubscriptionLeads); } catch(e){}
+          realtimeSubscriptionLeads = null; 
+        }
+        if (realtimeSubscriptionFeedback) { 
+          try { supabaseClient.removeChannel(realtimeSubscriptionFeedback); } catch(e){}
+          realtimeSubscriptionFeedback = null; 
+        }
+        try { await supabaseClient.auth.signOut(); } catch(e){}
       }
-      currentSession = null; currentUser = null; currentSiteKey = null;
+      if (currentSession && currentSession.access_token) {
+        try {
+          await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+            method: "POST",
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${currentSession.access_token}`
+            }
+          });
+        } catch (e) {}
+      }
+      currentSession = null; currentUser = null; currentSiteKey = null; currentPlanTier = 'free';
       localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_refresh_token');
-      document.getElementById('email').value = ''; document.getElementById('auth-message').innerText = '';
+      document.getElementById('email').value = ''; 
+      const pass = document.getElementById('password');
+      if (pass) pass.value = '';
+      document.getElementById('auth-message').innerText = '';
+      if (typeof updatePlanUI === 'function') {
+        updatePlanUI('free', 'active', '—');
+      }
       showView('auth');
     }
 
@@ -4425,24 +4461,8 @@
     async function loadSettings() {
       if (!currentSiteKey) return;
 
-      // Determine current plan tier
-      let planTier = currentPlanTier || 'free';
-      if (currentUser) {
-        try {
-          const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=plan_tier&user_id=eq.${currentUser.id}`, {
-            method: "GET", headers: getHeaders()
-          });
-          if (subRes.ok) {
-            const subData = await subRes.json();
-            if (subData && subData.length > 0) {
-              planTier = (subData[0].plan_tier || 'free').toLowerCase();
-              currentPlanTier = planTier;
-            }
-          }
-        } catch (e) {
-          console.error("Failed to fetch plan tier in loadSettings", e);
-        }
-      }
+      // Determine current plan tier from the cached global variable
+      const planTier = (currentPlanTier || 'free').toLowerCase();
       
       // Load standard alert settings from Supabase
       try {
@@ -4642,24 +4662,8 @@
       const trigFbEl = document.getElementById('webhook-trigger-feedback');
       const triggerFeedback = trigFbEl ? trigFbEl.checked : true;
 
-      // Determine current plan tier
-      let planTier = currentPlanTier || 'free';
-      if (currentUser) {
-        try {
-          const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=plan_tier&user_id=eq.${currentUser.id}`, {
-            method: "GET", headers: getHeaders()
-          });
-          if (subRes.ok) {
-            const subData = await subRes.json();
-            if (subData && subData.length > 0) {
-              planTier = (subData[0].plan_tier || 'free').toLowerCase();
-              currentPlanTier = planTier;
-            }
-          }
-        } catch (e) {
-          console.error("Failed to fetch plan tier in saveSettings", e);
-        }
-      }
+      // Determine current plan tier from the cached global variable
+      const planTier = (currentPlanTier || 'free').toLowerCase();
 
       // Force defaults based on plan restrictions
       if (planTier === 'free' || planTier === 'starter') {
@@ -5439,6 +5443,71 @@
       });
     }
 
+    function updatePlanUI(planTier, subStatus = 'active', periodEnd = '—') {
+      const tier = (planTier || 'free').toLowerCase();
+      const status = (subStatus || 'active').toLowerCase();
+      
+      currentPlanTier = tier;
+      
+      // A. Update Billing Tab badge
+      const planBadgeEl = document.getElementById('billing-plan-badge');
+      if (planBadgeEl) {
+        planBadgeEl.innerText = tier.charAt(0).toUpperCase() + tier.slice(1);
+        planBadgeEl.className = `badge-plan badge-plan-${tier}`;
+      }
+      
+      // B. Update Billing Tab status
+      const statusValEl = document.getElementById('billing-status-val');
+      if (statusValEl) {
+        statusValEl.innerText = status.charAt(0).toUpperCase() + status.slice(1);
+        statusValEl.style.color = status === 'active' ? 'var(--success)' : 'var(--danger)';
+      }
+      
+      // C. Update Billing Tab period end
+      const periodEndValEl = document.getElementById('billing-period-end-val');
+      if (periodEndValEl) {
+        periodEndValEl.innerText = periodEnd;
+      }
+      
+      // D. Update Sidebar user plan badge
+      const sidebarBadgeEl = document.getElementById('sidebar-plan-badge');
+      if (sidebarBadgeEl) {
+        sidebarBadgeEl.innerText = tier.toUpperCase();
+        sidebarBadgeEl.className = `badge-plan badge-plan-${tier}`;
+      }
+      
+      // E. Update pricing cards and buttons
+      const plans = ['starter', 'growth', 'pro'];
+      plans.forEach(p => {
+        const card = document.getElementById(`plan-card-${p}`);
+        const btn = document.getElementById(`btn-subscribe-${p}`);
+        
+        if (card && btn) {
+          if (tier === p) {
+            card.classList.add('active-tier');
+            btn.innerText = 'Current Plan';
+            btn.disabled = true;
+            btn.classList.add('btn-ghost');
+            btn.classList.remove('btn-primary');
+          } else {
+            card.classList.remove('active-tier');
+            btn.disabled = false;
+            btn.classList.remove('btn-ghost');
+            btn.classList.add('btn-primary');
+            
+            const tierHierarchy = { free: 0, starter: 1, growth: 2, pro: 3 };
+            const currentRank = tierHierarchy[tier] || 0;
+            const targetRank = tierHierarchy[p];
+            if (targetRank < currentRank) {
+              btn.innerText = 'Downgrade Plan';
+            } else {
+              btn.innerText = 'Upgrade Plan';
+            }
+          }
+        }
+      });
+    }
+
     async function loadBillingData() {
       if (!currentUser) return;
       
@@ -5467,9 +5536,11 @@
             }
           }
         }
-        currentPlanTier = planTier.toLowerCase();
         
-        // B. Query usage_metrics for current month
+        // B. Update UI elements using centralized function
+        updatePlanUI(planTier, subStatus, periodEnd);
+        
+        // C. Query usage_metrics for current month
         let leadsUsed = 0;
         const now = new Date();
         const cycleStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
@@ -5486,7 +5557,7 @@
           }
         }
         
-        // C. Fetch sites to count active domains
+        // D. Fetch sites to count active domains
         let domainsUsed = 0;
         try {
           const sites = await fetchSites();
@@ -5495,7 +5566,7 @@
           console.error("Error fetching sites for billing usage:", sitesErr);
         }
         
-        // D. Calculate limits based on tier
+        // E. Calculate limits based on tier
         const tierLimits = {
           free: { domains: 1, leads: 50 },
           starter: { domains: 3, leads: 500 },
@@ -5504,7 +5575,29 @@
         };
         const limits = tierLimits[planTier.toLowerCase()] || tierLimits.free;
 
-        // E. Add real-time lead limit warning banner if leadsUsed >= limits.leads
+        // Update progress bars & text
+        const maxDomains = limits.domains;
+        const maxLeads = limits.leads;
+        
+        const meterSitesText = document.getElementById('meter-sites-text');
+        if (meterSitesText) meterSitesText.innerText = `${domainsUsed} / ${maxDomains}`;
+        
+        const meterSitesProgress = document.getElementById('meter-sites-progress');
+        if (meterSitesProgress) {
+          const sitesPct = Math.min(100, (domainsUsed / maxDomains) * 100);
+          meterSitesProgress.style.width = `${sitesPct}%`;
+        }
+        
+        const meterLeadsText = document.getElementById('meter-leads-text');
+        if (meterLeadsText) meterLeadsText.innerText = `${leadsUsed} / ${maxLeads}`;
+        
+        const meterLeadsProgress = document.getElementById('meter-leads-progress');
+        if (meterLeadsProgress) {
+          const leadsPct = Math.min(100, (leadsUsed / maxLeads) * 100);
+          meterLeadsProgress.style.width = `${leadsPct}%`;
+        }
+
+        // F. Add real-time lead limit warning banner if leadsUsed >= limits.leads
         const topBar = document.querySelector('.main-content .top-bar');
         let limitBanner = document.getElementById('billing-limit-banner');
         
@@ -5544,77 +5637,6 @@
             limitBanner.remove();
           }
         }
-        
-        // F. Update UI elements
-        const planBadgeEl = document.getElementById('billing-plan-badge');
-        if (planBadgeEl) {
-          planBadgeEl.innerText = planTier.charAt(0).toUpperCase() + planTier.slice(1);
-          planBadgeEl.className = `badge-plan badge-plan-${planTier.toLowerCase()}`;
-        }
-        
-        const statusValEl = document.getElementById('billing-status-val');
-        if (statusValEl) {
-          statusValEl.innerText = subStatus.charAt(0).toUpperCase() + subStatus.slice(1);
-          statusValEl.style.color = subStatus.toLowerCase() === 'active' ? 'var(--success)' : 'var(--danger)';
-        }
-        
-        const periodEndValEl = document.getElementById('billing-period-end-val');
-        if (periodEndValEl) {
-          periodEndValEl.innerText = periodEnd;
-        }
-        
-        // Update progress bars & text
-        const maxDomains = limits.domains;
-        const maxLeads = limits.leads;
-        
-        const meterSitesText = document.getElementById('meter-sites-text');
-        if (meterSitesText) meterSitesText.innerText = `${domainsUsed} / ${maxDomains}`;
-        
-        const meterSitesProgress = document.getElementById('meter-sites-progress');
-        if (meterSitesProgress) {
-          const sitesPct = Math.min(100, (domainsUsed / maxDomains) * 100);
-          meterSitesProgress.style.width = `${sitesPct}%`;
-        }
-        
-        const meterLeadsText = document.getElementById('meter-leads-text');
-        if (meterLeadsText) meterLeadsText.innerText = `${leadsUsed} / ${maxLeads}`;
-        
-        const meterLeadsProgress = document.getElementById('meter-leads-progress');
-        if (meterLeadsProgress) {
-          const leadsPct = Math.min(100, (leadsUsed / maxLeads) * 100);
-          meterLeadsProgress.style.width = `${leadsPct}%`;
-        }
-        
-        // Update pricing cards and buttons
-        const plans = ['starter', 'growth', 'pro'];
-        plans.forEach(tier => {
-          const card = document.getElementById(`plan-card-${tier}`);
-          const btn = document.getElementById(`btn-subscribe-${tier}`);
-          
-          if (card && btn) {
-            if (planTier.toLowerCase() === tier) {
-              card.classList.add('active-tier');
-              btn.innerText = 'Current Plan';
-              btn.disabled = true;
-              btn.classList.add('btn-ghost');
-              btn.classList.remove('btn-primary');
-            } else {
-              card.classList.remove('active-tier');
-              btn.disabled = false;
-              btn.classList.remove('btn-ghost');
-              btn.classList.add('btn-primary');
-              
-              const tierHierarchy = { free: 0, starter: 1, growth: 2, pro: 3 };
-              const currentRank = tierHierarchy[planTier.toLowerCase()] || 0;
-              const targetRank = tierHierarchy[tier];
-              if (targetRank < currentRank) {
-                btn.innerText = 'Downgrade Plan';
-              } else {
-                btn.innerText = 'Upgrade Plan';
-              }
-            }
-          }
-        });
       } catch (err) {
         console.error("Error loading billing details:", err);
       }
