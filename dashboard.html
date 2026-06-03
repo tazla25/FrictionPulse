@@ -5415,7 +5415,9 @@
     });
 
     // ─── BILLING & SUBSCRIPTIONS ───
-    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3000' : '';
+    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      ? 'http://localhost:3000' 
+      : 'https://frictionpulse-backend-production.up.railway.app';
 
     let razorpayScriptLoaded = false;
     function loadRazorpayScript() {
@@ -5632,7 +5634,7 @@
       }
       
       try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/create-subscription`, {
+        const response = await fetch(`${BACKEND_URL}/api/create-subscription`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -5653,7 +5655,7 @@
           if (confirmVerify) {
             if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
             
-            const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify-subscription`, {
+            const verifyRes = await fetch(`${BACKEND_URL}/api/verify-subscription`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -5694,7 +5696,7 @@
               try {
                 if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
                 
-                const verifyResponse = await fetch(`${BACKEND_URL}/api/payments/verify-subscription`, {
+                const verifyResponse = await fetch(`${BACKEND_URL}/api/verify-subscription`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
