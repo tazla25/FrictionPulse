@@ -5444,8 +5444,10 @@
     }
 
     function updatePlanUI(planTier, subStatus = 'active', periodEnd = '—') {
+      console.log("[updatePlanUI] Called with planTier:", planTier, "subStatus:", subStatus, "periodEnd:", periodEnd);
       const tier = (planTier || 'free').toLowerCase();
       const status = (subStatus || 'active').toLowerCase();
+      console.log("[updatePlanUI] Resolved tier:", tier, "status:", status);
       
       currentPlanTier = tier;
       
@@ -5517,13 +5519,21 @@
         let periodEnd = '—';
         
         // A. Query billing_subscriptions for the user
-        const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=*&user_id=eq.${currentUser.id}`, {
+        console.log("[loadBillingData] Fetching subscription for user:", currentUser.id);
+        const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=*&user_id=eq.${currentUser.id}&_cb=${Date.now()}`, {
           method: "GET",
-          headers: getHeaders()
+          headers: {
+            ...getHeaders(),
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          cache: 'no-store'
         });
+        console.log("[loadBillingData] Fetch response status:", subRes.status);
         
         if (subRes.ok) {
           const subData = await subRes.json();
+          console.log("[loadBillingData] Fetched subData:", subData);
           if (subData && subData.length > 0) {
             planTier = subData[0].plan_tier || 'free';
             subStatus = subData[0].status || 'active';
@@ -5534,9 +5544,15 @@
                 day: 'numeric'
               });
             }
+            console.log("[loadBillingData] Extracted planTier:", planTier, "subStatus:", subStatus, "periodEnd:", periodEnd);
+          } else {
+            console.log("[loadBillingData] subData is empty or not an array.");
           }
+        } else {
+          console.error("[loadBillingData] Failed to fetch. Status:", subRes.status, await subRes.text());
         }
         
+        console.log("[loadBillingData] Calling updatePlanUI with:", planTier, subStatus, periodEnd);
         // B. Update UI elements using centralized function
         updatePlanUI(planTier, subStatus, periodEnd);
         
