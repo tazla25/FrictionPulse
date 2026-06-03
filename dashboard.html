@@ -5621,7 +5621,16 @@
     }
 
     async function checkoutSubscription(planId) {
+      console.log("[Upgrade Plan Flow] Starting checkout for plan:", planId);
+      console.log("[Upgrade Plan Flow] BACKEND_URL:", BACKEND_URL);
+      console.log("[Upgrade Plan Flow] currentUser:", currentUser);
+      console.log("[Upgrade Plan Flow] currentSession:", currentSession ? { 
+        access_token_length: currentSession.access_token ? currentSession.access_token.length : 0,
+        has_access_token: !!currentSession.access_token
+      } : "null");
+
       if (!currentSession || !currentUser) {
+        console.error("[Upgrade Plan Flow] Pre-fetch check failed: User session or details missing.");
         showToast("Please log in to upgrade subscription.", "error");
         return;
       }
@@ -5634,43 +5643,64 @@
       }
       
       try {
-        const response = await fetch(`${BACKEND_URL}/api/create-subscription`, {
+        const fetchUrl = `${BACKEND_URL}/api/create-subscription`;
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`
+        };
+        const body = { planId };
+
+        console.log("[Upgrade Plan Flow] Triggering POST fetch to:", fetchUrl);
+        console.log("[Upgrade Plan Flow] Request Headers:", { ...headers, 'Authorization': headers.Authorization ? "Bearer " + headers.Authorization.substring(7, 22) + "..." : "undefined" });
+        console.log("[Upgrade Plan Flow] Request Body:", body);
+
+        const response = await fetch(fetchUrl, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentSession.access_token}`
-          },
-          body: JSON.stringify({ planId })
+          headers: headers,
+          body: JSON.stringify(body)
         });
         
+        console.log("[Upgrade Plan Flow] POST fetch response received. Status:", response.status, "StatusText:", response.statusText);
+
         if (!response.ok) {
           const errData = await response.json();
+          console.error("[Upgrade Plan Flow] Subscription creation API returned non-OK status. Error details:", errData);
           throw new Error(errData.error || 'Failed to initialize subscription checkout.');
         }
         
         const subDetails = await response.json();
+        console.log("[Upgrade Plan Flow] Subscription initialized successfully:", subDetails);
         
         if (subDetails.mock) {
+          console.log("[Upgrade Plan Flow] Entering mock subscription mode.");
           const confirmVerify = confirm(`[Mock Payment] Click OK to simulate verification for "${planId.toUpperCase()}" subscription.`);
           if (confirmVerify) {
             if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
             
-            const verifyRes = await fetch(`${BACKEND_URL}/api/verify-subscription`, {
+            const verifyUrl = `${BACKEND_URL}/api/verify-subscription`;
+            const verifyBody = {
+              razorpay_payment_id: 'pay_mock_' + Math.random().toString(36).substr(2, 9),
+              razorpay_subscription_id: subDetails.id,
+              razorpay_signature: 'mock_signature_from_client',
+              planId: planId
+            };
+
+            console.log("[Upgrade Plan Flow] Triggering Mock Verify fetch to:", verifyUrl, "Body:", verifyBody);
+
+            const verifyRes = await fetch(verifyUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${currentSession.access_token}`
               },
-              body: JSON.stringify({
-                razorpay_payment_id: 'pay_mock_' + Math.random().toString(36).substr(2, 9),
-                razorpay_subscription_id: subDetails.id,
-                razorpay_signature: 'mock_signature_from_client',
-                planId: planId
-              })
+              body: JSON.stringify(verifyBody)
             });
             
+            console.log("[Upgrade Plan Flow] Mock Verify response received. Status:", verifyRes.status);
+
             if (!verifyRes.ok) {
               const verifyErr = await verifyRes.json();
+              console.error("[Upgrade Plan Flow] Mock verification failed. Details:", verifyErr);
               throw new Error(verifyErr.error || 'Verification of mock subscription failed.');
             }
             
@@ -5678,11 +5708,14 @@
             logMerchantActivity("Subscription Upgraded", `Subscribed to ${planId} tier (Mock Mode)`);
             loadBillingData();
           } else {
+            console.log("[Upgrade Plan Flow] Mock subscription cancelled by user.");
             showToast('Subscription simulation cancelled.', 'warning');
           }
         } else {
           // Real production mode
+          console.log("[Upgrade Plan Flow] Entering real production subscription mode. Loading Razorpay...");
           await loadRazorpayScript();
+          console.log("[Upgrade Plan Flow] Razorpay script loaded. Window.Razorpay:", !!window.Razorpay);
           
           const options = {
             key: subDetails.razorpay_key_id || 'rzp_test_placeholder',
@@ -5693,25 +5726,34 @@
               email: currentUser.email || ''
             },
             handler: async function (paymentResult) {
+              console.log("[Upgrade Plan Flow] Razorpay payment callback triggered. Payment result:", paymentResult);
               try {
                 if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
                 
-                const verifyResponse = await fetch(`${BACKEND_URL}/api/verify-subscription`, {
+                const verifyUrl = `${BACKEND_URL}/api/verify-subscription`;
+                const verifyBody = {
+                  razorpay_payment_id: paymentResult.razorpay_payment_id,
+                  razorpay_subscription_id: paymentResult.razorpay_subscription_id,
+                  razorpay_signature: paymentResult.razorpay_signature,
+                  planId: planId
+                };
+
+                console.log("[Upgrade Plan Flow] Triggering production Verify fetch to:", verifyUrl, "Body:", verifyBody);
+
+                const verifyResponse = await fetch(verifyUrl, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${currentSession.access_token}`
                   },
-                  body: JSON.stringify({
-                    razorpay_payment_id: paymentResult.razorpay_payment_id,
-                    razorpay_subscription_id: paymentResult.razorpay_subscription_id,
-                    razorpay_signature: paymentResult.razorpay_signature,
-                    planId: planId
-                  })
+                  body: JSON.stringify(verifyBody)
                 });
                 
+                console.log("[Upgrade Plan Flow] Production Verify response received. Status:", verifyResponse.status);
+
                 if (!verifyResponse.ok) {
                   const verifyErr = await verifyResponse.json();
+                  console.error("[Upgrade Plan Flow] Production verification failed. Details:", verifyErr);
                   throw new Error(verifyErr.error || 'Payment verification failed.');
                 }
                 
@@ -5719,7 +5761,7 @@
                 logMerchantActivity("Subscription Upgraded", `Subscribed to ${planId} tier`);
                 loadBillingData();
               } catch (verifyErr) {
-                console.error(verifyErr);
+                console.error("[Upgrade Plan Flow] Error in payment verification handler:", verifyErr);
                 showToast(verifyErr.message || 'Payment verification failed.', 'error');
               } finally {
                 if (btn) {
@@ -5730,6 +5772,7 @@
             },
             modal: {
               ondismiss: function () {
+                console.log("[Upgrade Plan Flow] Razorpay checkout modal dismissed by user.");
                 showToast('Checkout window closed.', 'warning');
                 if (btn) {
                   btn.disabled = false;
@@ -5739,11 +5782,12 @@
             }
           };
           
+          console.log("[Upgrade Plan Flow] Opening Razorpay checkout window with options:", options);
           const rzp = new window.Razorpay(options);
           rzp.open();
         }
       } catch (err) {
-        console.error(err);
+        console.error("[Upgrade Plan Flow] Error in checkoutSubscription main try block:", err);
         showToast(err.message || 'Error occurred during checkout process.', 'error');
       } finally {
         if (btn && (btn.innerHTML.includes('Processing...') || btn.disabled)) {
