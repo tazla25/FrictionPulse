@@ -3109,15 +3109,16 @@
         });
         if (!response.ok) throw new Error("Failed to fetch sites");
         const sites = await response.json();
+        if (currentUser) {
+          await loadBillingData();
+          checkUpgradeParameter();
+        }
+
         if (sites.length === 0) {
           document.getElementById('cancel-onboarding-btn').classList.add('hidden');
           showView('onboarding');
         } else {
           showView('dashboard'); renderSitesList(sites);
-        }
-        if (currentUser) {
-          loadBillingData();
-          checkUpgradeParameter();
         }
       } catch (err) { console.error(err); showToast("Error loading account data.", "error"); showView('auth'); }
     }
