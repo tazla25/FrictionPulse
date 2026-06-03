@@ -5533,7 +5533,7 @@
         
         // A. Query billing_subscriptions for the user
         console.log("[loadBillingData] Fetching subscription for user:", currentUser.id);
-        const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=*&user_id=eq.${currentUser.id}&_cb=${Date.now()}`, {
+        const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=*&user_id=eq.${currentUser.id}`, {
           method: "GET",
           headers: {
             ...getHeaders(),
