@@ -1437,6 +1437,10 @@
           <span class="icon">🎧</span>
           <span>Support</span>
         </button>
+        <button class="nav-item" onclick="switchTab('billing')" data-tab="billing">
+          <span class="icon">💳</span>
+          <span>Billing</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -1948,7 +1952,7 @@
               </div>
 
               <!-- Webhooks Integration Section -->
-              <div style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
+              <div id="settings-webhook-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
                 <h4 style="margin: 0 0 12px; color: var(--text-primary); font-size: 15px;">🔗 Zapier / Webhook Integrations</h4>
                 <div class="form-group">
                   <label>Webhook Destination URL</label>
@@ -2033,6 +2037,497 @@
                 <span id="support-spinner" class="spinner hidden"></span>
               </div>
               <div id="support-status" style="margin-top:16px;font-size:13px;font-weight:500;"></div>
+            </div>
+          </div>
+
+          <!-- TAB: BILLING -->
+          <div id="tab-billing" class="tab-content hidden">
+            <style>
+              /* Premium Billing CSS */
+              .billing-container {
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+              }
+              
+              .billing-grid-top {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+              }
+              
+              @media (max-width: 900px) {
+                .billing-grid-top {
+                  grid-template-columns: 1fr;
+                }
+              }
+              
+              .overview-card, .usage-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 28px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.3s ease;
+              }
+              
+              .overview-card:hover, .usage-card:hover {
+                border-color: var(--border-strong);
+              }
+              
+              .billing-section-title {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text);
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              }
+              
+              .overview-detail {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+              }
+              
+              .detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+              }
+              
+              .detail-row:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+              }
+              
+              .detail-label {
+                color: var(--text-secondary);
+                font-size: 14px;
+              }
+              
+              .detail-value {
+                font-weight: 600;
+                font-size: 14px;
+                color: var(--text);
+              }
+              
+              .badge-plan {
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+              }
+              
+              .badge-plan-free { background: rgba(138, 143, 152, 0.1); color: var(--text-secondary); border: 1px solid rgba(138, 143, 152, 0.2); }
+              .badge-plan-starter { background: rgba(255, 78, 17, 0.1); color: var(--accent); border: 1px solid rgba(255, 78, 17, 0.2); }
+              .badge-plan-growth { background: rgba(0, 212, 255, 0.1); color: var(--accent-secondary); border: 1px solid rgba(0, 212, 255, 0.2); }
+              .badge-plan-pro { background: linear-gradient(135deg, rgba(255,78,17,0.15), rgba(0,212,255,0.15)); color: var(--text); border: 1px solid rgba(255, 255, 255, 0.1); }
+              
+              .meter-group {
+                margin-bottom: 20px;
+              }
+              
+              .meter-group:last-child {
+                margin-bottom: 0;
+              }
+              
+              .meter-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 13px;
+                margin-bottom: 8px;
+              }
+              
+              .meter-label {
+                color: var(--text-secondary);
+                font-weight: 500;
+              }
+              
+              .meter-stats {
+                font-weight: 600;
+                color: var(--text);
+              }
+              
+              .meter-bar {
+                height: 10px;
+                background: var(--bg-elevated);
+                border-radius: 6px;
+                overflow: hidden;
+                position: relative;
+                border: 1px solid var(--border);
+              }
+              
+              .meter-progress {
+                height: 100%;
+                border-radius: 6px;
+                background: var(--gradient-1);
+                width: 0%;
+                transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+              }
+              
+              .meter-progress.cyan {
+                background: linear-gradient(90deg, #00D4FF 0%, #00E676 100%);
+              }
+
+              .plans-header {
+                margin-top: 16px;
+                text-align: center;
+              }
+              
+              .plans-header h3 {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 22px;
+                font-weight: 700;
+                margin-bottom: 8px;
+              }
+              
+              .plans-header p {
+                color: var(--text-secondary);
+                font-size: 14px;
+                margin-bottom: 32px;
+              }
+              
+              .plans-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+              }
+              
+              @media (max-width: 900px) {
+                .plans-grid {
+                  grid-template-columns: 1fr;
+                }
+              }
+              
+              .plan-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 36px 28px;
+                display: flex;
+                flex-direction: column;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+              }
+              
+              .plan-card:hover {
+                border-color: rgba(255, 78, 17, 0.25);
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+              }
+              
+              .plan-card.active-tier {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 1px var(--accent-glow), 0 20px 40px rgba(255, 78, 17, 0.1);
+              }
+              
+              .plan-card.active-tier::after {
+                content: 'Current Plan';
+                position: absolute;
+                top: -12px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--gradient-1);
+                color: white;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 4px 14px;
+                border-radius: 20px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+              }
+              
+              .plan-card-name {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 8px;
+              }
+              
+              .plan-card-desc {
+                color: var(--text-secondary);
+                font-size: 13px;
+                margin-bottom: 24px;
+                line-height: 1.4;
+                min-height: 38px;
+              }
+              
+              .plan-card-price-box {
+                margin-bottom: 24px;
+              }
+              
+              .plan-card-price {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 40px;
+                font-weight: 800;
+                line-height: 1;
+                color: var(--text);
+              }
+              
+              .plan-card-price span {
+                font-size: 14px;
+                color: var(--text-secondary);
+                font-weight: 500;
+              }
+              
+              .plan-card-price-yearly {
+                font-size: 12px;
+                color: var(--text-muted);
+                margin-top: 4px;
+              }
+              
+              .plan-card-limits {
+                margin-bottom: 24px;
+                padding: 12px 16px;
+                background: var(--bg-elevated);
+                border-radius: 12px;
+                border: 1px solid var(--border);
+              }
+              
+              .limit-item {
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+                margin-bottom: 6px;
+              }
+              
+              .limit-item:last-child {
+                margin-bottom: 0;
+              }
+              
+              .limit-item-lbl {
+                color: var(--text-secondary);
+              }
+              
+              .limit-item-val {
+                font-weight: 600;
+                color: var(--text);
+              }
+              
+              .plan-card-features {
+                list-style: none;
+                padding: 0;
+                margin: 0 0 32px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                flex-grow: 1;
+              }
+              
+              .plan-card-features li {
+                font-size: 13px;
+                color: var(--text-secondary);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
+              
+              .plan-card-features li::before {
+                content: '✓';
+                color: var(--success);
+                font-weight: bold;
+              }
+              
+              .plan-card-features li.disabled {
+                opacity: 0.4;
+              }
+              
+              .plan-card-features li.disabled::before {
+                content: '×';
+                color: var(--text-muted);
+              }
+              
+              .plan-card-btn {
+                width: 100%;
+                justify-content: center;
+              }
+            </style>
+
+            <div class="billing-container">
+              <div class="billing-grid-top">
+                <!-- Subscription Overview Card -->
+                <div class="overview-card">
+                  <div>
+                    <h4 class="billing-section-title">
+                      <span>💳</span> Subscription Overview
+                    </h4>
+                    <div class="overview-detail">
+                      <div class="detail-row">
+                        <span class="detail-label">Active Plan</span>
+                        <span id="billing-plan-badge" class="badge-plan badge-plan-free">Free</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span id="billing-status-val" class="detail-value" style="color: var(--success);">Active</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Period End</span>
+                        <span id="billing-period-end-val" class="detail-value">—</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Resource Usage Card -->
+                <div class="usage-card">
+                  <div>
+                    <h4 class="billing-section-title">
+                      <span>📊</span> Resource Usage (Current Cycle)
+                    </h4>
+                    <div class="overview-detail">
+                      <!-- Domains Meter -->
+                      <div class="meter-group">
+                        <div class="meter-info">
+                          <span class="meter-label">Sites Registered</span>
+                          <span id="meter-sites-text" class="meter-stats">0 / 1</span>
+                        </div>
+                        <div class="meter-bar">
+                          <div id="meter-sites-progress" class="meter-progress"></div>
+                        </div>
+                      </div>
+                      
+                      <!-- Leads Meter -->
+                      <div class="meter-group">
+                        <div class="meter-info">
+                          <span class="meter-label">Leads Captured</span>
+                          <span id="meter-leads-text" class="meter-stats">0 / 50</span>
+                        </div>
+                        <div class="meter-bar">
+                          <div id="meter-leads-progress" class="meter-progress cyan"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Available Subscription Plans Section -->
+              <div>
+                <div class="plans-header">
+                  <h3>Available Subscription Plans</h3>
+                  <p>Unlock advanced features, increase domain limit and raise lead thresholds</p>
+                </div>
+                
+                <div class="plans-grid">
+                  <!-- Starter Plan Card -->
+                  <div class="plan-card" id="plan-card-starter">
+                    <div class="plan-card-name" style="color: var(--accent);">Starter</div>
+                    <div class="plan-card-desc">For launch and early validation</div>
+                    
+                    <div class="plan-card-price-box">
+                      <div class="plan-card-price">$15<span>/mo</span></div>
+                      <div class="plan-card-price-yearly">Billed yearly ($12/mo)</div>
+                    </div>
+                    
+                    <div class="plan-card-limits">
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Domains</span>
+                        <span class="limit-item-val">3 Sites</span>
+                      </div>
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Lead Quota</span>
+                        <span class="limit-item-val">500 / mo</span>
+                      </div>
+                    </div>
+                    
+                    <ul class="plan-card-features">
+                      <li>3 websites</li>
+                      <li>4 default objections</li>
+                      <li>500 widget views/mo</li>
+                      <li>Lead capture (email + phone)</li>
+                      <li>Real-time email alerts</li>
+                      <li class="disabled">Custom widget colors</li>
+                      <li class="disabled">Custom widget fonts</li>
+                      <li class="disabled">Webhooks integration</li>
+                    </ul>
+                    
+                    <button id="btn-subscribe-starter" onclick="checkoutSubscription('starter')" class="btn btn-primary plan-card-btn">Upgrade Plan</button>
+                  </div>
+                  
+                  <!-- Growth Plan Card -->
+                  <div class="plan-card" id="plan-card-growth">
+                    <div class="plan-card-name" style="color: var(--accent-secondary);">Growth</div>
+                    <div class="plan-card-desc">For growing stores and merchants</div>
+                    
+                    <div class="plan-card-price-box">
+                      <div class="plan-card-price">$49<span>/mo</span></div>
+                      <div class="plan-card-price-yearly">Billed yearly ($39/mo)</div>
+                    </div>
+                    
+                    <div class="plan-card-limits">
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Domains</span>
+                        <span class="limit-item-val">10 Sites</span>
+                      </div>
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Lead Quota</span>
+                        <span class="limit-item-val">2,000 / mo</span>
+                      </div>
+                    </div>
+                    
+                    <ul class="plan-card-features">
+                      <li>10 websites</li>
+                      <li>Unlimited objections</li>
+                      <li>2,000 widget views/mo</li>
+                      <li>Lead capture (email + phone)</li>
+                      <li>Real-time email alerts</li>
+                      <li>Custom widget colors & branding</li>
+                      <li>Custom widget fonts</li>
+                      <li class="disabled">Webhooks integration</li>
+                    </ul>
+                    
+                    <button id="btn-subscribe-growth" onclick="checkoutSubscription('growth')" class="btn btn-primary plan-card-btn">Upgrade Plan</button>
+                  </div>
+                  
+                  <!-- Pro Plan Card -->
+                  <div class="plan-card" id="plan-card-pro">
+                    <div class="plan-card-name" style="background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Pro</div>
+                    <div class="plan-card-desc">For professional merchants and teams</div>
+                    
+                    <div class="plan-card-price-box">
+                      <div class="plan-card-price">$99<span>/mo</span></div>
+                      <div class="plan-card-price-yearly">Billed yearly ($79/mo)</div>
+                    </div>
+                    
+                    <div class="plan-card-limits">
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Domains</span>
+                        <span class="limit-item-val">100 Sites</span>
+                      </div>
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Lead Quota</span>
+                        <span class="limit-item-val">10,000 / mo</span>
+                      </div>
+                    </div>
+                    
+                    <ul class="plan-card-features">
+                      <li>100 websites (Unlimited)</li>
+                      <li>Unlimited objections</li>
+                      <li>10,000 widget views/mo</li>
+                      <li>Lead capture (email + phone)</li>
+                      <li>Real-time email alerts</li>
+                      <li>Custom widget colors & branding</li>
+                      <li>Custom widget fonts</li>
+                      <li>Webhooks integration</li>
+                      <li>Priority 24/7 support</li>
+                    </ul>
+                    
+                    <button id="btn-subscribe-pro" onclick="checkoutSubscription('pro')" class="btn btn-primary plan-card-btn">Upgrade Plan</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2326,6 +2821,7 @@
 
     let currentUser = null;
     let currentSession = null;
+    let currentPlanTier = 'free';
     let currentSiteKey = null;
     let chartInstance = null;
     let previewMode = 'desktop';
@@ -2583,6 +3079,10 @@
         } else {
           showView('dashboard'); renderSitesList(sites);
         }
+        if (currentUser) {
+          loadBillingData();
+          checkUpgradeParameter();
+        }
       } catch (err) { console.error(err); showToast("Error loading account data.", "error"); showView('auth'); }
     }
 
@@ -2616,7 +3116,15 @@
         if (!objResponse.ok) { const errData = await objResponse.json(); throw new Error("Failed to seed objections: " + JSON.stringify(errData)); }
         msg.innerText = "Domain registered successfully!"; msg.style.color = "var(--success)";
         setTimeout(() => checkUserSites(), 800);
-      } catch (err) { msg.innerText = err.message; msg.style.color = "var(--danger)"; } finally { btn.disabled = false; spinner.classList.add("hidden"); }
+      } catch (err) {
+        if (err.message && err.message.includes("DomainLimitExceeded")) {
+          showUpgradeModal('Domain Limit Reached', 'You have reached your active plan\'s website limits. Upgrade to register more domains.');
+          msg.innerText = "";
+        } else {
+          msg.innerText = err.message;
+          msg.style.color = "var(--danger)";
+        }
+      } finally { btn.disabled = false; spinner.classList.add("hidden"); }
     }
 
     async function fetchSites() {
@@ -3916,6 +4424,25 @@
 
     async function loadSettings() {
       if (!currentSiteKey) return;
+
+      // Determine current plan tier
+      let planTier = currentPlanTier || 'free';
+      if (currentUser) {
+        try {
+          const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=plan_tier&user_id=eq.${currentUser.id}`, {
+            method: "GET", headers: getHeaders()
+          });
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            if (subData && subData.length > 0) {
+              planTier = (subData[0].plan_tier || 'free').toLowerCase();
+              currentPlanTier = planTier;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch plan tier in loadSettings", e);
+        }
+      }
       
       // Load standard alert settings from Supabase
       try {
@@ -3930,11 +4457,19 @@
       } catch (err) { console.error(err); }
 
       // Load custom widget appearance settings from localStorage overlay
-      const activeColor = localStorage.getItem(`fp_widget_color_${currentSiteKey}`) || '#FF4E11';
-      const activeFont = localStorage.getItem(`fp_widget_font_${currentSiteKey}`) || 'system-ui';
-      const webhookUrl = localStorage.getItem(`fp_webhook_url_${currentSiteKey}`) || '';
+      let activeColor = localStorage.getItem(`fp_widget_color_${currentSiteKey}`) || '#FF4E11';
+      let activeFont = localStorage.getItem(`fp_widget_font_${currentSiteKey}`) || 'system-ui';
+      let webhookUrl = localStorage.getItem(`fp_webhook_url_${currentSiteKey}`) || '';
       const triggerLead = localStorage.getItem(`fp_webhook_trigger_lead_${currentSiteKey}`) !== 'false';
       const triggerFeedback = localStorage.getItem(`fp_webhook_trigger_feedback_${currentSiteKey}`) !== 'false';
+
+      if (planTier === 'free' || planTier === 'starter') {
+        activeColor = '#FF4E11';
+        activeFont = 'system-ui';
+      }
+      if (planTier !== 'pro') {
+        webhookUrl = '';
+      }
 
       // Set Webhook
       const webhookUrlEl = document.getElementById('settings-webhook-url');
@@ -3976,6 +4511,99 @@
           if (customFontNameEl) customFontNameEl.value = activeFont;
         }
       }
+
+      // Disable/Enable styling choices based on plan tier
+      const isCustomizationLocked = (planTier === 'free' || planTier === 'starter');
+      document.querySelectorAll('.color-option').forEach(c => {
+        if (isCustomizationLocked) {
+          c.style.pointerEvents = 'none';
+          c.style.opacity = '0.5';
+        } else {
+          c.style.pointerEvents = 'auto';
+          c.style.opacity = '1';
+        }
+      });
+      if (customColEl) customColEl.disabled = isCustomizationLocked;
+      if (fontSelect) fontSelect.disabled = isCustomizationLocked;
+      const customFontNameInput = document.getElementById('settings-custom-font-name');
+      if (customFontNameInput) customFontNameInput.disabled = isCustomizationLocked;
+
+      // Append/Remove styling lock warning banner
+      const widgetCard = document.querySelector('#tab-settings .card');
+      let widgetBanner = document.getElementById('widget-lock-banner');
+      if (isCustomizationLocked) {
+        if (!widgetBanner) {
+          widgetBanner = document.createElement('div');
+          widgetBanner.id = 'widget-lock-banner';
+          widgetBanner.style.background = 'rgba(255, 179, 0, 0.1)';
+          widgetBanner.style.border = '1px solid rgba(255, 179, 0, 0.2)';
+          widgetBanner.style.borderRadius = '8px';
+          widgetBanner.style.padding = '12px 16px';
+          widgetBanner.style.marginBottom = '20px';
+          widgetBanner.style.display = 'flex';
+          widgetBanner.style.alignItems = 'center';
+          widgetBanner.style.gap = '12px';
+          widgetBanner.innerHTML = `
+            <span style="font-size: 18px;">🔒</span>
+            <div style="flex: 1; font-size: 13px; color: var(--warning);">
+              <strong>Widget customization locked.</strong> Upgrade to Growth or Pro plan to customize widget colors and fonts.
+            </div>
+            <button onclick="switchTab('billing')" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px;">Upgrade</button>
+          `;
+          if (widgetCard) {
+            const cardHeader = widgetCard.querySelector('.card-header');
+            if (cardHeader) {
+              cardHeader.after(widgetBanner);
+            } else {
+              widgetCard.prepend(widgetBanner);
+            }
+          }
+        }
+      } else {
+        if (widgetBanner) {
+          widgetBanner.remove();
+        }
+      }
+
+      // Disable/Enable webhook choices based on plan tier
+      const isWebhookLocked = (planTier !== 'pro');
+      if (webhookUrlEl) webhookUrlEl.disabled = isWebhookLocked;
+      if (trigLeadEl) trigLeadEl.disabled = isWebhookLocked;
+      if (trigFbEl) trigFbEl.disabled = isWebhookLocked;
+      const testWebhookBtn = document.querySelector('button[onclick="testWebhook()"]');
+      if (testWebhookBtn) testWebhookBtn.disabled = isWebhookLocked;
+
+      // Append/Remove webhook lock warning banner
+      const webhookSection = document.getElementById('settings-webhook-section');
+      let webhookBanner = document.getElementById('webhook-lock-banner');
+      if (isWebhookLocked) {
+        if (!webhookBanner) {
+          webhookBanner = document.createElement('div');
+          webhookBanner.id = 'webhook-lock-banner';
+          webhookBanner.style.background = 'rgba(255, 179, 0, 0.1)';
+          webhookBanner.style.border = '1px solid rgba(255, 179, 0, 0.2)';
+          webhookBanner.style.borderRadius = '8px';
+          webhookBanner.style.padding = '12px 16px';
+          webhookBanner.style.marginBottom = '16px';
+          webhookBanner.style.display = 'flex';
+          webhookBanner.style.alignItems = 'center';
+          webhookBanner.style.gap = '12px';
+          webhookBanner.innerHTML = `
+            <span style="font-size: 18px;">🔒</span>
+            <div style="flex: 1; font-size: 13px; color: var(--warning);">
+              <strong>Webhook integration locked.</strong> Webhooks are a Pro-only feature. Upgrade to Pro plan to enable integrations.
+            </div>
+            <button onclick="switchTab('billing')" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px;">Upgrade</button>
+          `;
+          if (webhookSection) {
+            webhookSection.insertBefore(webhookBanner, webhookSection.firstChild);
+          }
+        }
+      } else {
+        if (webhookBanner) {
+          webhookBanner.remove();
+        }
+      }
       
       // Update Preview Font & Widget
       applyPreviewFont(activeFont);
@@ -4008,11 +4636,39 @@
       }
 
       const webhookUrlEl = document.getElementById('settings-webhook-url');
-      const webhookUrl = webhookUrlEl ? webhookUrlEl.value.trim() : '';
+      let webhookUrl = webhookUrlEl ? webhookUrlEl.value.trim() : '';
       const trigLeadEl = document.getElementById('webhook-trigger-lead');
       const triggerLead = trigLeadEl ? trigLeadEl.checked : true;
       const trigFbEl = document.getElementById('webhook-trigger-feedback');
       const triggerFeedback = trigFbEl ? trigFbEl.checked : true;
+
+      // Determine current plan tier
+      let planTier = currentPlanTier || 'free';
+      if (currentUser) {
+        try {
+          const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=plan_tier&user_id=eq.${currentUser.id}`, {
+            method: "GET", headers: getHeaders()
+          });
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            if (subData && subData.length > 0) {
+              planTier = (subData[0].plan_tier || 'free').toLowerCase();
+              currentPlanTier = planTier;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch plan tier in saveSettings", e);
+        }
+      }
+
+      // Force defaults based on plan restrictions
+      if (planTier === 'free' || planTier === 'starter') {
+        chosenColor = '#FF4E11';
+        chosenFont = 'system-ui';
+      }
+      if (planTier !== 'pro') {
+        webhookUrl = '';
+      }
 
       const spinner = document.getElementById('settings-spinner');
       const status = document.getElementById('settings-status');
@@ -4214,6 +4870,7 @@
         preview: 'Widget Preview',
         settings: 'Settings',
         support: 'Support',
+        billing: 'Billing & Subscription',
         details: 'Detail View'
       };
       document.getElementById('page-title').innerText = titles[tabName];
@@ -4226,6 +4883,7 @@
       if (tabName === 'feedback') loadFeedback();
       if (tabName === 'overview' || tabName === 'objections') loadSiteData();
       if (tabName === 'settings') loadSettings();
+      if (tabName === 'billing') loadBillingData();
     }
 
     function refreshData() {
@@ -4326,6 +4984,30 @@
       document.getElementById('confirm-yes-btn').onclick = () => {
         overlay.remove();
         onConfirm();
+      };
+    }
+
+    function showUpgradeModal(title, text) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay show';
+      overlay.style.zIndex = '300';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width: 440px; text-align: center;">
+          <div class="modal-header" style="justify-content: center; border-bottom: none; margin-bottom: 8px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">⚡</div>
+          </div>
+          <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text);">${title}</h3>
+          <div style="font-size:14px; margin-bottom:28px; color:var(--text-secondary); line-height: 1.6;">${text}</div>
+          <div class="modal-actions" style="justify-content: center; gap: 12px; margin-top: 0;">
+            <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-primary" id="upgrade-modal-btn">Upgrade Plan</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.getElementById('upgrade-modal-btn').onclick = () => {
+        overlay.remove();
+        switchTab('billing');
       };
     }
 
@@ -4731,6 +5413,356 @@
         });
       }
     });
+
+    // ─── BILLING & SUBSCRIPTIONS ───
+    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3000' : '';
+
+    let razorpayScriptLoaded = false;
+    function loadRazorpayScript() {
+      return new Promise((resolve, reject) => {
+        if (razorpayScriptLoaded || window.Razorpay) {
+          resolve(true);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+          razorpayScriptLoaded = true;
+          resolve(true);
+        };
+        script.onerror = () => {
+          reject(new Error('Failed to load Razorpay checkout script.'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadBillingData() {
+      if (!currentUser) return;
+      
+      try {
+        let planTier = 'free';
+        let subStatus = 'active';
+        let periodEnd = '—';
+        
+        // A. Query billing_subscriptions for the user
+        const subRes = await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?select=*&user_id=eq.${currentUser.id}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+        
+        if (subRes.ok) {
+          const subData = await subRes.json();
+          if (subData && subData.length > 0) {
+            planTier = subData[0].plan_tier || 'free';
+            subStatus = subData[0].status || 'active';
+            if (subData[0].current_period_end) {
+              periodEnd = new Date(subData[0].current_period_end).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              });
+            }
+          }
+        }
+        currentPlanTier = planTier.toLowerCase();
+        
+        // B. Query usage_metrics for current month
+        let leadsUsed = 0;
+        const now = new Date();
+        const cycleStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+        
+        const metricsRes = await fetch(`${SUPABASE_URL}/rest/v1/usage_metrics?select=*&user_id=eq.${currentUser.id}&billing_cycle_start=eq.${cycleStart}`, {
+          method: "GET",
+          headers: getHeaders()
+        });
+        
+        if (metricsRes.ok) {
+          const metricsData = await metricsRes.json();
+          if (metricsData && metricsData.length > 0) {
+            leadsUsed = metricsData[0].leads_count || 0;
+          }
+        }
+        
+        // C. Fetch sites to count active domains
+        let domainsUsed = 0;
+        try {
+          const sites = await fetchSites();
+          domainsUsed = sites.length;
+        } catch (sitesErr) {
+          console.error("Error fetching sites for billing usage:", sitesErr);
+        }
+        
+        // D. Calculate limits based on tier
+        const tierLimits = {
+          free: { domains: 1, leads: 50 },
+          starter: { domains: 3, leads: 500 },
+          growth: { domains: 10, leads: 2000 },
+          pro: { domains: 100, leads: 10000 }
+        };
+        const limits = tierLimits[planTier.toLowerCase()] || tierLimits.free;
+
+        // E. Add real-time lead limit warning banner if leadsUsed >= limits.leads
+        const topBar = document.querySelector('.main-content .top-bar');
+        let limitBanner = document.getElementById('billing-limit-banner');
+        
+        if (leadsUsed >= limits.leads) {
+          if (!limitBanner) {
+            limitBanner = document.createElement('div');
+            limitBanner.id = 'billing-limit-banner';
+            limitBanner.style.background = 'rgba(255, 82, 82, 0.15)';
+            limitBanner.style.borderBottom = '1px solid rgba(255, 82, 82, 0.3)';
+            limitBanner.style.padding = '12px 32px';
+            limitBanner.style.display = 'flex';
+            limitBanner.style.alignItems = 'center';
+            limitBanner.style.justifyContent = 'space-between';
+            limitBanner.style.gap = '16px';
+            limitBanner.style.color = '#FF5252';
+            limitBanner.style.fontWeight = '500';
+            limitBanner.style.fontSize = '14px';
+            limitBanner.style.zIndex = '40';
+            limitBanner.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span>⚠️</span>
+                <span><strong>Lead limit reached!</strong> You have used ${leadsUsed} of your plan's ${limits.leads} leads this month. Upgrade to avoid losing leads.</span>
+              </div>
+              <button onclick="switchTab('billing')" class="btn btn-danger btn-sm" style="background: var(--danger); color: white; border: none; padding: 6px 12px;">Upgrade Now</button>
+            `;
+            if (topBar) {
+              topBar.after(limitBanner);
+            }
+          } else {
+            const spanText = limitBanner.querySelector('span:nth-child(2)');
+            if (spanText) {
+              spanText.innerHTML = `<strong>Lead limit reached!</strong> You have used ${leadsUsed} of your plan's ${limits.leads} leads this month. Upgrade to avoid losing leads.`;
+            }
+          }
+        } else {
+          if (limitBanner) {
+            limitBanner.remove();
+          }
+        }
+        
+        // F. Update UI elements
+        const planBadgeEl = document.getElementById('billing-plan-badge');
+        if (planBadgeEl) {
+          planBadgeEl.innerText = planTier.charAt(0).toUpperCase() + planTier.slice(1);
+          planBadgeEl.className = `badge-plan badge-plan-${planTier.toLowerCase()}`;
+        }
+        
+        const statusValEl = document.getElementById('billing-status-val');
+        if (statusValEl) {
+          statusValEl.innerText = subStatus.charAt(0).toUpperCase() + subStatus.slice(1);
+          statusValEl.style.color = subStatus.toLowerCase() === 'active' ? 'var(--success)' : 'var(--danger)';
+        }
+        
+        const periodEndValEl = document.getElementById('billing-period-end-val');
+        if (periodEndValEl) {
+          periodEndValEl.innerText = periodEnd;
+        }
+        
+        // Update progress bars & text
+        const maxDomains = limits.domains;
+        const maxLeads = limits.leads;
+        
+        const meterSitesText = document.getElementById('meter-sites-text');
+        if (meterSitesText) meterSitesText.innerText = `${domainsUsed} / ${maxDomains}`;
+        
+        const meterSitesProgress = document.getElementById('meter-sites-progress');
+        if (meterSitesProgress) {
+          const sitesPct = Math.min(100, (domainsUsed / maxDomains) * 100);
+          meterSitesProgress.style.width = `${sitesPct}%`;
+        }
+        
+        const meterLeadsText = document.getElementById('meter-leads-text');
+        if (meterLeadsText) meterLeadsText.innerText = `${leadsUsed} / ${maxLeads}`;
+        
+        const meterLeadsProgress = document.getElementById('meter-leads-progress');
+        if (meterLeadsProgress) {
+          const leadsPct = Math.min(100, (leadsUsed / maxLeads) * 100);
+          meterLeadsProgress.style.width = `${leadsPct}%`;
+        }
+        
+        // Update pricing cards and buttons
+        const plans = ['starter', 'growth', 'pro'];
+        plans.forEach(tier => {
+          const card = document.getElementById(`plan-card-${tier}`);
+          const btn = document.getElementById(`btn-subscribe-${tier}`);
+          
+          if (card && btn) {
+            if (planTier.toLowerCase() === tier) {
+              card.classList.add('active-tier');
+              btn.innerText = 'Current Plan';
+              btn.disabled = true;
+              btn.classList.add('btn-ghost');
+              btn.classList.remove('btn-primary');
+            } else {
+              card.classList.remove('active-tier');
+              btn.disabled = false;
+              btn.classList.remove('btn-ghost');
+              btn.classList.add('btn-primary');
+              
+              const tierHierarchy = { free: 0, starter: 1, growth: 2, pro: 3 };
+              const currentRank = tierHierarchy[planTier.toLowerCase()] || 0;
+              const targetRank = tierHierarchy[tier];
+              if (targetRank < currentRank) {
+                btn.innerText = 'Downgrade Plan';
+              } else {
+                btn.innerText = 'Upgrade Plan';
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Error loading billing details:", err);
+      }
+    }
+
+    async function checkoutSubscription(planId) {
+      if (!currentSession || !currentUser) {
+        showToast("Please log in to upgrade subscription.", "error");
+        return;
+      }
+      
+      const btn = document.getElementById(`btn-subscribe-${planId}`);
+      const originalText = btn ? btn.innerHTML : 'Upgrade Plan';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="btn-spinner"></span> Processing...`;
+      }
+      
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/payments/create-subscription`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSession.access_token}`
+          },
+          body: JSON.stringify({ planId })
+        });
+        
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Failed to initialize subscription checkout.');
+        }
+        
+        const subDetails = await response.json();
+        
+        if (subDetails.mock) {
+          const confirmVerify = confirm(`[Mock Payment] Click OK to simulate verification for "${planId.toUpperCase()}" subscription.`);
+          if (confirmVerify) {
+            if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
+            
+            const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify-subscription`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentSession.access_token}`
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: 'pay_mock_' + Math.random().toString(36).substr(2, 9),
+                razorpay_subscription_id: subDetails.id,
+                razorpay_signature: 'mock_signature_from_client',
+                planId: planId
+              })
+            });
+            
+            if (!verifyRes.ok) {
+              const verifyErr = await verifyRes.json();
+              throw new Error(verifyErr.error || 'Verification of mock subscription failed.');
+            }
+            
+            showToast(`Mock subscription successful for ${planId.toUpperCase()}!`, 'success');
+            logMerchantActivity("Subscription Upgraded", `Subscribed to ${planId} tier (Mock Mode)`);
+            loadBillingData();
+          } else {
+            showToast('Subscription simulation cancelled.', 'warning');
+          }
+        } else {
+          // Real production mode
+          await loadRazorpayScript();
+          
+          const options = {
+            key: subDetails.razorpay_key_id || 'rzp_test_placeholder',
+            subscription_id: subDetails.id,
+            name: 'FrictionPulse',
+            description: `${planId.charAt(0).toUpperCase() + planId.slice(1)} Subscription Plan`,
+            prefill: {
+              email: currentUser.email || ''
+            },
+            handler: async function (paymentResult) {
+              try {
+                if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
+                
+                const verifyResponse = await fetch(`${BACKEND_URL}/api/payments/verify-subscription`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentSession.access_token}`
+                  },
+                  body: JSON.stringify({
+                    razorpay_payment_id: paymentResult.razorpay_payment_id,
+                    razorpay_subscription_id: paymentResult.razorpay_subscription_id,
+                    razorpay_signature: paymentResult.razorpay_signature,
+                    planId: planId
+                  })
+                });
+                
+                if (!verifyResponse.ok) {
+                  const verifyErr = await verifyResponse.json();
+                  throw new Error(verifyErr.error || 'Payment verification failed.');
+                }
+                
+                showToast(`Subscription to ${planId.toUpperCase()} active!`, 'success');
+                logMerchantActivity("Subscription Upgraded", `Subscribed to ${planId} tier`);
+                loadBillingData();
+              } catch (verifyErr) {
+                console.error(verifyErr);
+                showToast(verifyErr.message || 'Payment verification failed.', 'error');
+              } finally {
+                if (btn) {
+                  btn.disabled = false;
+                  btn.innerHTML = originalText;
+                }
+              }
+            },
+            modal: {
+              ondismiss: function () {
+                showToast('Checkout window closed.', 'warning');
+                if (btn) {
+                  btn.disabled = false;
+                  btn.innerHTML = originalText;
+                }
+              }
+            }
+          };
+          
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        }
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Error occurred during checkout process.', 'error');
+      } finally {
+        if (btn && (btn.innerHTML.includes('Processing...') || btn.disabled)) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
+    function checkUpgradeParameter() {
+      if (!currentUser) return;
+      const urlParams = new URLSearchParams(window.location.search);
+      const upgradePlan = urlParams.get('upgrade');
+      if (upgradePlan && ['starter', 'growth', 'pro'].includes(upgradePlan.toLowerCase())) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState(null, null, newUrl);
+        
+        switchTab('billing');
+        checkoutSubscription(upgradePlan.toLowerCase());
+      }
+    }
   </script>
 </body>
   <script src="https://frictionpulse.vercel.app/widget.js" data-site-key="sk_wtr1lrukcmpsh8bhn"></script>

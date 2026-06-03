@@ -112,12 +112,18 @@
   // ─── VALIDATE SITE KEY WITH SERVER ───
   async function validateSiteKeyServer() {
     try {
-      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/sites?select=site_key&site_key=eq.${siteKey}`, {
-        method: "GET", headers
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/validate_site_key`, {
+        method: "POST",
+        headers: {
+          "apikey": CONFIG.supabaseKey,
+          "Authorization": `Bearer ${CONFIG.supabaseKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ site_key: siteKey })
       });
       if (!res.ok) return false;
-      const data = await res.json();
-      widgetValidated = data.length > 0;
+      const isValid = await res.json();
+      widgetValidated = (isValid === true);
       return widgetValidated;
     } catch (e) {
       console.warn("[FP] Could not validate site key with server, proceeding with local validation");
@@ -495,12 +501,40 @@
     }
   }
 
+  // ─── DYNAMIC SENTRY LOADER ───
+  function initSentry() {
+    if (!window.Sentry) {
+      const script = document.createElement('script');
+      script.src = "https://browser.sentry-cdn.com/7.57.0/bundle.min.js";
+      script.crossOrigin = "anonymous";
+      script.onload = () => {
+        if (window.Sentry) {
+          window.Sentry.init({
+            dsn: "https://8f88cf508107c11f712f5a04df8b64b1@o45012345.ingest.sentry.io/45012345", // Sandbox placeholder public DSN
+            environment: "production",
+            tracesSampleRate: 0.1,
+            initialScope: { tags: { "site_key": siteKey } }
+          });
+        }
+      };
+      document.head.appendChild(script);
+    }
+  }
+
   // ─── INIT ───
   async function init() {
-    await validateSiteKeyServer();
-    logView();
-    fetchVisitorCount();
-    setInterval(fetchVisitorCount, 30000);
+    try {
+      initSentry();
+      await validateSiteKeyServer();
+      logView();
+      fetchVisitorCount();
+      setInterval(fetchVisitorCount, 30000);
+    } catch (e) {
+      if (window.Sentry) {
+        window.Sentry.captureException(e);
+      }
+      console.error("[FrictionPulse] Initialization error:", e);
+    }
   }
 
   init();
