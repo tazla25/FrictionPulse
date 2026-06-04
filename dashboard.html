@@ -2143,7 +2143,6 @@
               
               .badge-plan-free { background: rgba(138, 143, 152, 0.1); color: var(--text-secondary); border: 1px solid rgba(138, 143, 152, 0.2); }
               .badge-plan-starter { background: rgba(255, 78, 17, 0.1); color: var(--accent); border: 1px solid rgba(255, 78, 17, 0.2); }
-              .badge-plan-growth { background: rgba(0, 212, 255, 0.1); color: var(--accent-secondary); border: 1px solid rgba(0, 212, 255, 0.2); }
               .badge-plan-pro { background: linear-gradient(135deg, rgba(255,78,17,0.15), rgba(0,212,255,0.15)); color: var(--text); border: 1px solid rgba(255, 255, 255, 0.1); }
               
               .meter-group {
@@ -2435,12 +2434,12 @@
                 <div class="plans-grid">
                   <!-- Starter Plan Card -->
                   <div class="plan-card" id="plan-card-starter">
-                    <div class="plan-card-name" style="color: var(--accent);">Starter</div>
+                    <div class="plan-card-name" style="color: var(--accent);">Starter <span style="font-size: 10px; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 6px;">Most Popular</span></div>
                     <div class="plan-card-desc">For launch and early validation</div>
                     
                     <div class="plan-card-price-box">
-                      <div class="plan-card-price">$15<span>/mo</span></div>
-                      <div class="plan-card-price-yearly">Billed yearly ($12/mo)</div>
+                      <div class="plan-card-price">₹799<span>/mo</span></div>
+                      <div class="plan-card-price-yearly">Billed yearly (₹7670/yr)</div>
                     </div>
                     
                     <div class="plan-card-limits">
@@ -2468,49 +2467,14 @@
                     <button id="btn-subscribe-starter" onclick="checkoutSubscription('starter')" class="btn btn-primary plan-card-btn">Upgrade Plan</button>
                   </div>
                   
-                  <!-- Growth Plan Card -->
-                  <div class="plan-card" id="plan-card-growth">
-                    <div class="plan-card-name" style="color: var(--accent-secondary);">Growth</div>
-                    <div class="plan-card-desc">For growing stores and merchants</div>
-                    
-                    <div class="plan-card-price-box">
-                      <div class="plan-card-price">$49<span>/mo</span></div>
-                      <div class="plan-card-price-yearly">Billed yearly ($39/mo)</div>
-                    </div>
-                    
-                    <div class="plan-card-limits">
-                      <div class="limit-item">
-                        <span class="limit-item-lbl">Domains</span>
-                        <span class="limit-item-val">10 Sites</span>
-                      </div>
-                      <div class="limit-item">
-                        <span class="limit-item-lbl">Lead Quota</span>
-                        <span class="limit-item-val">2,000 / mo</span>
-                      </div>
-                    </div>
-                    
-                    <ul class="plan-card-features">
-                      <li>10 websites</li>
-                      <li>Unlimited objections</li>
-                      <li>2,000 widget views/mo</li>
-                      <li>Lead capture (email + phone)</li>
-                      <li>Real-time email alerts</li>
-                      <li>Custom widget colors & branding</li>
-                      <li>Custom widget fonts</li>
-                      <li class="disabled">Webhooks integration</li>
-                    </ul>
-                    
-                    <button id="btn-subscribe-growth" onclick="checkoutSubscription('growth')" class="btn btn-primary plan-card-btn">Upgrade Plan</button>
-                  </div>
-                  
                   <!-- Pro Plan Card -->
                   <div class="plan-card" id="plan-card-pro">
                     <div class="plan-card-name" style="background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Pro</div>
                     <div class="plan-card-desc">For professional merchants and teams</div>
                     
                     <div class="plan-card-price-box">
-                      <div class="plan-card-price">$99<span>/mo</span></div>
-                      <div class="plan-card-price-yearly">Billed yearly ($79/mo)</div>
+                      <div class="plan-card-price">₹1699<span>/mo</span></div>
+                      <div class="plan-card-price-yearly">Billed yearly (₹16310/yr)</div>
                     </div>
                     
                     <div class="plan-card-limits">
@@ -4567,7 +4531,7 @@
           widgetBanner.innerHTML = `
             <span style="font-size: 18px;">🔒</span>
             <div style="flex: 1; font-size: 13px; color: var(--warning);">
-              <strong>Widget customization locked.</strong> Upgrade to Growth or Pro plan to customize widget colors and fonts.
+              <strong>Widget customization locked.</strong> Upgrade to Pro plan to customize widget colors and fonts.
             </div>
             <button onclick="switchTab('billing')" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px;">Upgrade</button>
           `;
@@ -5489,7 +5453,7 @@
       }
       
       // E. Update pricing cards and buttons
-      const plans = ['starter', 'growth', 'pro'];
+      const plans = ['starter', 'pro'];
       plans.forEach(p => {
         const card = document.getElementById(`plan-card-${p}`);
         const btn = document.getElementById(`btn-subscribe-${p}`);
@@ -5508,7 +5472,7 @@
             btn.classList.remove('btn-ghost');
             btn.classList.add('btn-primary');
             
-            const tierHierarchy = { free: 0, starter: 1, growth: 2, pro: 3 };
+            const tierHierarchy = { free: 0, starter: 1, pro: 2 };
             const currentRank = tierHierarchy[tier] || 0;
             const targetRank = tierHierarchy[p];
             if (targetRank < currentRank) {
@@ -5600,7 +5564,7 @@
         const tierLimits = {
           free: { domains: 1, leads: 50 },
           starter: { domains: 3, leads: 500 },
-          growth: { domains: 10, leads: 2000 },
+
           pro: { domains: 100, leads: 10000 }
         };
         const limits = tierLimits[planTier.toLowerCase()] || tierLimits.free;
@@ -5853,7 +5817,7 @@
       if (!currentUser) return;
       const urlParams = new URLSearchParams(window.location.search);
       const upgradePlan = urlParams.get('upgrade');
-      if (upgradePlan && ['starter', 'growth', 'pro'].includes(upgradePlan.toLowerCase())) {
+      if (upgradePlan && ['starter', 'pro'].includes(upgradePlan.toLowerCase())) {
         const newUrl = window.location.pathname;
         window.history.replaceState(null, null, newUrl);
         
