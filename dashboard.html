@@ -5384,9 +5384,7 @@
     });
 
     // ─── BILLING & SUBSCRIPTIONS ───
-    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-      ? 'http://localhost:3000' 
-      : 'https://frictionpulse-backend-production.up.railway.app';
+    const BACKEND_URL = `${SUPABASE_URL}/functions/v1`;
 
     let razorpayScriptLoaded = false;
     function loadRazorpayScript() {
@@ -5659,7 +5657,7 @@
       }
       
       try {
-        const fetchUrl = `${BACKEND_URL}/api/create-subscription`;
+        const fetchUrl = `${BACKEND_URL}/create-subscription`;
         const headers = {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${currentSession.access_token}`
@@ -5693,7 +5691,7 @@
           if (confirmVerify) {
             if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
             
-            const verifyUrl = `${BACKEND_URL}/api/verify-subscription`;
+            const verifyUrl = `${BACKEND_URL}/verify-subscription`;
             const verifyBody = {
               razorpay_payment_id: 'pay_mock_' + Math.random().toString(36).substr(2, 9),
               razorpay_subscription_id: subDetails.id,
@@ -5746,7 +5744,7 @@
               try {
                 if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
                 
-                const verifyUrl = `${BACKEND_URL}/api/verify-subscription`;
+                const verifyUrl = `${BACKEND_URL}/verify-subscription`;
                 const verifyBody = {
                   razorpay_payment_id: paymentResult.razorpay_payment_id,
                   razorpay_subscription_id: paymentResult.razorpay_subscription_id,
