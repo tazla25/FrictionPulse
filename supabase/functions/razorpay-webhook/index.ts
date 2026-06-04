@@ -53,11 +53,26 @@ serve(async (req) => {
     }
 
     const event = JSON.parse(bodyText);
-    console.log("Received Razorpay event:", event.event);
+    const eventId = event.event_id || req.headers.get("x-razorpay-event-id"); // fallback
+    console.log("Received Razorpay event:", event.event, "ID:", eventId);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    if (eventId) {
+      // Check idempotency
+      const { data: existingWebhook, error: checkError } = await supabaseAdmin
+        .from('processed_webhooks')
+        .select('id')
+        .eq('id', eventId)
+        .single();
+
+      if (existingWebhook) {
+        console.log(`Webhook event ${eventId} already processed. Skipping.`);
+        return new Response("Ok", { status: 200 });
+      }
+    }
 
     if (event.event === "subscription.charged" || event.event === "subscription.activated") {
        const sub = event.payload.subscription.entity;
@@ -72,17 +87,13 @@ serve(async (req) => {
        // Find the user by razorpay_subscription_id
        const { data: existingSub, error: findError } = await supabaseAdmin
         .from('billing_subscriptions')
-        .select('user_id')
+        .select('user_id, updated_at')
         .eq('razorpay_subscription_id', razorpay_subscription_id)
         .single();
 
        if (findError) {
          console.error("Could not find subscription to update", findError);
-         // Optionally handle new mapping via notes if provided during creation
-         return new Response("Ok", { status: 200 });
-       }
-
-       if (existingSub) {
+       } else if (existingSub) {
          await supabaseAdmin
            .from('billing_subscriptions')
            .update({
@@ -108,9 +119,15 @@ serve(async (req) => {
            .eq('razorpay_subscription_id', razorpay_subscription_id);
     }
 
+    if (eventId) {
+      await supabaseAdmin
+        .from('processed_webhooks')
+        .insert({ id: eventId });
+    }
+
     return new Response("Ok", { status: 200 });
   } catch (error: any) {
     console.error("Webhook error:", error);
-    return new Response(error.message, { status: 500 });
+    return new Response("Internal Server Error", { status: 500 });
   }
 });

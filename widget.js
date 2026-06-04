@@ -71,6 +71,18 @@
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
   const position = 'bottom-right';
 
+
+  // ─── UTILS ───
+  function escapeHTML(str) {
+    if (!str) return '';
+    return str.toString()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   // ─── SESSION ───
   let sessionHash = sessionStorage.getItem('fp_session_hash');
   if (!sessionHash) {
@@ -332,7 +344,13 @@
     objections.forEach(obj => {
       const b = document.createElement('button');
       b.className = 'fp-obj-btn';
-      b.innerHTML = `<span>${obj.label}</span><span class="fp-arrow">→</span>`;
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = obj.label;
+      const arrowSpan = document.createElement('span');
+      arrowSpan.className = 'fp-arrow';
+      arrowSpan.textContent = '→';
+      b.appendChild(labelSpan);
+      b.appendChild(arrowSpan);
       b.onclick = () => showCounter(obj);
       content.appendChild(b);
     });
@@ -341,7 +359,13 @@
       const other = document.createElement('button');
       other.className = 'fp-obj-btn';
       other.style.borderStyle = 'dashed';
-      other.innerHTML = `<span>📝 Something else...</span><span class="fp-arrow">→</span>`;
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = '📝 Something else...';
+      const arrowSpan = document.createElement('span');
+      arrowSpan.className = 'fp-arrow';
+      arrowSpan.textContent = '→';
+      other.appendChild(labelSpan);
+      other.appendChild(arrowSpan);
       other.onclick = () => showFreeText();
       content.appendChild(other);
     }
@@ -358,8 +382,8 @@
 
     let html = `
       <div class="fp-counter-box">
-        <strong>💡 ${obj.label}</strong>
-        ${obj.counter_message}
+        <strong>💡 ${escapeHTML(obj.label)}</strong>
+        ${escapeHTML(obj.counter_message)}
       </div>
     `;
 
@@ -395,11 +419,27 @@
       submitBtn.onclick = () => {
         const email = content.querySelector('#fp-email').value.trim();
         const phone = content.querySelector('#fp-phone').value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
         if (!email && !phone) {
           const input = content.querySelector('#fp-email');
           input.style.borderColor = '#ff5252';
           input.style.boxShadow = '0 0 0 3px rgba(255,82,82,0.1)';
           setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 2000);
+          return;
+        }
+
+        if (email && !emailRegex.test(email)) {
+          const input = content.querySelector('#fp-email');
+          input.style.borderColor = '#ff5252';
+          setTimeout(() => { input.style.borderColor = ''; }, 2000);
+          return;
+        }
+
+        if (phone && phone.length > 20) {
+          const input = content.querySelector('#fp-phone');
+          input.style.borderColor = '#ff5252';
+          setTimeout(() => { input.style.borderColor = ''; }, 2000);
           return;
         }
         submitBtn.disabled = true;
