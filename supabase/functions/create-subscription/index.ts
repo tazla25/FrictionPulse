@@ -6,11 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PLAN_IDS = {
-  starter: Deno.env.get("RAZORPAY_PLAN_ID_STARTER") || "",
-  pro: Deno.env.get("RAZORPAY_PLAN_ID_PRO") || ""
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -21,6 +16,7 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const token = authHeader.replace('Bearer ', '');
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -28,21 +24,28 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const body = await req.json();
     const planIdKey = body.planId;
-    const razorpayPlanId = PLAN_IDS[planIdKey as keyof typeof PLAN_IDS];
 
-    if (!razorpayPlanId) {
-      return new Response(JSON.stringify({ error: "Invalid plan ID" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    let razorpayPlanId = "";
+    if (planIdKey === "starter") {
+      razorpayPlanId = Deno.env.get("RAZORPAY_PLAN_ID_STARTER") || "";
+    } else if (planIdKey === "pro") {
+      razorpayPlanId = Deno.env.get("RAZORPAY_PLAN_ID_PRO") || "";
     }
 
-    const keyId = Deno.env.get("RAZORPAY_KEY_ID");
-    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+    const keyId = Deno.env.get("RAZORPAY_KEY_ID") || "";
+    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET") || "";
+
+    if (!razorpayPlanId) {
+      console.error("Invalid plan ID lookup for:", planIdKey, "=>", razorpayPlanId);
+      return new Response(JSON.stringify({ error: "Invalid plan ID" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     if (!keyId || !keySecret) {
       return new Response(JSON.stringify({ error: "Razorpay credentials not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
