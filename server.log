@@ -1,6 +1,2 @@
-127.0.0.1 - - [01/Jun/2026 18:02:01] "GET /demo.html HTTP/1.1" 200 -
-127.0.0.1 - - [01/Jun/2026 18:02:01] "GET /widget.js HTTP/1.1" 200 -
-127.0.0.1 - - [01/Jun/2026 18:02:04] "GET /dashboard.html HTTP/1.1" 200 -
-127.0.0.1 - - [01/Jun/2026 18:03:07] "GET /demo.html HTTP/1.1" 200 -
-127.0.0.1 - - [01/Jun/2026 18:03:07] "GET /widget.js HTTP/1.1" 200 -
-127.0.0.1 - - [01/Jun/2026 18:03:09] "GET /dashboard.html HTTP/1.1" 200 -
+127.0.0.1 - - [04/Jun/2026 17:21:08] "HEAD /dashboard.html HTTP/1.1" 200 -
+127.0.0.1 - - [04/Jun/2026 17:21:34] "GET /dashboard.html HTTP/1.1" 200 -

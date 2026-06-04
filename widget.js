@@ -81,6 +81,10 @@
   let visitorCount = 0;
   let widgetValidated = false;
 
+  function validateEmail(e) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  }
+
   // ─── API HELPERS ───
   const headers = {
     "apikey": CONFIG.supabaseKey,
@@ -402,6 +406,15 @@
           setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 2000);
           return;
         }
+        if (email && !validateEmail(email)) {
+          const input = content.querySelector('#fp-email');
+          input.style.borderColor = '#ff5252';
+          input.style.boxShadow = '0 0 0 3px rgba(255,82,82,0.1)';
+          input.value = '';
+          input.placeholder = 'Invalid email address';
+          setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; input.placeholder = 'your@email.com'; }, 2000);
+          return;
+        }
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
         post('leads', {
@@ -446,6 +459,14 @@
         const input = content.querySelector('#fp-feedback');
         input.style.borderColor = '#ff5252';
         setTimeout(() => input.style.borderColor = '', 2000);
+        return;
+      }
+      if (email && !validateEmail(email)) {
+        const input = content.querySelector('#fp-email');
+        input.style.borderColor = '#ff5252';
+        input.value = '';
+        input.placeholder = 'Invalid email address';
+        setTimeout(() => { input.style.borderColor = ''; input.placeholder = 'your@email.com (optional)'; }, 2000);
         return;
       }
 
