@@ -511,6 +511,13 @@
   }
 
   async function logView() {
+    const isInternal = window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('/dashboard');
+    if (isInternal) return;
+
+    const viewedKey = `fp_viewed_${siteKey}`;
+    if (sessionStorage.getItem(viewedKey) === window.location.href) return;
+    sessionStorage.setItem(viewedKey, window.location.href);
+
     post('widget_views', { site_key: siteKey, session_hash: sessionHash, page_url: window.location.href });
   }
 
