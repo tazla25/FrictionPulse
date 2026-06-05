@@ -32,15 +32,17 @@ serve(async (req) => {
     const body = await req.json();
     const planIdKey = body.planId;
 
-    let razorpayPlanId = "";
-    if (planIdKey === "starter") {
-      razorpayPlanId = Deno.env.get("RAZORPAY_PLAN_ID_STARTER") || "";
-    } else if (planIdKey === "pro") {
-      razorpayPlanId = Deno.env.get("RAZORPAY_PLAN_ID_PRO") || "";
-    }
-
     const keyId = Deno.env.get("RAZORPAY_KEY_ID") || "";
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET") || "";
+
+    let razorpayPlanId = "";
+    const isTestMode = keyId.startsWith("rzp_test_");
+
+    if (planIdKey === "starter") {
+      razorpayPlanId = isTestMode ? (Deno.env.get("RAZORPAY_TEST_PLAN_ID_STARTER") || "") : (Deno.env.get("RAZORPAY_PLAN_ID_STARTER") || "");
+    } else if (planIdKey === "pro") {
+      razorpayPlanId = isTestMode ? (Deno.env.get("RAZORPAY_TEST_PLAN_ID_PRO") || "") : (Deno.env.get("RAZORPAY_PLAN_ID_PRO") || "");
+    }
 
     if (!razorpayPlanId) {
       console.error("Invalid plan ID lookup for:", planIdKey, "=>", razorpayPlanId);
@@ -77,8 +79,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         id: rzpData.id,
-        razorpay_key_id: keyId,
-        mock: false
+        razorpay_key_id: keyId
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

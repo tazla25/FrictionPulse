@@ -2,10 +2,8 @@
   'use strict';
 
   // ─── BLOCK ON DASHBOARD ───
-  if (window.location.pathname.includes('dashboard.html') || 
-      window.location.pathname.includes('/dashboard') ||
-      document.querySelector('meta[name="frictionpulse-block"]')) {
-    console.log('[FrictionPulse] Widget blocked on dashboard page.');
+  if (document.querySelector('meta[name="frictionpulse-block"]')) {
+    console.log('[FrictionPulse] Widget blocked on this page.');
     return;
   }
 
