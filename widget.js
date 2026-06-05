@@ -1,5 +1,7 @@
 (function() {
   'use strict';
+  if (window.__fpWidgetLoaded) return;
+  window.__fpWidgetLoaded = true;
 
   // ─── BLOCK ON DASHBOARD ───
   if (document.querySelector('meta[name="frictionpulse-block"]')) {
