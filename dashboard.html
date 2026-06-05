@@ -2436,7 +2436,42 @@
                 </div>
                 
                 <div class="plans-grid">
-                  <!-- Starter Plan Card -->
+                                    <!-- Free Plan Card -->
+                  <div class="plan-card" id="plan-card-free">
+                    <div class="plan-card-name" style="color: var(--text-secondary);">Free</div>
+                    <div class="plan-card-desc">For launch and early validation</div>
+
+                    <div class="plan-card-price-box">
+                      <div class="plan-card-price">₹0<span>/mo</span></div>
+                      <div class="plan-card-price-yearly" style="opacity: 0;">Free forever</div>
+                    </div>
+
+                    <div class="plan-card-limits">
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Domains</span>
+                        <span class="limit-item-val">1 Site</span>
+                      </div>
+                      <div class="limit-item">
+                        <span class="limit-item-lbl">Lead Quota</span>
+                        <span class="limit-item-val">50 / mo</span>
+                      </div>
+                    </div>
+
+                    <ul class="plan-card-features">
+                      <li>1 website</li>
+                      <li>4 default objections</li>
+                      <li>50 widget views/mo</li>
+                      <li>Lead capture (email + phone)</li>
+                      <li class="disabled">Real-time email alerts</li>
+                      <li class="disabled">Custom widget colors</li>
+                      <li class="disabled">Custom widget fonts</li>
+                      <li class="disabled">Webhooks integration</li>
+                    </ul>
+
+                    <button id="btn-subscribe-free" onclick="checkoutSubscription('free')" class="btn btn-primary plan-card-btn">Current Plan</button>
+                  </div>
+
+<!-- Starter Plan Card -->
                   <div class="plan-card" id="plan-card-starter">
                     <div class="plan-card-name" style="color: var(--accent);">Starter <span style="font-size: 10px; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 6px;">Most Popular</span></div>
                     <div class="plan-card-desc">For launch and early validation</div>
@@ -5455,7 +5490,7 @@
       }
       
       // E. Update pricing cards and buttons
-      const plans = ['starter', 'pro'];
+      const plans = ['free', 'starter', 'pro'];
       plans.forEach(p => {
         const card = document.getElementById(`plan-card-${p}`);
         const btn = document.getElementById(`btn-subscribe-${p}`);
@@ -5640,6 +5675,32 @@
 
     async function checkoutSubscription(planId) {
       console.log("[Upgrade Plan Flow] Starting checkout for plan:", planId);
+
+      if (planId === 'free') {
+        try {
+          const btn = document.getElementById('btn-subscribe-free');
+          const originalText = btn ? btn.innerHTML : 'Current Plan';
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-spinner"></span> Processing...';
+          }
+
+          await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?user_id=eq.${currentUser.id}`, {
+            method: "PATCH",
+            headers: getHeaders(),
+            body: JSON.stringify({ plan_tier: 'free', status: 'active' })
+          });
+
+          showToast("Downgraded to Free plan.", "success");
+          loadBillingData();
+          return;
+        } catch (err) {
+          showToast("Failed to downgrade plan.", "error");
+          console.error(err);
+          return;
+        }
+      }
+
       console.log("[Upgrade Plan Flow] BACKEND_URL:", BACKEND_URL);
       console.log("[Upgrade Plan Flow] currentUser:", currentUser);
       console.log("[Upgrade Plan Flow] currentSession:", currentSession ? { 
@@ -5689,53 +5750,12 @@
         const subDetails = await response.json();
         console.log("[Upgrade Plan Flow] Subscription initialized successfully:", subDetails);
         
-        if (subDetails.mock) {
-          console.log("[Upgrade Plan Flow] Entering mock subscription mode.");
-          const confirmVerify = confirm(`[Mock Payment] Click OK to simulate verification for "${planId.toUpperCase()}" subscription.`);
-          if (confirmVerify) {
-            if (btn) btn.innerHTML = `<span class="btn-spinner"></span> Verifying...`;
-            
-            const verifyUrl = `${BACKEND_URL}/verify-subscription`;
-            const verifyBody = {
-              razorpay_payment_id: 'pay_mock_' + Math.random().toString(36).substr(2, 9),
-              razorpay_subscription_id: subDetails.id,
-              razorpay_signature: 'mock_signature_from_client',
-              planId: planId
-            };
+        // Real production mode
+        console.log("[Upgrade Plan Flow] Loading Razorpay...");
+        await loadRazorpayScript();
+        console.log("[Upgrade Plan Flow] Razorpay script loaded. Window.Razorpay:", !!window.Razorpay);
 
-            console.log("[Upgrade Plan Flow] Triggering Mock Verify fetch to:", verifyUrl, "Body:", verifyBody);
-
-            const verifyRes = await fetch(verifyUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentSession.access_token}`
-              },
-              body: JSON.stringify(verifyBody)
-            });
-            
-            console.log("[Upgrade Plan Flow] Mock Verify response received. Status:", verifyRes.status);
-
-            if (!verifyRes.ok) {
-              const verifyErr = await verifyRes.json();
-              console.error("[Upgrade Plan Flow] Mock verification failed. Details:", verifyErr);
-              throw new Error(verifyErr.error || 'Verification of mock subscription failed.');
-            }
-            
-            showToast(`Mock subscription successful for ${planId.toUpperCase()}!`, 'success');
-            logMerchantActivity("Subscription Upgraded", `Subscribed to ${planId} tier (Mock Mode)`);
-            loadBillingData();
-          } else {
-            console.log("[Upgrade Plan Flow] Mock subscription cancelled by user.");
-            showToast('Subscription simulation cancelled.', 'warning');
-          }
-        } else {
-          // Real production mode
-          console.log("[Upgrade Plan Flow] Entering real production subscription mode. Loading Razorpay...");
-          await loadRazorpayScript();
-          console.log("[Upgrade Plan Flow] Razorpay script loaded. Window.Razorpay:", !!window.Razorpay);
-          
-          const options = {
+        const options = {
             key: subDetails.razorpay_key_id || 'rzp_test_placeholder',
             subscription_id: subDetails.id,
             name: 'FrictionPulse',
@@ -5800,10 +5820,9 @@
             }
           };
           
-          console.log("[Upgrade Plan Flow] Opening Razorpay checkout window with options:", options);
-          const rzp = new window.Razorpay(options);
-          rzp.open();
-        }
+        console.log("[Upgrade Plan Flow] Opening Razorpay checkout window with options:", options);
+        const rzp = new window.Razorpay(options);
+        rzp.open();
       } catch (err) {
         console.error("[Upgrade Plan Flow] Error in checkoutSubscription main try block:", err);
         showToast(err.message || 'Error occurred during checkout process.', 'error');
