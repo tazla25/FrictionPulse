@@ -5685,18 +5685,45 @@
             btn.innerHTML = '<span class="btn-spinner"></span> Processing...';
           }
 
-          await fetch(`${SUPABASE_URL}/rest/v1/billing_subscriptions?user_id=eq.${currentUser.id}`, {
-            method: "PATCH",
-            headers: getHeaders(),
-            body: JSON.stringify({ plan_tier: 'free', status: 'active' })
+          if (!currentSession || !currentUser) {
+            showToast("Please log in to downgrade subscription.", "error");
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            }
+            return;
+          }
+
+          const fetchUrl = `${BACKEND_URL}/cancel-subscription`;
+          const res = await fetch(fetchUrl, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentSession.access_token}`
+            }
           });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || "Failed to cancel subscription.");
+          }
 
           showToast("Downgraded to Free plan.", "success");
           loadBillingData();
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
           return;
         } catch (err) {
-          showToast("Failed to downgrade plan.", "error");
-          console.error(err);
+          showToast(err.message || "Failed to downgrade plan.", "error");
+          console.error("[Cancel Sub Error]:", err);
+          const btn = document.getElementById('btn-subscribe-free');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Current Plan';
+          }
           return;
         }
       }

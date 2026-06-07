@@ -9,11 +9,8 @@
 **Severity:** Low (Verified Secure)
 
 ## 3. Subscription Cancellation & Downgrade Flows
-**Finding:** The downgrade/cancellation workflow in `dashboard.html` (`checkoutSubscription('free')`) attempts to downgrade users merely by directly calling a client-side `PATCH` to the `billing_subscriptions` table (`plan_tier: 'free'`).
-This is fundamentally broken for two reasons:
-1. Client-side update policies were recently removed from `billing_subscriptions` (to prevent unauthorized upgrades), meaning this client-side `PATCH` will silently fail or throw an RLS error.
-2. Even if it succeeded, it **does not communicate with Razorpay**. The merchant's Razorpay mandate remains active, and they will continue to be billed indefinitely despite their dashboard showing a "Free" tier. A server-side Edge Function (`cancel-subscription`) must be implemented to hit the Razorpay API and cancel the mandate.
-**Severity:** Critical 🚨
+**Finding:** The downgrade and cancellation flow was completely refactored. The `dashboard.html` now securely calls the `cancel-subscription` Supabase Edge Function via POST using the user's JWT. The edge function utilizes the `SUPABASE_SERVICE_ROLE_KEY` to retrieve the merchant's active `razorpay_subscription_id` and performs a secure, server-side cancellation against the Razorpay API (`cancel_at_cycle_end: 0`). After successful cancellation, it immediately updates the merchant's plan status to `cancelled` and tier to `free`. This effectively halts billing and safely synchronizes the dashboard UI without exposing database update privileges to the client.
+**Severity:** Low (Verified Secure - Blocker Resolved)
 
 ## 4. Widget Icon Consistency
 **Finding:** The widget injection (`widget.js`) dynamically constructs an isolated Shadow DOM (`mode: 'open'`) to prevent CSS inheritance issues from the host site. The container and widget button rely on high z-index (`2147483647`), `position: fixed`, and bottom-right alignment, ensuring it remains visible over standard merchant page elements consistently.
@@ -26,9 +23,6 @@ This is fundamentally broken for two reasons:
 ---
 
 # Launch Blocker Checklist
-Before onboarding the first paying merchant, the following blockers must be resolved:
+**All identified blockers have been resolved.**
 
-- [ ] **BLOCKER (CRITICAL):** Create a `cancel-subscription` Supabase Edge Function to integrate with the Razorpay Cancellation API.
-- [ ] **BLOCKER (CRITICAL):** Update the `dashboard.html` downgrade logic to invoke the `cancel-subscription` edge function instead of directly attempting a `PATCH` on the database.
-
-*Launch cannot proceed until merchants can securely and definitively stop recurring charges via Razorpay.*
+✅ **Ready for Launch:** Merchants can securely subscribe, their usage limits are strictly enforced by the backend, and they can securely cancel their subscriptions to stop recurring billing via the Razorpay API integration.
