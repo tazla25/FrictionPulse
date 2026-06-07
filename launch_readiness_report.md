@@ -52,3 +52,4 @@ A comprehensive security hardening and launch-readiness audit was performed. The
 ## Final Recommendation
 ✅ **Ready for Real Paying Merchants**.
 With the removal of Stored XSS, secure tenant isolation via RLS, strict server-side webhook validation (with idempotency), and proper Razorpay checkout enforcement, the application is fundamentally secure.
+Leaked Password Protection limitation: The Supabase Security Advisor reports a warning that 'Leaked Password Protection Disabled'. According to Supabase documentation (https://supabase.com/docs/guides/auth/password-security), Leaked password protection is available on the Pro Plan and above. Since it's a paid feature and requires Dashboard configuration, we cannot programmatically enable it here via API or CLI. It is not a blocker for FrictionPulse.
