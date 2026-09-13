@@ -10,7 +10,7 @@
   }
 
   // ─── CONFIG ───
-  const scriptTag = document.currentScript || document.querySelector('script[src*="widget.js"],script[src*="widget-v2.js"]');
+  const scriptTag = document.currentScript || document.querySelector('script[data-site-key],script[src*="widget.js"],script[src*="widget-v2.js"]');
   const siteKey = scriptTag ? scriptTag.getAttribute('data-site-key') : null;
   const sentryDsn = scriptTag ? scriptTag.getAttribute('data-sentry-dsn') : null;
 
@@ -112,11 +112,15 @@
 
   async function post(table, payload) {
     try {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 3000) : null;
       const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}`, {
-        method: "POST", headers, body: JSON.stringify(payload)
+        method: "POST", headers, body: JSON.stringify(payload),
+        signal: controller ? controller.signal : undefined
       });
+      if (timeoutId) clearTimeout(timeoutId);
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         if (err.code !== "23505") console.error("[FP] POST error:", err);
       }
       return res.ok;
@@ -125,14 +129,22 @@
 
   async function get(table, query) {
     try {
-      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}?${query}`, { method: "GET", headers });
-      return res.ok ? await res.json() : [];
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 2500) : null;
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}?${query}`, {
+        method: "GET", headers,
+        signal: controller ? controller.signal : undefined
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+      return res.ok ? await res.json().catch(() => []) : [];
     } catch (e) { return []; }
   }
 
   // ─── VALIDATE SITE KEY WITH SERVER ───
   async function validateSiteKeyServer() {
     try {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 2000) : null;
       const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/validate_site_key`, {
         method: "POST",
         headers: {
@@ -140,10 +152,12 @@
           "Authorization": `Bearer ${CONFIG.supabaseKey}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ site_key: siteKey })
+        body: JSON.stringify({ site_key: siteKey }),
+        signal: controller ? controller.signal : undefined
       });
+      if (timeoutId) clearTimeout(timeoutId);
       if (!res.ok) return false;
-      const isValid = await res.json();
+      const isValid = await res.json().catch(() => true);
       widgetValidated = (isValid === true);
       return widgetValidated;
     } catch (e) {
@@ -602,13 +616,17 @@
       toggle(true);
     }
 
+    // Expose helpers on window for demo and test triggers
+    window.__fpTrigger = triggerExitIntent;
+    window.__fpToggle = toggle;
+
     // 1. Desktop Exit Intent (Mouseleave past top viewport boundary)
     let desktopDelayPassed = false;
-    setTimeout(() => { desktopDelayPassed = true; }, CONFIG.exitIntentDelay || 2500);
+    setTimeout(() => { desktopDelayPassed = true; }, CONFIG.exitIntentDelay || 2000);
 
     document.addEventListener('mouseleave', (e) => {
       if (!desktopDelayPassed || isMobile) return;
-      if (e.clientY <= 15) {
+      if (e.clientY <= 25) {
         triggerExitIntent('desktop-mouseleave');
       }
     });
@@ -623,9 +641,9 @@
       const deltaY = currentY - lastScrollY;
       const deltaTime = currentTime - lastScrollTime;
 
-      if (deltaTime > 0 && deltaTime < 250) {
+      if (deltaTime > 0 && deltaTime < 350) {
         const velocity = deltaY / deltaTime; // negative = scrolling up towards address bar
-        if (lastScrollY > 150 && currentY < 80 && velocity < -1.1) {
+        if (lastScrollY > 60 && deltaY < -20 && (velocity < -0.3 || currentY < 80)) {
           triggerExitIntent('mobile-scroll-velocity');
         }
       }
@@ -653,7 +671,7 @@
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
         triggerExitIntent('inactivity-timer');
-      }, 18000); // 18 seconds idle hesitation
+      }, 10000); // 10 seconds idle hesitation
     }
     ['mousemove', 'scroll', 'touchstart', 'keydown'].forEach(evt => {
       window.addEventListener(evt, resetIdleTimer, { passive: true });
@@ -704,14 +722,17 @@
   }
 
   // ─── INIT ───
-  async function init() {
+  function init() {
     try {
-      initSentry();
-      await validateSiteKeyServer();
-      logView();
-      fetchVisitorCount();
-      setInterval(fetchVisitorCount, 30000);
+      // 1. Synchronous engine start - zero network dependency
       initExitIntentEngine();
+
+      // 2. Non-blocking asynchronous network tasks
+      initSentry();
+      validateSiteKeyServer().catch(() => {});
+      logView().catch(() => {});
+      fetchVisitorCount().catch(() => {});
+      setInterval(fetchVisitorCount, 30000);
     } catch (e) {
       if (window.Sentry) {
         window.Sentry.captureException(e);
