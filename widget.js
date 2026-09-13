@@ -50,7 +50,13 @@
       <div style="margin-top:8px;color:#888;font-size:11px;">Click to dismiss</div>
     `;
     errorIndicator.onclick = () => errorIndicator.remove();
-    document.body.appendChild(errorIndicator);
+    if (document.body) {
+      document.body.appendChild(errorIndicator);
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        if (document.body) document.body.appendChild(errorIndicator);
+      });
+    }
     setTimeout(() => errorIndicator.remove(), 10000);
     return;
   }
@@ -171,7 +177,20 @@
   const host = document.createElement('div');
   host.id = 'fp-widget-host';
   host.style.cssText = 'position:fixed;z-index:2147483647;bottom:0;left:0;width:100%;height:0;overflow:visible;';
-  document.body.appendChild(host);
+  
+  function mountHost() {
+    if (document.getElementById('fp-widget-host')) return;
+    if (document.body) {
+      document.body.appendChild(host);
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        if (document.body && !document.getElementById('fp-widget-host')) {
+          document.body.appendChild(host);
+        }
+      });
+    }
+  }
+  mountHost();
 
   const shadow = host.attachShadow({ mode: 'open' });
 
@@ -398,6 +417,10 @@
   function toggle(open) {
     isOpen = open !== undefined ? open : !isOpen;
     popup.classList.toggle('open', isOpen);
+    if (!isOpen && countdownTimerInterval) {
+      clearInterval(countdownTimerInterval);
+      countdownTimerInterval = null;
+    }
     if (isOpen && !hasInteracted) loadObjections();
   }
 
@@ -588,6 +611,7 @@
       if (copyBtn) {
         copyBtn.onclick = () => {
           const fallbackCopy = (text) => {
+            if (!document.body) return;
             const ta = document.createElement('textarea');
             ta.value = text;
             ta.style.position = 'fixed';
@@ -750,7 +774,8 @@
       </div>
     `;
 
-    content.querySelector('#fp-submit-feedback').onclick = () => {
+    const feedbackSubmitBtn = content.querySelector('#fp-submit-feedback');
+    feedbackSubmitBtn.onclick = () => {
       const text = content.querySelector('#fp-feedback').value.trim();
       const email = content.querySelector('#fp-email').value.trim();
       if (!text) {
@@ -768,21 +793,44 @@
         return;
       }
 
+      feedbackSubmitBtn.disabled = true;
+      feedbackSubmitBtn.textContent = 'Sending...';
+
       post('feedback', {
         site_key: siteKey,
         message: text,
         email: email || null,
         session_hash: sessionHash,
         page_url: window.location.href
+      }).then(ok => {
+        if (ok) {
+          content.innerHTML = `
+            <div class="fp-thanks">
+              <div class="fp-thanks-icon">📨</div>
+              <h4>Feedback sent!</h4>
+              <p>Our team will review it shortly.</p>
+            </div>
+          `;
+        } else {
+          showFeedbackError();
+        }
+      }).catch(() => {
+        showFeedbackError();
       });
 
-      content.innerHTML = `
-        <div class="fp-thanks">
-          <div class="fp-thanks-icon">📨</div>
-          <h4>Feedback sent!</h4>
-          <p>Our team will review it shortly.</p>
-        </div>
-      `;
+      function showFeedbackError() {
+        feedbackSubmitBtn.disabled = false;
+        feedbackSubmitBtn.textContent = 'Retry';
+        let errNotice = content.querySelector('#fp-feedback-err-notice');
+        if (!errNotice) {
+          errNotice = document.createElement('div');
+          errNotice.id = 'fp-feedback-err-notice';
+          errNotice.style.cssText = 'color:#ff5252;font-size:12px;margin-top:8px;text-align:center;font-weight:500;';
+          feedbackSubmitBtn.parentNode.appendChild(errNotice);
+        }
+        errNotice.textContent = 'Connection issue. Please retry.';
+        setTimeout(() => { if (errNotice) errNotice.remove(); }, 4000);
+      }
     };
   }
 

@@ -166,10 +166,11 @@
   </div>
 
   <footer>
-    &copy; <script>document.write(new Date().getFullYear())</script> FrictionPulse. All rights reserved.
+    &copy; <span id="pricing-year">2026</span> FrictionPulse. All rights reserved.
   </footer>
 
   <script>
+    document.getElementById('pricing-year').textContent = new Date().getFullYear();
     let isYearly = false;
     function toggleBilling() {
       isYearly = !isYearly;

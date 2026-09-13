@@ -1578,19 +1578,39 @@
             </div>
           </div>
 
-          <!-- Embed Code -->
-          <div style="margin-bottom:8px;">
-            <label style="margin-bottom:4px;">Embed Code</label>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Paste this before the closing &lt;/body&gt; tag</p>
+          <!-- Embed Code & Turnkey Integration -->
+          <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;">
+            <div>
+              <label style="margin-bottom:4px; font-weight:600; font-size:14px; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                <span>⚡</span> Turnkey Store Integration & Embed Code
+              </label>
+              <p style="font-size:13px;color:var(--text-muted);margin:0;" id="embed-instruction-text">
+                Select your e-commerce platform below for instant 1-click installation instructions.
+              </p>
+            </div>
+            <!-- Platform Selector Pills -->
+            <div style="display:flex; gap:6px; background:var(--bg-elevated); padding:4px; border-radius:10px; border:1px solid var(--border);">
+              <button type="button" class="btn btn-ghost btn-sm platform-pill active" id="pill-html" onclick="switchEmbedPlatform('html')" style="padding:4px 12px; font-size:12px; border-radius:6px; background:rgba(255,78,17,0.15); color:var(--accent); font-weight:600;">🌐 HTML / Webflow</button>
+              <button type="button" class="btn btn-ghost btn-sm platform-pill" id="pill-shopify" onclick="switchEmbedPlatform('shopify')" style="padding:4px 12px; font-size:12px; border-radius:6px;">🛍️ Shopify Liquid</button>
+              <button type="button" class="btn btn-ghost btn-sm platform-pill" id="pill-woocommerce" onclick="switchEmbedPlatform('woocommerce')" style="padding:4px 12px; font-size:12px; border-radius:6px;">📦 WooCommerce</button>
+            </div>
           </div>
           <div class="embed-block">
             <div class="embed-header">
               <div class="embed-dot"></div>
               <div class="embed-dot"></div>
               <div class="embed-dot"></div>
-              <div class="embed-title">frictionpulse-snippet.html</div>
+              <div class="embed-title" id="embed-snippet-filename">frictionpulse-snippet.html</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="copyEmbedCode()" style="margin-left:auto; padding:3px 10px; font-size:11px; border:1px solid var(--border-strong); border-radius:6px; cursor:pointer;">📋 Copy Snippet</button>
             </div>
-            <textarea id="embed-code" rows="1" readonly onclick="this.select();copyToClipboard(this.value,'Embed code copied!')"></textarea>
+            <textarea id="embed-code" rows="2" readonly onclick="this.select();copyEmbedCode()"></textarea>
+          </div>
+          <!-- Interactive Platform Guide Box -->
+          <div id="embed-guide-box" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:24px; font-size:13px; color:var(--text-secondary); line-height:1.6;">
+            <div style="font-weight:600; color:var(--text-primary); margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+              <span>🌐</span> Standard Embed Guide:
+            </div>
+            <div>Paste this snippet right before the closing <code>&lt;/body&gt;</code> tag or inside <code>&lt;head&gt;</code> on any website (Webflow, Framer, Wix, Squarespace, or custom HTML). The widget loads asynchronously with zero layout shift (0ms CLS).</div>
           </div>
 
           <!-- TAB: OVERVIEW -->
@@ -2152,8 +2172,8 @@
 
               <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                  <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
-                  <button onclick="sendTestEmailAlert()" class="btn btn-ghost" style="border: 1px solid var(--border-strong);">🧪 Send Test Alert</button>
+                  <button onclick="saveSettings(event)" class="btn btn-primary" id="save-settings-btn">Save Settings</button>
+                  <button onclick="sendTestEmailAlert()" class="btn btn-ghost" style="border: 1px solid var(--border-strong);">💾 Save & Verify Alert Email</button>
                   <span id="settings-spinner" class="spinner hidden"></span>
                 </div>
                 <button onclick="deleteSite()" class="btn btn-danger">Delete Site</button>
@@ -2945,20 +2965,51 @@
       return `&created_at=gte.${gteDate.toISOString()}`;
     }
 
-    function sendTestEmailAlert() {
+    async function sendTestEmailAlert() {
       const email = document.getElementById("settings-email").value.trim();
-      if (!email) {
+      if (!email || !validateEmail(email)) {
         showToast("Please enter a valid notification email first.", "error");
+        return;
+      }
+      if (!currentSiteKey) {
+        showToast("Please select a store site first.", "error");
         return;
       }
       
       const spinner = document.getElementById("settings-spinner");
       if (spinner) spinner.classList.remove("hidden");
       
-      setTimeout(() => {
+      try {
+        const payload = {
+          site_key: currentSiteKey,
+          email: email,
+          notify_new_lead: document.getElementById('alert-new-lead') ? document.getElementById('alert-new-lead').checked : true,
+          notify_new_feedback: document.getElementById('alert-new-feedback') ? document.getElementById('alert-new-feedback').checked : true,
+          notify_daily_digest: document.getElementById('alert-daily-digest') ? document.getElementById('alert-daily-digest').checked : false,
+          updated_at: new Date().toISOString()
+        };
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts`, {
+          method: "POST",
+          headers: {
+            ...getHeaders(),
+            "Prefer": "resolution=merge-duplicates"
+          },
+          body: JSON.stringify(payload)
+        });
+
         if (spinner) spinner.classList.add("hidden");
-        showToast(`Test alert successfully sent to ${email} via Resend!`, 'success');
-      }, 800);
+
+        if (res.ok) {
+          showToast(`✅ Alert recipient ${email} saved & verified in Supabase!`, 'success');
+        } else {
+          showToast(`Failed to save alert recipient. Status: ${res.status}`, 'error');
+        }
+      } catch (err) {
+        if (spinner) spinner.classList.add("hidden");
+        console.error("sendTestEmailAlert error:", err);
+        showToast("Error saving alert recipient. Please retry.", "error");
+      }
     }
 
     function exportFeedback(format = 'csv') {
@@ -3088,6 +3139,7 @@
     let leadsSortField = 'created_at';
     let leadsSortDir = 'desc';
     let currentLeads = [];
+    let currentFeedback = [];
     let feedbackSortField = 'created_at';
     let feedbackSortDir = 'desc';
 
@@ -3174,6 +3226,12 @@
     }
 
     window.addEventListener('load', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const upgradeParam = urlParams.get('upgrade');
+      if (upgradeParam) {
+        try { sessionStorage.setItem('fp_pending_upgrade', upgradeParam.toLowerCase()); } catch(e) {}
+      }
+
       const hash = window.location.hash;
       if (hash && hash.includes('access_token')) {
         const hashParams = new URLSearchParams(hash.substring(1));
@@ -3423,6 +3481,98 @@
       } catch (e) {}
     }
 
+    let currentEmbedPlatform = 'html';
+
+    function switchEmbedPlatform(platform) {
+      currentEmbedPlatform = platform;
+      document.querySelectorAll('.platform-pill').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.fontWeight = '500';
+      });
+      const activePill = document.getElementById(`pill-${platform}`);
+      if (activePill) {
+        activePill.classList.add('active');
+        activePill.style.background = 'rgba(255, 78, 17, 0.15)';
+        activePill.style.color = 'var(--accent)';
+        activePill.style.fontWeight = '600';
+      }
+
+      updateEmbedCode();
+    }
+
+    function updateEmbedCode() {
+      const siteKey = currentSiteKey || 'sk_your_site_key';
+      const codeEl = document.getElementById('embed-code');
+      const titleEl = document.getElementById('embed-snippet-filename');
+      const guideEl = document.getElementById('embed-guide-box');
+      const descEl = document.getElementById('embed-instruction-text');
+
+      if (!codeEl) return;
+
+      if (currentEmbedPlatform === 'shopify') {
+        if (titleEl) titleEl.innerText = 'theme.liquid / custom-liquid.liquid';
+        if (descEl) descEl.innerText = 'Shopify Liquid snippet: Paste into your theme.liquid or add via Theme Customizer Custom Liquid block.';
+        codeEl.value = `{% comment %} FrictionPulse - Exit-Intent Objection Engine {% endcomment %}\n<script src="${WIDGET_URL}" data-site-key="${siteKey}" defer><\/script>`;
+        codeEl.rows = 2;
+        if (guideEl) {
+          guideEl.innerHTML = `
+            <div style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+              <span>🛍️</span> 30-Second Shopify Theme Embed Guide:
+            </div>
+            <ol style="margin:0 0 8px 18px; padding:0;">
+              <li style="margin-bottom:4px;">In your Shopify Admin, navigate to <strong>Online Store → Themes</strong>.</li>
+              <li style="margin-bottom:4px;">Click the <strong>...</strong> (Actions) button next to your active theme → select <strong>Edit code</strong>.</li>
+              <li style="margin-bottom:4px;">Open <code>layout/theme.liquid</code>, scroll to the bottom, and paste the code snippet immediately before the closing <code>&lt;/body&gt;</code> tag.</li>
+              <li>Click <strong>Save</strong>. FrictionPulse is now live on your Shopify store!</li>
+            </ol>
+            <div style="font-size:12px; color:var(--text-muted); background:rgba(255,78,17,0.08); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,78,17,0.2);">
+              💡 <strong>Alternative (No Code):</strong> In Shopify Theme Customizer, click <em>Add Section</em> → select <em>Custom Liquid</em>, paste the snippet, and click <em>Save</em>.
+            </div>
+          `;
+        }
+      } else if (currentEmbedPlatform === 'woocommerce') {
+        if (titleEl) titleEl.innerText = 'functions.php / footer snippet';
+        if (descEl) descEl.innerText = 'WordPress / WooCommerce snippet: Add to WPCode header/footer plugin or active theme footer.php.';
+        codeEl.value = `<!-- FrictionPulse Exit-Intent Objection Engine -->\n<script src="${WIDGET_URL}" data-site-key="${siteKey}" defer><\/script>`;
+        codeEl.rows = 2;
+        if (guideEl) {
+          guideEl.innerHTML = `
+            <div style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+              <span>📦</span> 60-Second WordPress / WooCommerce Installation:
+            </div>
+            <ol style="margin:0 0 8px 18px; padding:0;">
+              <li style="margin-bottom:4px;">In WordPress Admin, go to <strong>Plugins → Add New</strong>, search for <em>WPCode</em> (or <em>Insert Headers and Footers</em>) and click Install & Activate.</li>
+              <li style="margin-bottom:4px;">Navigate to <strong>Code Snippets → Header & Footer</strong>.</li>
+              <li style="margin-bottom:4px;">Paste the code snippet into the <strong>Footer</strong> box and click <strong>Save Changes</strong>.</li>
+              <li>Or paste directly into your active theme's <code>footer.php</code> file before <code>&lt;/body&gt;</code>.</li>
+            </ol>
+          `;
+        }
+      } else {
+        if (titleEl) titleEl.innerText = 'frictionpulse-snippet.html';
+        if (descEl) descEl.innerText = 'Standard HTML embed: Paste before closing </body> tag or inside <head>.';
+        codeEl.value = `<script src="${WIDGET_URL}" data-site-key="${siteKey}" defer><\/script>`;
+        codeEl.rows = 1;
+        if (guideEl) {
+          guideEl.innerHTML = `
+            <div style="font-weight:600; color:var(--text-primary); margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+              <span>🌐</span> Standard Embed Guide:
+            </div>
+            <div>Paste this snippet right before the closing <code>&lt;/body&gt;</code> tag or inside <code>&lt;head&gt;</code> on any website (Webflow, Framer, Wix, Squarespace, or custom HTML). The widget loads asynchronously with zero layout shift (0ms CLS).</div>
+          `;
+        }
+      }
+    }
+
+    function copyEmbedCode() {
+      const el = document.getElementById("embed-code");
+      if (el) {
+        copyToClipboard(el.value, 'Embed snippet copied to clipboard!');
+      }
+    }
+
     function selectSite(site) {
       currentSiteKey = site.site_key;
       document.getElementById("site-dashboard").classList.remove("hidden");
@@ -3430,7 +3580,7 @@
       if (searchContainer) searchContainer.classList.remove("hidden");
       document.getElementById("current-site-title").innerText = site.domain;
       document.getElementById("current-site-key").innerText = site.site_key;
-      document.getElementById("embed-code").value = `<script src="${WIDGET_URL}" data-site-key="${site.site_key}"><\/script>`;
+      updateEmbedCode();
       document.getElementById('settings-email').value = currentUser ? currentUser.email : '';
       leadsPage = 0;
       feedbackPage = 0;
@@ -3634,6 +3784,11 @@
       `;
     }
 
+    function viewLeadDetailById(id) {
+      const lead = currentLeads.find(l => String(l.id) === String(id));
+      if (lead) viewLeadDetail(lead);
+    }
+
     function viewLeadDetail(lead) {
       currentDetailItem = lead;
       currentDetailType = 'lead';
@@ -3833,6 +3988,11 @@
         `;
         timelineContainer.appendChild(item);
       });
+    }
+
+    function viewFeedbackDetailById(id) {
+      const fb = currentFeedback.find(f => String(f.id) === String(id));
+      if (fb) viewFeedbackDetail(fb);
     }
 
     function viewFeedbackDetail(fb) {
@@ -4090,12 +4250,12 @@
             <td><input type="checkbox" class="lead-checkbox" data-id="${lead.id}" onclick="onLeadCheckboxChange()" /></td>
             <td data-label="Contact" style="position:relative;"><div style="display:flex; align-items:center;">${starHtml}<strong>${contact}</strong></div>${tagsHtml}</td>
             <td data-label="Score"><span class="badge ${scoreInfo.scoreClass}" style="text-transform:none; padding: 2px 8px;">${scoreInfo.emoji} ${scoreInfo.score}</span></td>
-            <td data-label="Objection" style="color:var(--text-secondary);font-size:13px;">${lead.objection_id || 'General'}</td>
-            <td data-label="Page" class="truncate-cell" title="${lead.page_url || ''}">${lead.page_url || '-'}</td>
+            <td data-label="Objection" style="color:var(--text-secondary);font-size:13px;">${escapeHtml(lead.objection_id || 'General')}</td>
+            <td data-label="Page" class="truncate-cell" title="${escapeHtml(lead.page_url || '')}">${escapeHtml(lead.page_url || '-')}</td>
             <td data-label="Status"><span class="badge ${statusClass}">${lead.status}</span></td>
             <td data-label="Date" style="color:var(--text-muted);font-size:12px;"><span title="${date}">${timeAgo(lead.created_at)}</span></td>
             <td data-label="Actions" class="actions-cell">
-              <button class="btn btn-ghost btn-sm" onclick="viewLeadDetail(${leadJson})">👁️ View</button>
+              <button class="btn btn-ghost btn-sm" onclick="viewLeadDetailById('${lead.id}')">👁️ View</button>
               <button class="btn btn-ghost btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}', this)">${nextLabel}</button>
             </td>
           </tr>`;
@@ -4113,7 +4273,6 @@
           const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
           const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
           const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
-          const leadJson = JSON.stringify(lead).replace(/'/g, "&#39;");
 
           const isStarred = isRecordStarred(lead.id);
           const starHtml = `<span onclick="toggleRecordStar('${lead.id}', 'lead', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
@@ -4140,12 +4299,12 @@
             <div class="data-card-body">
               ${tagsHtml ? `<div class="data-card-row"><span class="data-card-label">Tags</span><span>${tagsHtml}</span></div>` : ''}
               <div class="data-card-row"><span class="data-card-label">Score</span><span class="badge ${scoreInfo.scoreClass}" style="text-transform:none; padding: 2px 6px;">${scoreInfo.emoji} ${scoreInfo.score}</span></div>
-              <div class="data-card-row"><span class="data-card-label">Objection</span><span>${lead.objection_id || 'General'}</span></div>
-              <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${lead.page_url || ''}">${lead.page_url || '—'}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Objection</span><span>${escapeHtml(lead.objection_id || 'General')}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${escapeHtml(lead.page_url || '')}">${escapeHtml(lead.page_url || '—')}</span></div>
               <div class="data-card-row"><span class="data-card-label">Date</span><span title="${date}">${timeAgo(lead.created_at)}</span></div>
             </div>
             <div class="data-card-actions">
-              <button class="btn btn-ghost btn-sm" onclick="viewLeadDetail(${leadJson})">👁️ Details</button>
+              <button class="btn btn-ghost btn-sm" onclick="viewLeadDetailById('${lead.id}')">👁️ Details</button>
               <button class="btn btn-primary btn-sm" onclick="updateLeadStatus('${lead.id}', '${nextStatus}', this)">${nextLabel}</button>
             </div>
           </div>`;
@@ -4404,7 +4563,10 @@
           feedback = feedback.filter(f => isRecordStarred(f.id));
         }
 
+        currentFeedback = feedback;
+
         if (feedback.length === 0) {
+          currentFeedback = [];
           let emptyHtml = '';
           if (feedbackPage === 0) {
             emptyHtml = `
@@ -4434,8 +4596,8 @@
         feedback.forEach(fb => {
           const date = new Date(fb.created_at).toLocaleString();
           const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
-          const fbJson = JSON.stringify(fb).replace(/'/g, "&#39;");
-          const preview = fb.message.length > 80 ? fb.message.substring(0, 80) + '…' : fb.message;
+          const rawMessage = fb.message || '';
+          const preview = escapeHtml(rawMessage.length > 80 ? rawMessage.substring(0, 80) + '…' : rawMessage);
           
           const isStarred = isRecordStarred(fb.id);
           const starHtml = `<span onclick="toggleRecordStar('${fb.id}', 'feedback', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
@@ -4450,12 +4612,12 @@
 
           html += `<tr>
             <td data-label="Message" class="message-cell"><div style="display:flex; align-items:flex-start;">${starHtml}<div class="message-preview">${preview}</div></div>${tagsHtml}</td>
-            <td data-label="Contact" style="color:var(--text-secondary);font-size:13px;">${fb.email || 'Anonymous'}</td>
-            <td data-label="Page" class="truncate-cell" title="${fb.page_url || ''}">${fb.page_url || '-'}</td>
+            <td data-label="Contact" style="color:var(--text-secondary);font-size:13px;">${escapeHtml(fb.email || 'Anonymous')}</td>
+            <td data-label="Page" class="truncate-cell" title="${escapeHtml(fb.page_url || '')}">${escapeHtml(fb.page_url || '-')}</td>
             <td data-label="Status"><span class="badge ${statusClass}">${fb.status}</span></td>
             <td data-label="Date" style="color:var(--text-muted);font-size:12px;"><span title="${date}">${timeAgo(fb.created_at)}</span></td>
             <td data-label="Actions" class="actions-cell">
-              <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetail(${fbJson})">👁️ View</button>
+              <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetailById('${fb.id}')">👁️ View</button>
               ${fb.status === 'unread' ? `<button class="btn btn-ghost btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read', this)">Mark Read</button>` : ''}
             </td>
           </tr>`;
@@ -4466,8 +4628,8 @@
         feedback.forEach(fb => {
           const date = new Date(fb.created_at).toLocaleString();
           const statusClass = fb.status === 'unread' ? 'badge-unread' : 'badge-read';
-          const fbJson = JSON.stringify(fb).replace(/'/g, "&#39;");
-          const preview = fb.message.length > 120 ? fb.message.substring(0, 120) + '…' : fb.message;
+          const rawMessage = fb.message || '';
+          const preview = escapeHtml(rawMessage.length > 120 ? rawMessage.substring(0, 120) + '…' : rawMessage);
 
           const isStarred = isRecordStarred(fb.id);
           const starHtml = `<span onclick="toggleRecordStar('${fb.id}', 'feedback', event)" style="cursor:pointer; margin-right:8px; font-size:14px; user-select:none; color:${isStarred ? 'var(--warning)' : 'var(--text-muted)'};">${isStarred ? '★' : '☆'}</span>`;
@@ -4484,18 +4646,18 @@
             <div class="data-card-header">
               <div style="display:flex; align-items:center;">
                 ${starHtml}
-                <strong class="data-card-title">${fb.email || 'Anonymous'}</strong>
+                <strong class="data-card-title">${escapeHtml(fb.email || 'Anonymous')}</strong>
               </div>
               <span class="badge ${statusClass}">${fb.status}</span>
             </div>
             <div class="data-card-body">
               <div class="feedback-message">${preview}</div>
               ${tagsHtml ? `<div class="data-card-row" style="margin-top:8px;"><span class="data-card-label">Tags</span><span>${tagsHtml}</span></div>` : ''}
-              <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${fb.page_url || ''}">${fb.page_url || '—'}</span></div>
+              <div class="data-card-row"><span class="data-card-label">Page</span><span class="truncate-cell" title="${escapeHtml(fb.page_url || '')}">${escapeHtml(fb.page_url || '—')}</span></div>
               <div class="data-card-row"><span class="data-card-label">Date</span><span title="${date}">${timeAgo(fb.created_at)}</span></div>
             </div>
             <div class="data-card-actions">
-              <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetail(${fbJson})">👁️ Read full</button>
+              <button class="btn btn-ghost btn-sm" onclick="viewFeedbackDetailById('${fb.id}')">👁️ Read full</button>
               ${fb.status === 'unread' ? `<button class="btn btn-primary btn-sm" onclick="updateFeedbackStatus('${fb.id}', 'read', this)">Mark Read</button>` : ''}
             </div>
           </div>`;
@@ -4921,9 +5083,10 @@
 
       const spinner = document.getElementById('settings-spinner');
       const status = document.getElementById('settings-status');
-      const btn = event.target;
+      const btn = (e && e.target) ? e.target : document.getElementById('save-settings-btn');
 
-      spinner.classList.remove('hidden'); btn.disabled = true;
+      if (spinner) spinner.classList.remove('hidden');
+      if (btn) btn.disabled = true;
       try {
         // Save alert settings to Supabase
         const response = await fetch(`${SUPABASE_URL}/rest/v1/email_alerts`, {
@@ -4958,7 +5121,7 @@
         applyPreviewFont(chosenFont);
         renderPreviewWidget();
       } catch (err) { status.innerText = err.message; status.style.color = "var(--danger)"; showToast(err.message, 'error'); }
-      finally { spinner.classList.add('hidden'); btn.disabled = false; }
+      finally { if (spinner) spinner.classList.add('hidden'); if (btn) btn.disabled = false; }
     }
 
     // ─── UTILS ───
@@ -5007,7 +5170,31 @@
     }
 
     function copyToClipboard(text, successMsg) {
-      navigator.clipboard.writeText(text).then(() => showToast(successMsg, 'success')).catch(() => showToast('Failed to copy', 'error'));
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast(successMsg, 'success'))
+          .catch(() => fallbackClipboardCopy(text, successMsg));
+      } else {
+        fallbackClipboardCopy(text, successMsg);
+      }
+    }
+
+    function fallbackClipboardCopy(text, successMsg) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      if (document.body) {
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast(successMsg, 'success');
+        } catch (e) {
+          showToast('Failed to copy', 'error');
+        }
+        document.body.removeChild(ta);
+      }
     }
 
     // ─── NAVIGATION ───
@@ -6331,9 +6518,14 @@
 
     function checkUpgradeParameter() {
       if (!currentUser) return;
-      const urlParams = new URLSearchParams(window.location.search);
-      const upgradePlan = urlParams.get('upgrade');
+      let upgradePlan = null;
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        upgradePlan = urlParams.get('upgrade') || sessionStorage.getItem('fp_pending_upgrade');
+      } catch(e) {}
+
       if (upgradePlan && ['starter', 'pro'].includes(upgradePlan.toLowerCase())) {
+        try { sessionStorage.removeItem('fp_pending_upgrade'); } catch(e) {}
         const newUrl = window.location.pathname;
         window.history.replaceState(null, null, newUrl);
         
