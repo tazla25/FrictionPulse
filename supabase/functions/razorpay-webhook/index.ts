@@ -91,8 +91,26 @@ serve(async (req) => {
         .eq('razorpay_subscription_id', razorpay_subscription_id)
         .single();
 
-       if (findError) {
-         console.error("Could not find subscription to update", findError);
+       if (findError || !existingSub) {
+         console.warn("Could not find subscription by ID, attempting fallback via notes.user_id", findError);
+         const noteUserId = sub.notes?.user_id;
+         const notePlanId = sub.notes?.plan_id || 'starter';
+         if (noteUserId) {
+           console.log(`Executing fallback upsert for user ${noteUserId} (plan: ${notePlanId})`);
+           await supabaseAdmin
+             .from('billing_subscriptions')
+             .upsert({
+               user_id: noteUserId,
+               plan_tier: notePlanId,
+               status: sub.status === 'active' ? 'active' : 'inactive',
+               current_period_end: current_period_end,
+               razorpay_subscription_id: razorpay_subscription_id,
+               razorpay_customer_id: razorpay_customer_id,
+               updated_at: new Date().toISOString()
+             }, { onConflict: 'user_id' });
+         } else {
+           console.error("Critical: subscription has no notes.user_id, cannot link to account");
+         }
        } else if (existingSub) {
          await supabaseAdmin
            .from('billing_subscriptions')

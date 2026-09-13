@@ -65,7 +65,11 @@ serve(async (req) => {
       body: JSON.stringify({
         plan_id: razorpayPlanId,
         total_count: 120, // 10 years
-        customer_notify: 1
+        customer_notify: 1,
+        notes: {
+          user_id: user.id,
+          plan_id: planIdKey
+        }
       })
     });
 

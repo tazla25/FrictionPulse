@@ -12,6 +12,7 @@
   // ─── CONFIG ───
   const scriptTag = document.currentScript || document.querySelector('script[src*="widget.js"],script[src*="widget-v2.js"]');
   const siteKey = scriptTag ? scriptTag.getAttribute('data-site-key') : null;
+  const sentryDsn = scriptTag ? scriptTag.getAttribute('data-sentry-dsn') : null;
 
   // ─── SITE KEY VALIDATION ───
   function validateSiteKey(key) {
@@ -86,7 +87,11 @@
   // ─── SESSION ───
   let sessionHash = sessionStorage.getItem('fp_session_hash');
   if (!sessionHash) {
-    sessionHash = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      sessionHash = 'sess_' + crypto.randomUUID();
+    } else {
+      sessionHash = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+    }
     sessionStorage.setItem('fp_session_hash', sessionHash);
   }
   let hasInteracted = false;
@@ -448,8 +453,6 @@
           setTimeout(() => { input.style.borderColor = ''; }, 2000);
           return;
         }
-          return;
-        }
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
         post('leads', {
@@ -460,13 +463,30 @@
           session_hash: sessionHash,
           page_url: window.location.href
         }).then(ok => {
-          content.innerHTML = `
-            <div class="fp-thanks">
-              <div class="fp-thanks-icon">✅</div>
-              <h4>You're on the list!</h4>
-              <p>We'll contact you as soon as this is resolved.</p>
-            </div>
-          `;
+          if (ok) {
+            content.innerHTML = `
+              <div class="fp-thanks">
+                <div class="fp-thanks-icon">✅</div>
+                <h4>You're on the list!</h4>
+                <p>We'll contact you as soon as this is resolved.</p>
+              </div>
+            `;
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Retry';
+            let errNotice = content.querySelector('#fp-err-notice');
+            if (!errNotice) {
+              errNotice = document.createElement('div');
+              errNotice.id = 'fp-err-notice';
+              errNotice.style.cssText = 'color:#ff5252;font-size:12px;margin-top:8px;text-align:center;font-weight:500;';
+              submitBtn.parentNode.appendChild(errNotice);
+            }
+            errNotice.textContent = 'Connection issue. Please retry.';
+            setTimeout(() => { if (errNotice) errNotice.remove(); }, 4000);
+          }
+        }).catch(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Retry';
         });
       };
     }
@@ -564,8 +584,9 @@
     }
   }
 
-  // ─── DYNAMIC SENTRY LOADER ───
+  // ─── OPTIONAL TELEMETRY LOADER ───
   function initSentry() {
+    if (!sentryDsn) return; // Completely silent by default; zero third-party overhead
     if (!window.Sentry) {
       const script = document.createElement('script');
       script.src = "https://browser.sentry-cdn.com/7.57.0/bundle.min.js";
@@ -573,7 +594,7 @@
       script.onload = () => {
         if (window.Sentry) {
           window.Sentry.init({
-            dsn: "https://8f88cf508107c11f712f5a04df8b64b1@o45012345.ingest.sentry.io/45012345", // Sandbox placeholder public DSN
+            dsn: sentryDsn,
             environment: "production",
             tracesSampleRate: 0.1,
             initialScope: { tags: { "site_key": siteKey } }
