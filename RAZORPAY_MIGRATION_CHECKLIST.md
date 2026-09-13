@@ -16,7 +16,7 @@ In your Supabase project dashboard (Settings -> Edge Functions), replace or set 
 ## 2. Update Webhooks
 
 - [ ] In the Razorpay Dashboard (Live Mode), navigate to Webhooks.
-- [ ] Ensure the webhook URL points to your Supabase Edge Function: `https://amtalgsyuedgayxkxijw.supabase.co/functions/v1/razorpay-webhook`
+- [ ] Ensure the webhook URL points to your Supabase Edge Function: `https://gfzwqiwrkfiyvlbulhuk.supabase.co/functions/v1/razorpay-webhook`
 - [ ] Ensure the webhook is subscribed to at least `subscription.charged` and `subscription.activated` events.
 - [ ] Obtain the Live Webhook Secret.
 - [ ] In Supabase Environment Variables, set `RAZORPAY_WEBHOOK_SECRET` to your new Live Webhook Secret.
