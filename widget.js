@@ -584,6 +584,100 @@
     }
   }
 
+  // ─── MULTI-SIGNAL EXIT INTENT & HESITATION ENGINE ───
+  function initExitIntentEngine() {
+    if (!CONFIG.exitIntent) return;
+
+    let exitTriggered = sessionStorage.getItem('fp_exit_shown') === '1';
+
+    function triggerExitIntent(signalName) {
+      if (exitTriggered || isOpen) return;
+      exitTriggered = true;
+      sessionStorage.setItem('fp_exit_shown', '1');
+      console.log(`[FrictionPulse] Exit intent triggered via: ${signalName}`);
+      toggle(true);
+    }
+
+    // 1. Desktop Exit Intent (Mouseleave past top viewport boundary)
+    let desktopDelayPassed = false;
+    setTimeout(() => { desktopDelayPassed = true; }, CONFIG.exitIntentDelay || 2500);
+
+    document.addEventListener('mouseleave', (e) => {
+      if (!desktopDelayPassed || isMobile) return;
+      if (e.clientY <= 15) {
+        triggerExitIntent('desktop-mouseleave');
+      }
+    });
+
+    // 2. Mobile Exit Trigger: Upward Scroll Velocity Leap (Address Bar Flick)
+    let lastScrollY = window.scrollY || window.pageYOffset || 0;
+    let lastScrollTime = Date.now();
+
+    window.addEventListener('scroll', () => {
+      const currentY = window.scrollY || window.pageYOffset || 0;
+      const currentTime = Date.now();
+      const deltaY = currentY - lastScrollY;
+      const deltaTime = currentTime - lastScrollTime;
+
+      if (deltaTime > 0 && deltaTime < 250) {
+        const velocity = deltaY / deltaTime; // negative = scrolling up towards address bar
+        if (lastScrollY > 150 && currentY < 80 && velocity < -1.1) {
+          triggerExitIntent('mobile-scroll-velocity');
+        }
+      }
+      lastScrollY = currentY;
+      lastScrollTime = currentTime;
+    }, { passive: true });
+
+    // 3. Mobile Back-Button Soft Intercept (history.pushState)
+    try {
+      if (window.history && window.history.pushState) {
+        window.history.pushState({ fp_intercept: true }, '', window.location.href);
+        window.addEventListener('popstate', () => {
+          if (!exitTriggered && !isOpen) {
+            triggerExitIntent('mobile-back-button');
+            window.history.pushState({ fp_intercept: false }, '', window.location.href);
+          }
+        });
+      }
+    } catch (e) {}
+
+    // 4. Inactivity & Checkout Hesitation Timer
+    let idleTimer = null;
+    function resetIdleTimer() {
+      if (exitTriggered || isOpen) return;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        triggerExitIntent('inactivity-timer');
+      }, 18000); // 18 seconds idle hesitation
+    }
+    ['mousemove', 'scroll', 'touchstart', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+    resetIdleTimer();
+
+    // 5. Tab Switch / Title Flasher (Page Visibility API)
+    let originalTitle = document.title;
+    let titleBlinkTimer = null;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (!exitTriggered && !isOpen) {
+          let blink = false;
+          titleBlinkTimer = setInterval(() => {
+            document.title = blink ? "🔔 Still deciding? We can help!" : "⚡ " + originalTitle;
+            blink = !blink;
+          }, 2200);
+        }
+      } else {
+        if (titleBlinkTimer) {
+          clearInterval(titleBlinkTimer);
+          titleBlinkTimer = null;
+          document.title = originalTitle;
+        }
+      }
+    });
+  }
+
   // ─── OPTIONAL TELEMETRY LOADER ───
   function initSentry() {
     if (!sentryDsn) return; // Completely silent by default; zero third-party overhead
@@ -613,6 +707,7 @@
       logView();
       fetchVisitorCount();
       setInterval(fetchVisitorCount, 30000);
+      initExitIntentEngine();
     } catch (e) {
       if (window.Sentry) {
         window.Sentry.captureException(e);
