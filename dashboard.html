@@ -2150,6 +2150,32 @@
                 </div>
               </div>
 
+              <!-- Google Gemini AI Objection Copilot Section -->
+              <div id="settings-gemini-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                  <h4 style="margin: 0; color: var(--text-primary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                    <span>✨</span> Google Gemini AI Objection Copilot
+                  </h4>
+                  <span class="badge" style="background: rgba(0, 230, 118, 0.15); color: #00E676; border: 1px solid rgba(0, 230, 118, 0.3); font-size: 11px;">Gemini 2.0/1.5 Flash</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                  Powers the <code>🪄 Suggest with AI</code> button with context-aware, conversion-focused counter-messages for any customer hesitation. Works via serverless Vercel <code>GEMINI_API_KEY</code>, or you can paste your own Google AI Studio key below.
+                </p>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                  <label style="font-size: 12px;">Gemini API Key (Optional Client Override)</label>
+                  <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="password" id="settings-gemini-key" placeholder="AIzaSy... (Leave empty to use Vercel Server Key)" style="padding: 9px 12px; font-family: monospace; flex: 1;" />
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleGeminiKeyVisibility()" id="gemini-key-toggle-btn" style="border: 1px solid var(--border);">👁️</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="saveGeminiApiKey()">Save Key</button>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; flex-wrap:wrap; gap:6px;">
+                    <span style="font-size: 11px; color: var(--text-muted);" id="gemini-status-indicator">⚡ Default: Uses server-managed Vercel Gemini Flash engine.</span>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: var(--accent); text-decoration: none;">Get Free Gemini Key ↗</a>
+                  </div>
+                </div>
+              </div>
+
               <!-- Webhooks Integration Section -->
               <div id="settings-webhook-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
                 <h4 style="margin: 0 0 12px; color: var(--text-primary); font-size: 15px;">🔗 Zapier / Webhook Integrations</h4>
@@ -4890,6 +4916,21 @@
         }
       } catch (e) {}
 
+      // Restore Google Gemini API Key
+      const customGeminiKey = localStorage.getItem('fp_gemini_api_key') || '';
+      const geminiInput = document.getElementById('settings-gemini-key');
+      if (geminiInput) geminiInput.value = customGeminiKey;
+      const geminiStatus = document.getElementById('gemini-status-indicator');
+      if (geminiStatus) {
+        if (customGeminiKey) {
+          geminiStatus.innerText = '✅ Custom Gemini Key active & saved in local storage.';
+          geminiStatus.style.color = 'var(--success)';
+        } else {
+          geminiStatus.innerText = '⚡ Default: Uses server-managed Vercel Gemini Flash engine.';
+          geminiStatus.style.color = 'var(--text-muted)';
+        }
+      }
+
       // Set Color Options
       let matchedColorOption = false;
       document.querySelectorAll('.color-option').forEach(c => {
@@ -5069,6 +5110,14 @@
         }));
       } catch (e) {}
 
+      // Save Google Gemini API Key
+      const geminiInput = document.getElementById('settings-gemini-key');
+      if (geminiInput) {
+        const k = geminiInput.value.trim();
+        if (k) localStorage.setItem('fp_gemini_api_key', k);
+        else localStorage.removeItem('fp_gemini_api_key');
+      }
+
       // Determine current plan tier from the cached global variable
       const planTier = (currentPlanTier || 'free').toLowerCase();
 
@@ -5122,6 +5171,41 @@
         renderPreviewWidget();
       } catch (err) { status.innerText = err.message; status.style.color = "var(--danger)"; showToast(err.message, 'error'); }
       finally { if (spinner) spinner.classList.add('hidden'); if (btn) btn.disabled = false; }
+    }
+
+    function toggleGeminiKeyVisibility() {
+      const input = document.getElementById('settings-gemini-key');
+      const btn = document.getElementById('gemini-key-toggle-btn');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (btn) btn.innerText = '🔒';
+      } else {
+        input.type = 'password';
+        if (btn) btn.innerText = '👁️';
+      }
+    }
+
+    function saveGeminiApiKey() {
+      const input = document.getElementById('settings-gemini-key');
+      const status = document.getElementById('gemini-status-indicator');
+      if (!input) return;
+      const k = input.value.trim();
+      if (k) {
+        localStorage.setItem('fp_gemini_api_key', k);
+        if (status) {
+          status.innerText = '✅ Custom Gemini Key active & saved in local storage.';
+          status.style.color = 'var(--success)';
+        }
+        showToast('Google Gemini API key saved!', 'success');
+      } else {
+        localStorage.removeItem('fp_gemini_api_key');
+        if (status) {
+          status.innerText = '⚡ Default: Uses server-managed Vercel Gemini Flash engine.';
+          status.style.color = 'var(--text-muted)';
+        }
+        showToast('Custom key cleared. Using Vercel server key.', 'info');
+      }
     }
 
     // ─── UTILS ───
@@ -5531,8 +5615,8 @@
       }
     }
 
-    // ─── AI SUGGESTION ENGINE ───
-    function generateAICounterMessage(labelInputId, messageInputId, btnEl) {
+    // ─── AI SUGGESTION ENGINE (HYBRID: GOOGLE GEMINI API + SMART LOCAL CRO MATCHER) ───
+    async function generateAICounterMessage(labelInputId, messageInputId, btnEl) {
       const labelVal = document.getElementById(labelInputId);
       const label = labelVal ? labelVal.value.trim() : '';
       if (!label) {
@@ -5542,38 +5626,166 @@
       
       const originalText = btnEl.innerHTML;
       btnEl.disabled = true;
-      btnEl.innerHTML = `🪄 Analyzing...`;
+      btnEl.innerHTML = `<span class="btn-spinner"></span> 🪄 Thinking...`;
       
-      setTimeout(() => {
-        const text = label.toLowerCase();
-        let suggestion = "";
-        
-        if (text.includes("price") || text.includes("cost") || text.includes("expensive") || text.includes("cheap")) {
-          suggestion = "We understand! That's why we offer a 10% first-order discount with code WELCOME10, plus a 30-day money-back guarantee. No risk, all value!";
-        } else if (text.includes("shipping") || text.includes("delivery") || text.includes("postage")) {
-          suggestion = "Enjoy FREE standard shipping on orders over $50. All packages are shipped with tracking, arriving at your doorstep in 3-5 business days!";
-        } else if (text.includes("size") || text.includes("fit") || text.includes("dimension")) {
-          suggestion = "We offer a 100% Free Size Exchange Policy! Use our dynamic size chart or chat with us. If it doesn't fit, we'll swap it at zero cost to you.";
-        } else if (text.includes("quality") || text.includes("material") || text.includes("fake")) {
-          suggestion = "Crafted from premium, sustainably sourced materials and backed by our Lifetime Stitch Warranty. Read our 1,200+ five-star verified customer reviews below!";
-        } else if (text.includes("think") || text.includes("later") || text.includes("decide")) {
-          suggestion = "Don't miss out! This popular item is selling fast, and cart stock is reserved for only 15 minutes. Complete purchase now and enjoy worry-free returns.";
-        } else if (text.includes("trust") || text.includes("secure") || text.includes("safety")) {
-          suggestion = "Your security is our priority. We use industry-standard 256-bit SSL encryption and support safe payments via Stripe, Apple Pay, and PayPal.";
-        } else {
-          suggestion = `We've got you covered! Complete your purchase today to enjoy a 10% first-order discount (code: WELCOME10), backed by our 30-day money-back guarantee and live chat support.`;
+      // Collect store context for hyper-relevant objection resolution
+      const nicheEl = document.getElementById('detective-niche');
+      const niche = nicheEl ? nicheEl.value : 'general';
+      const brandInput = document.getElementById('detective-brand');
+      let brand = brandInput ? brandInput.value.trim() : '';
+      if (!brand && typeof currentDomain !== 'undefined' && currentDomain) brand = currentDomain.replace(/^https?:\/\//, '').split('/')[0];
+      if (!brand) brand = 'Store';
+      const currEl = document.getElementById('detective-currency');
+      const currency = currEl ? currEl.value : 'INR';
+
+      let suggestion = null;
+      let usedEngine = 'local';
+
+      // 1. Try Vercel Serverless Gemini Function
+      try {
+        const customKey = localStorage.getItem('fp_gemini_api_key');
+        const headers = { 'Content-Type': 'application/json' };
+        if (customKey) headers['x-gemini-api-key'] = customKey;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        const res = await fetch('/api/suggest-objection', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ label, niche, brand, currency }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.suggestion) {
+            suggestion = data.suggestion;
+            usedEngine = data.model || 'gemini';
+          }
         }
-        
-        const messageVal = document.getElementById(messageInputId);
-        if (messageVal) messageVal.value = suggestion;
-        
-        btnEl.disabled = false;
-        btnEl.innerHTML = originalText;
-        showToast("🪄 AI Counter-message generated!", "success");
-        
-        // Log Activity
-        logMerchantActivity("AI Suggestion Used", `Generated message for: "${label}"`);
-      }, 800);
+      } catch (err) {
+        // Fallback silently to smart local CRO matcher
+      }
+
+      // 2. Comprehensive Smart Local CRO Semantic Engine (Zero-Breakage Fallback)
+      if (!suggestion) {
+        suggestion = getSmartLocalCounterMessage(label, niche, currency);
+        usedEngine = 'local-cro';
+      }
+
+      // Inject suggestion into target input
+      const messageVal = document.getElementById(messageInputId);
+      if (messageVal) {
+        messageVal.value = suggestion;
+        messageVal.style.transition = 'all 0.3s ease';
+        messageVal.style.boxShadow = '0 0 12px rgba(255, 78, 17, 0.4)';
+        messageVal.style.borderColor = 'var(--accent)';
+        setTimeout(() => {
+          messageVal.style.boxShadow = 'none';
+          messageVal.style.borderColor = '';
+        }, 1200);
+      }
+      
+      btnEl.disabled = false;
+      btnEl.innerHTML = originalText;
+
+      if (usedEngine.includes('gemini')) {
+        showToast("✨ Generated via Google Gemini AI!", "success");
+      } else {
+        showToast("🪄 Contextual counter-message generated!", "success");
+      }
+      
+      // Log Merchant Activity
+      logMerchantActivity("AI Suggestion Used", `Generated (${usedEngine}) for: "${label}"`);
+    }
+
+    function getSmartLocalCounterMessage(label, niche, currency) {
+      const text = label.toLowerCase();
+      const isINR = currency === 'INR';
+      const freeShipThreshold = isINR ? '₹999' : '$50';
+
+      // 1. Shipping / Delivery / Arrival / Tracking
+      if (text.includes("shipping") || text.includes("deliver") || text.includes("postage") || 
+          text.includes("track") || text.includes("courier") || text.includes("dispatch")) {
+        return `Enjoy FREE tracked express shipping on orders over ${freeShipThreshold}! All orders are carefully packed and dispatched within 24 hours.`;
+      }
+
+      // 2. UI / Usability / Navigation / Website Technical Glitches / Bad UI
+      if (text.includes("ui") || text.includes("navigat") || text.includes("confus") || 
+          text.includes("bug") || text.includes("glitch") || text.includes("layout") || 
+          text.includes("error") || text.includes("stuck") || text.includes("broken") || 
+          text.includes("ugly") || text.includes("bad") || text.includes("slow") ||
+          text.includes("website") || (text.includes("hard") && !text.includes("card"))) {
+        return "Having trouble navigating? Tap below to chat instantly with our support team or order via WhatsApp in 1 click with zero hassle!";
+      }
+
+      // 3. Price / Cost / Expensive / Budget
+      if (text.includes("price") || text.includes("cost") || text.includes("expensive") || 
+          text.includes("cheap") || text.includes("afford") || text.includes("budget") || 
+          text.includes("deal") || text.includes("discount") || text.includes("coupon") ||
+          text.includes("rate") || text.includes("high")) {
+        return "We want this to fit your budget! Use voucher code WELCOME10 for 10% off your cart today, or choose 0% interest flexible EMI at checkout.";
+      }
+
+      // 4. Sizing / Fit / Measurements
+      if (text.includes("size") || text.includes("fit") || text.includes("dimension") || 
+          text.includes("tight") || text.includes("loose") || text.includes("chart") || 
+          text.includes("measure") || text.includes("large") || text.includes("small") ||
+          text.includes("length") || text.includes("waist")) {
+        return "100% Free Doorstep Size Exchanges! If it doesn't fit like a glove, our courier picks it up and delivers your new size at zero extra cost.";
+      }
+
+      // 5. Quality / Fabric / Authenticity / Genuine
+      if (text.includes("quality") || text.includes("material") || text.includes("fake") || 
+          text.includes("authentic") || text.includes("real") || text.includes("original") || 
+          text.includes("durable") || text.includes("cotton") || text.includes("genuine") ||
+          text.includes("gsm") || text.includes("fabric")) {
+        return "Guaranteed 100% authentic and crafted from premium-grade materials. Backed by our 30-day quality guarantee and 1,200+ verified customer reviews!";
+      }
+
+      // 6. Trust / Safety / Security / Scam
+      if (text.includes("trust") || text.includes("secure") || text.includes("safety") || 
+          text.includes("safe") || text.includes("scam") || text.includes("legit") || 
+          text.includes("fraud") || text.includes("privacy")) {
+        return "100% safe & secure checkout with 256-bit SSL encryption. We protect your data and offer buyer protection on all orders.";
+      }
+
+      // 7. Returns / Refunds / Guarantee / Cancellation
+      if (text.includes("return") || text.includes("refund") || text.includes("exchange") || 
+          text.includes("cancel") || text.includes("policy") || text.includes("risk")) {
+        return "Shop with complete confidence: We offer a 30-day hassle-free doorstep return & instant refund policy with zero questions asked!";
+      }
+
+      // 8. Customer Support / Contact / Help / Agent
+      if (text.includes("support") || text.includes("contact") || text.includes("help") || 
+          text.includes("agent") || text.includes("phone") || text.includes("call") || 
+          text.includes("chat") || text.includes("care") || text.includes("reach")) {
+        return "Our customer concierge team is online 24/7! Click below to speak with an agent or receive instant answers to your questions.";
+      }
+
+      // 9. Payment Methods / Cash on Delivery / UPI / EMI
+      if (text.includes("payment") || text.includes("cod") || text.includes("cash on delivery") || 
+          text.includes("upi") || text.includes("emi") || text.includes("card") || 
+          text.includes("installment") || text.includes("checkout")) {
+        return "Flexible checkout options: We accept Cash on Delivery (COD), instant UPI, all major debit/credit cards, and No-Cost EMI installments.";
+      }
+
+      // 10. Warranty / Repairs / Replacements
+      if (text.includes("warranty") || text.includes("guarantee") || text.includes("repair") || 
+          text.includes("replace") || text.includes("damage") || text.includes("broken")) {
+        return "Every purchase is protected by our 1-Year Comprehensive Replacement Warranty. If anything goes wrong, we replace it immediately.";
+      }
+
+      // 11. Cart Reservation / Hesitation / Thinking Later
+      if (text.includes("think") || text.includes("later") || text.includes("decide") || 
+          text.includes("browse") || text.includes("maybe") || text.includes("wait")) {
+        return "Items in your cart are in high demand and reserved for only 15 minutes. Complete your purchase now to secure current inventory!";
+      }
+
+      // 12. Smart contextual fallback (Reassuring, NOT a generic coupon)
+      return "We are here to ensure a worry-free shopping experience! Enjoy fast tracked shipping, verified buyer protection, and 24/7 priority customer support.";
     }
 
     // ─── AI STORE DETECTIVE ONBOARDING ENGINE (Phase 3 Moat) ───
