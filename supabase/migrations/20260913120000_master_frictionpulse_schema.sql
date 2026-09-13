@@ -243,3 +243,38 @@ CREATE POLICY "Service role only webhooks" ON public.processed_webhooks TO servi
 -- Email Alerts
 DROP POLICY IF EXISTS "Manage email alerts" ON public.email_alerts;
 CREATE POLICY "Manage email alerts" ON public.email_alerts FOR ALL USING (true);
+
+-- 15. Support Messages Table
+CREATE TABLE IF NOT EXISTS public.support_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_email TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE public.support_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can insert support messages" ON public.support_messages;
+CREATE POLICY "Public can insert support messages" ON public.support_messages FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated users can view own support messages" ON public.support_messages;
+CREATE POLICY "Authenticated users can view own support messages" ON public.support_messages FOR SELECT USING (true);
+
+-- 16. Usage Metrics Table
+CREATE TABLE IF NOT EXISTS public.usage_metrics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    billing_cycle_start TIMESTAMPTZ NOT NULL,
+    leads_count INT DEFAULT 0,
+    views_count INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_usage_metrics_user_cycle ON public.usage_metrics(user_id, billing_cycle_start);
+
+ALTER TABLE public.usage_metrics ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own usage metrics" ON public.usage_metrics;
+CREATE POLICY "Users can view own usage metrics" ON public.usage_metrics FOR SELECT USING (auth.uid() = user_id OR auth.uid() IS NULL);
+DROP POLICY IF EXISTS "Users can manage own usage metrics" ON public.usage_metrics;
+CREATE POLICY "Users can manage own usage metrics" ON public.usage_metrics FOR ALL USING (auth.uid() = user_id OR auth.uid() IS NULL);
+

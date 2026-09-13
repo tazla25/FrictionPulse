@@ -3277,17 +3277,19 @@
     }
 
     async function checkUserSites() {
-      const queryUserId = currentUser ? currentUser.id : "anonymous";
+      if (!currentUser) {
+        showView('auth');
+        return;
+      }
+      const queryUserId = currentUser.id;
       try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, {
           method: "GET", headers: getHeaders()
         });
         if (!response.ok) throw new Error("Failed to fetch sites");
         const sites = await response.json();
-        if (currentUser) {
-          await loadBillingData();
-          checkUpgradeParameter();
-        }
+        await loadBillingData();
+        checkUpgradeParameter();
 
         if (sites.length === 0) {
           document.getElementById('cancel-onboarding-btn').classList.add('hidden');
@@ -3301,6 +3303,11 @@
     function generateSiteKey() { return 'sk_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36); }
 
     async function registerDomain() {
+      if (!currentUser) {
+        showToast("Please sign in first.", "error");
+        showView('auth');
+        return;
+      }
       const domainInput = document.getElementById("domain");
       const domain = domainInput.value.trim();
       const spinner = document.getElementById("register-spinner");
@@ -3312,7 +3319,7 @@
       try {
         const siteResponse = await fetch(`${SUPABASE_URL}/rest/v1/sites`, {
           method: "POST", headers: getHeaders(),
-          body: JSON.stringify({ user_id: currentUser ? currentUser.id : "anonymous", domain: domain, site_key: siteKey })
+          body: JSON.stringify({ user_id: currentUser.id, domain: domain, site_key: siteKey })
         });
         if (!siteResponse.ok) { const errData = await siteResponse.json(); throw new Error("Failed to register site: " + JSON.stringify(errData)); }
         const defaultObjections = [
@@ -3340,7 +3347,8 @@
     }
 
     async function fetchSites() {
-      const queryUserId = currentUser ? currentUser.id : "anonymous";
+      if (!currentUser) return [];
+      const queryUserId = currentUser.id;
       const response = await fetch(`${SUPABASE_URL}/rest/v1/sites?select=*&user_id=eq.${queryUserId}`, { method: "GET", headers: getHeaders() });
       if (!response.ok) throw new Error("Failed to fetch sites");
       return await response.json();
@@ -4034,7 +4042,7 @@
                 <div class="empty-state-icon">🎯</div>
                 <h3>No leads found</h3>
                 <p>You haven't captured any leads yet. Make sure your widget is installed or test it on the <a href="demo.html" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">Demo Store &rarr;</a></p>
-                <button class="btn btn-primary" onclick="switchTab('config')" style="margin-top: 16px;">View Setup Guide</button>
+                <button class="btn btn-primary" onclick="switchTab('settings')" style="margin-top: 16px;">View Setup Guide</button>
               </div>
             `;
           } else {
@@ -4404,7 +4412,7 @@
                 <div class="empty-state-icon">💬</div>
                 <h3>No feedback yet</h3>
                 <p>When visitors write custom feedback, it will appear here. Test it on the <a href="demo.html" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">Demo Store &rarr;</a></p>
-                <button class="btn btn-primary" onclick="switchTab('config')" style="margin-top: 16px;">View Setup Guide</button>
+                <button class="btn btn-primary" onclick="switchTab('settings')" style="margin-top: 16px;">View Setup Guide</button>
               </div>
             `;
           } else {
@@ -5098,7 +5106,7 @@
     });
 
     function switchTab(tabName) {
-      if (tabName === 'config') tabName = 'objections';
+      if (tabName === 'config') tabName = 'settings';
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       const navItem = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
       if (navItem) navItem.classList.add('active');

@@ -67,14 +67,20 @@
 <body>
   <nav>
     <div class="logo">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="rgba(255,78,17,0.4)" stroke-width="2"/>
-        <circle cx="12" cy="12" r="6" stroke="rgba(255,78,17,0.7)" stroke-width="2"/>
-        <circle cx="12" cy="12" r="2" fill="#FF4E11"/>
-      </svg>
-      <span>Friction<span class="gradient-text">Pulse</span></span>
+      <a href="index.html" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="rgba(255,78,17,0.4)" stroke-width="2"/>
+          <circle cx="12" cy="12" r="6" stroke="rgba(255,78,17,0.7)" stroke-width="2"/>
+          <circle cx="12" cy="12" r="2" fill="#FF4E11"/>
+        </svg>
+        <span>Friction<span class="gradient-text">Pulse</span></span>
+      </a>
     </div>
-    <a href="index.html" class="nav-link">← Back to Home</a>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <a href="demo.html" class="nav-link">Live Demo</a>
+      <a href="dashboard.html" class="nav-link">Sign In</a>
+      <a href="index.html" class="nav-link">← Home</a>
+    </div>
   </nav>
 
   <div class="container">
@@ -91,22 +97,62 @@
     </div>
 
     <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-desc">For new stores testing cart recovery</div>
+        <div class="plan-price" data-monthly="₹0" data-yearly="₹0">₹0<span>/mo</span></div>
+        <div class="plan-period" data-period-monthly="Free forever" data-period-yearly="Free forever">Free forever</div>
+        <a href="dashboard.html" class="btn btn-secondary">Get Started Free</a>
+        <ul class="features">
+          <li>1 website</li>
+          <li>5 active objections</li>
+          <li>500 widget views/mo</li>
+          <li>Basic lead capture (first 10 leads)</li>
+          <li>Standard exit intent detection</li>
+          <li>Community support</li>
+          <li class="disabled">Dynamic session coupon engine</li>
+          <li class="disabled">AI Store Detective</li>
+          <li class="disabled">Real-time email alerts</li>
+          <li class="disabled">Custom branding & fonts</li>
+        </ul>
+      </div>
 
+      <div class="plan popular">
+        <div class="popular-badge">Most Popular</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">For growing D2C brands & Shopify stores</div>
+        <div class="plan-price" data-monthly="₹799" data-yearly="₹639">₹799<span>/mo</span></div>
+        <div class="plan-period" data-period-monthly="Billed monthly" data-period-yearly="Billed yearly (₹7,670/yr)">Billed monthly</div>
+        <a href="dashboard.html?upgrade=starter" class="btn">Start 14-Day Free Trial</a>
+        <ul class="features">
+          <li>3 websites</li>
+          <li>25 active objections</li>
+          <li>3,000 widget views/mo</li>
+          <li>Unlimited lead capture (no quota blur)</li>
+          <li>AI Store Detective (60s onboarding)</li>
+          <li>Dynamic session coupon engine</li>
+          <li>Real-time email alerts</li>
+          <li>Custom widget colors & theme</li>
+          <li>Standard email support</li>
+        </ul>
+      </div>
 
       <div class="plan">
         <div class="plan-name">Pro</div>
-        <div class="plan-desc">For professional merchants and teams</div>
-        <div class="plan-price" data-monthly="₹1699" data-yearly="₹16310">₹1699<span>/mo</span></div>
-        <div class="plan-period">Billed monthly</div>
-        <a href="dashboard.html?upgrade=pro" class="btn btn-secondary">Get Started</a>
+        <div class="plan-desc">For high-volume merchants and agencies</div>
+        <div class="plan-price" data-monthly="₹1699" data-yearly="₹1359">₹1699<span>/mo</span></div>
+        <div class="plan-period" data-period-monthly="Billed monthly" data-period-yearly="Billed yearly (₹16,310/yr)">Billed monthly</div>
+        <a href="dashboard.html?upgrade=pro" class="btn btn-secondary">Get Started Pro</a>
         <ul class="features">
           <li>100 websites (Unlimited)</li>
           <li>Unlimited objections</li>
           <li>10,000 widget views/mo</li>
           <li>Lead capture (email + phone)</li>
+          <li>AI Store Detective & auto-prompts</li>
+          <li>Dynamic session coupon engine</li>
           <li>Real-time email alerts</li>
           <li>Custom widget colors & branding</li>
-          <li>Custom widget fonts</li>
+          <li>Custom Google fonts</li>
           <li>Webhooks integration</li>
           <li>Priority 24/7 support</li>
         </ul>
@@ -133,7 +179,9 @@
         el.innerHTML = price + '<span>/mo</span>';
       });
       document.querySelectorAll('.plan-period').forEach(el => {
-        el.textContent = isYearly ? 'Billed yearly' : 'Billed monthly';
+        el.textContent = isYearly 
+          ? (el.dataset.periodYearly || 'Billed yearly') 
+          : (el.dataset.periodMonthly || 'Billed monthly');
       });
     }
   </script>
