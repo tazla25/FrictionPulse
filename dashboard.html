@@ -3473,8 +3473,23 @@
       const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
       const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
       const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
-      const emailLink = lead.email ? `<a href="mailto:${escapeHtml(lead.email)}?subject=Re:%20Your%20inquiry" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.email)}</a>` : '—';
-      const phoneLink = lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.phone)}</a>` : '—';
+      const isLocked = lead.locked_by_plan === true;
+      const lockedBannerHtml = isLocked ? `
+        <div style="background:rgba(255, 179, 0, 0.1); border:1px solid rgba(255, 179, 0, 0.3); border-radius:8px; padding:12px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div>
+            <strong style="color:var(--warning);">🔒 Free Tier Quota Reached</strong>
+            <p style="font-size:12px; color:var(--text-secondary); margin-top:2px;">This lead was captured after exceeding your monthly free limit. Upgrade now to unlock verified contact details.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="switchTab('billing')">Upgrade Plan</button>
+        </div>
+      ` : '';
+
+      const emailLink = isLocked
+        ? `<span style="filter:blur(4px);user-select:none;opacity:0.6;">hidden@customer.com</span> <a href="javascript:void(0)" onclick="switchTab('billing')" class="badge badge-warning" style="margin-left:6px;font-size:11px;text-decoration:none;">🔒 Upgrade to View</a>`
+        : (lead.email ? `<a href="mailto:${escapeHtml(lead.email)}?subject=Re:%20Your%20inquiry" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.email)}</a>` : '—');
+      const phoneLink = isLocked
+        ? `<span style="filter:blur(4px);user-select:none;opacity:0.6;">+1 (555) 000-0000</span> <a href="javascript:void(0)" onclick="switchTab('billing')" class="badge badge-warning" style="margin-left:6px;font-size:11px;text-decoration:none;">🔒 Upgrade to View</a>`
+        : (lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.phone)}</a>` : '—');
       const pageLink = lead.page_url ? `<a href="${escapeHtml(lead.page_url)}" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none;">${escapeHtml(lead.page_url)}</a>` : '—';
 
       // Let's get the objection label if it exists in currentObjections
@@ -3501,6 +3516,7 @@
       document.getElementById('details-card-title').innerText = 'Lead Information';
 
       detailsContainer.innerHTML = `
+        ${lockedBannerHtml}
         <div class="modal-field">
           <div class="modal-field-label" style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px;">Contact</div>
           <div class="modal-field-value" style="font-size: 15px; font-weight: 500;">
@@ -3866,7 +3882,11 @@
         let html = `<div class="table-wrapper"><table class="data-table"><thead><tr><th><input type="checkbox" id="leads-select-all" onclick="toggleSelectAllLeads(this)" /></th><th>Contact</th><th>Score</th><th>Objection</th><th>Page</th><th onclick="sortLeads('status')" style="cursor:pointer;user-select:none;">Status ${leadsSortField === 'status' ? (leadsSortDir === 'desc' ? '▼' : '▲') : '↕'}</th><th onclick="sortLeads('created_at')" style="cursor:pointer;user-select:none;">Date ${leadsSortField === 'created_at' ? (leadsSortDir === 'desc' ? '▼' : '▲') : '↕'}</th><th>Actions</th></tr></thead><tbody>`;
         leads.forEach(lead => {
           const date = new Date(lead.created_at).toLocaleString();
-          const contact = lead.email || lead.phone || 'N/A';
+          const isLocked = lead.locked_by_plan === true;
+          const rawContact = escapeHtml(lead.email || lead.phone || 'N/A');
+          const contact = isLocked
+            ? `<span style="filter:blur(4px);user-select:none;opacity:0.6;">hidden@customer.com</span> <a href="javascript:void(0)" onclick="switchTab('billing')" class="badge badge-warning" style="margin-left:6px;font-size:10px;text-decoration:none;cursor:pointer;">🔒 Locked</a>`
+            : rawContact;
           const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
           const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
           const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
@@ -3904,7 +3924,11 @@
         let cardsHtml = '<div class="data-cards">';
         leads.forEach(lead => {
           const date = new Date(lead.created_at).toLocaleString();
-          const contact = lead.email || lead.phone || 'N/A';
+          const isLocked = lead.locked_by_plan === true;
+          const rawContact = escapeHtml(lead.email || lead.phone || 'N/A');
+          const contact = isLocked
+            ? `<span style="filter:blur(4px);user-select:none;opacity:0.6;">hidden@customer.com</span> <a href="javascript:void(0)" onclick="switchTab('billing')" class="badge badge-warning" style="margin-left:6px;font-size:10px;text-decoration:none;cursor:pointer;">🔒 Locked</a>`
+            : rawContact;
           const statusClass = lead.status === 'new' ? 'badge-new' : lead.status === 'contacted' ? 'badge-contacted' : 'badge-converted';
           const nextStatus = lead.status === 'new' ? 'contacted' : 'converted';
           const nextLabel = lead.status === 'new' ? 'Mark Contacted' : 'Mark Converted';
