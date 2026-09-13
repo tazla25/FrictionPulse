@@ -2150,32 +2150,6 @@
                 </div>
               </div>
 
-              <!-- Google Gemini AI Objection Copilot Section -->
-              <div id="settings-gemini-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                  <h4 style="margin: 0; color: var(--text-primary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                    <span>✨</span> Google Gemini AI Objection Copilot
-                  </h4>
-                  <span class="badge" style="background: rgba(0, 230, 118, 0.15); color: #00E676; border: 1px solid rgba(0, 230, 118, 0.3); font-size: 11px;">Gemini 2.0/1.5 Flash</span>
-                </div>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-                  Powers the <code>🪄 Suggest with AI</code> button with context-aware, conversion-focused counter-messages for any customer hesitation. Works via serverless Vercel <code>GEMINI_API_KEY</code>, or you can paste your own Google AI Studio key below.
-                </p>
-
-                <div class="form-group" style="margin-bottom: 12px;">
-                  <label style="font-size: 12px;">Gemini API Key (Optional Client Override)</label>
-                  <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="password" id="settings-gemini-key" placeholder="AIzaSy... (Leave empty to use Vercel Server Key)" style="padding: 9px 12px; font-family: monospace; flex: 1;" />
-                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleGeminiKeyVisibility()" id="gemini-key-toggle-btn" style="border: 1px solid var(--border);">👁️</button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="saveGeminiApiKey()">Save Key</button>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; flex-wrap:wrap; gap:6px;">
-                    <span style="font-size: 11px; color: var(--text-muted);" id="gemini-status-indicator">⚡ Default: Uses server-managed Vercel Gemini Flash engine.</span>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: var(--accent); text-decoration: none;">Get Free Gemini Key ↗</a>
-                  </div>
-                </div>
-              </div>
-
               <!-- Webhooks Integration Section -->
               <div id="settings-webhook-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
                 <h4 style="margin: 0 0 12px; color: var(--text-primary); font-size: 15px;">🔗 Zapier / Webhook Integrations</h4>
@@ -4916,21 +4890,6 @@
         }
       } catch (e) {}
 
-      // Restore Google Gemini API Key
-      const customGeminiKey = localStorage.getItem('fp_gemini_api_key') || '';
-      const geminiInput = document.getElementById('settings-gemini-key');
-      if (geminiInput) geminiInput.value = customGeminiKey;
-      const geminiStatus = document.getElementById('gemini-status-indicator');
-      if (geminiStatus) {
-        if (customGeminiKey) {
-          geminiStatus.innerText = '✅ Custom Gemini Key active & saved in local storage.';
-          geminiStatus.style.color = 'var(--success)';
-        } else {
-          geminiStatus.innerText = '⚡ Default: Uses server-managed Vercel Gemini Flash engine.';
-          geminiStatus.style.color = 'var(--text-muted)';
-        }
-      }
-
       // Set Color Options
       let matchedColorOption = false;
       document.querySelectorAll('.color-option').forEach(c => {
@@ -5110,14 +5069,6 @@
         }));
       } catch (e) {}
 
-      // Save Google Gemini API Key
-      const geminiInput = document.getElementById('settings-gemini-key');
-      if (geminiInput) {
-        const k = geminiInput.value.trim();
-        if (k) localStorage.setItem('fp_gemini_api_key', k);
-        else localStorage.removeItem('fp_gemini_api_key');
-      }
-
       // Determine current plan tier from the cached global variable
       const planTier = (currentPlanTier || 'free').toLowerCase();
 
@@ -5171,41 +5122,6 @@
         renderPreviewWidget();
       } catch (err) { status.innerText = err.message; status.style.color = "var(--danger)"; showToast(err.message, 'error'); }
       finally { if (spinner) spinner.classList.add('hidden'); if (btn) btn.disabled = false; }
-    }
-
-    function toggleGeminiKeyVisibility() {
-      const input = document.getElementById('settings-gemini-key');
-      const btn = document.getElementById('gemini-key-toggle-btn');
-      if (!input) return;
-      if (input.type === 'password') {
-        input.type = 'text';
-        if (btn) btn.innerText = '🔒';
-      } else {
-        input.type = 'password';
-        if (btn) btn.innerText = '👁️';
-      }
-    }
-
-    function saveGeminiApiKey() {
-      const input = document.getElementById('settings-gemini-key');
-      const status = document.getElementById('gemini-status-indicator');
-      if (!input) return;
-      const k = input.value.trim();
-      if (k) {
-        localStorage.setItem('fp_gemini_api_key', k);
-        if (status) {
-          status.innerText = '✅ Custom Gemini Key active & saved in local storage.';
-          status.style.color = 'var(--success)';
-        }
-        showToast('Google Gemini API key saved!', 'success');
-      } else {
-        localStorage.removeItem('fp_gemini_api_key');
-        if (status) {
-          status.innerText = '⚡ Default: Uses server-managed Vercel Gemini Flash engine.';
-          status.style.color = 'var(--text-muted)';
-        }
-        showToast('Custom key cleared. Using Vercel server key.', 'info');
-      }
     }
 
     // ─── UTILS ───
@@ -5643,16 +5559,12 @@
 
       // 1. Try Vercel Serverless Gemini Function
       try {
-        const customKey = localStorage.getItem('fp_gemini_api_key');
-        const headers = { 'Content-Type': 'application/json' };
-        if (customKey) headers['x-gemini-api-key'] = customKey;
-
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000);
 
         const res = await fetch('/api/suggest-objection', {
           method: 'POST',
-          headers: headers,
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ label, niche, brand, currency }),
           signal: controller.signal
         });

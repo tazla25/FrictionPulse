@@ -30,8 +30,8 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Objection label is required' });
   }
 
-  // Check for API key: either server environment variable or client header override
-  const apiKey = req.headers['x-gemini-api-key'] || process.env.GEMINI_API_KEY;
+  // Server-side authority: Vercel environment variable
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return res.status(200).json({
