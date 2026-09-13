@@ -193,6 +193,10 @@
       box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,78,17,0.05); backdrop-filter: blur(16px);
       color: #fff; display: none; opacity: 0; transform: translateY(10px);
       transition: opacity 0.3s ease, transform 0.3s ease;
+      contain: content; will-change: transform, opacity;
+    }
+    @media (max-width: 480px) {
+      .fp-popup { width: calc(100vw - 24px); bottom: 68px; right: -8px; padding: 20px; border-radius: 16px; }
     }
     .fp-popup.open { display: block; opacity: 1; transform: translateY(0); }
 
