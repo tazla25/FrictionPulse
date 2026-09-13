@@ -2034,6 +2034,42 @@
                 </label>
               </div>
 
+              <!-- Dynamic Single-Use Coupon & Margin Guard Settings -->
+              <div id="settings-coupon-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                  <h4 style="margin: 0; color: var(--text-primary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                    <span>🎟️</span> Dynamic Urgency Coupons & Margin Guard
+                  </h4>
+                  <span class="badge" style="background: rgba(255,78,17,0.15); color: #FF4E11; border: 1px solid rgba(255,78,17,0.3); font-size: 11px;">Phase 3 Moat</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                  Generates 1-time session tokens with live countdown timers. Prevents Honey & Coupert browser scrapers from leaking discounts to full-price buyers.
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 12px;">Base Discount Code</label>
+                    <input type="text" id="settings-coupon-prefix" placeholder="WELCOME10" value="WELCOME10" style="padding: 9px 12px; font-family: monospace; font-weight: 600;" />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 12px;">Urgency Countdown (Minutes)</label>
+                    <select id="settings-coupon-duration" style="width: 100%; padding: 9px 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                      <option value="10">10 Minutes (Aggressive Urgency)</option>
+                      <option value="15" selected>15 Minutes (Standard Recommended)</option>
+                      <option value="30">30 Minutes (Moderate)</option>
+                      <option value="60">60 Minutes (Relaxed)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 8px;">
+                  <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="settings-coupon-antihoney" checked style="width: auto; margin: 0;" />
+                    <span style="font-weight: 400; font-size: 13px;">Anti-Honey Protection (Append dynamic 4-character session suffix: e.g. <code>WELCOME10-8K2P</code>)</span>
+                  </label>
+                </div>
+              </div>
+
               <!-- Webhooks Integration Section -->
               <div id="settings-webhook-section" style="border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; margin-bottom: 24px;">
                 <h4 style="margin: 0 0 12px; color: var(--text-primary); font-size: 15px;">🔗 Zapier / Webhook Integrations</h4>
@@ -4614,6 +4650,27 @@
       const trigFbEl = document.getElementById('webhook-trigger-feedback');
       if (trigFbEl) trigFbEl.checked = triggerFeedback;
 
+      // Restore Dynamic Coupon & Margin Guard settings (Phase 3 Moat)
+      try {
+        const rawCoupon = localStorage.getItem(`fp_coupon_settings_${currentSiteKey}`);
+        if (rawCoupon) {
+          const cp = JSON.parse(rawCoupon);
+          const cpPref = document.getElementById('settings-coupon-prefix');
+          if (cpPref && cp.prefix) cpPref.value = cp.prefix;
+          const cpDur = document.getElementById('settings-coupon-duration');
+          if (cpDur && cp.duration) cpDur.value = cp.duration;
+          const cpAnti = document.getElementById('settings-coupon-antihoney');
+          if (cpAnti && cp.antiHoney !== undefined) cpAnti.checked = cp.antiHoney;
+        } else {
+          const cpPref = document.getElementById('settings-coupon-prefix');
+          if (cpPref) cpPref.value = 'WELCOME10';
+          const cpDur = document.getElementById('settings-coupon-duration');
+          if (cpDur) cpDur.value = '15';
+          const cpAnti = document.getElementById('settings-coupon-antihoney');
+          if (cpAnti) cpAnti.checked = true;
+        }
+      } catch (e) {}
+
       // Set Color Options
       let matchedColorOption = false;
       document.querySelectorAll('.color-option').forEach(c => {
@@ -4776,6 +4833,22 @@
       const triggerLead = trigLeadEl ? trigLeadEl.checked : true;
       const trigFbEl = document.getElementById('webhook-trigger-feedback');
       const triggerFeedback = trigFbEl ? trigFbEl.checked : true;
+
+      // Dynamic Coupon & Urgency settings (Phase 3 Moat)
+      const couponPrefixEl = document.getElementById('settings-coupon-prefix');
+      const couponPrefix = couponPrefixEl ? couponPrefixEl.value.trim() : 'WELCOME10';
+      const couponDurEl = document.getElementById('settings-coupon-duration');
+      const couponDuration = couponDurEl ? couponDurEl.value : '15';
+      const antiHoneyEl = document.getElementById('settings-coupon-antihoney');
+      const couponAntiHoney = antiHoneyEl ? antiHoneyEl.checked : true;
+
+      try {
+        localStorage.setItem('fp_coupon_settings_' + currentSiteKey, JSON.stringify({
+          prefix: couponPrefix,
+          duration: couponDuration,
+          antiHoney: couponAntiHoney
+        }));
+      } catch (e) {}
 
       // Determine current plan tier from the cached global variable
       const planTier = (currentPlanTier || 'free').toLowerCase();

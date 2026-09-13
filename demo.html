@@ -669,7 +669,6 @@
     });
   </script>
 
-  <!-- FrictionPulse Widget -->
   
   <!-- FrictionPulse Widget (Inlined for 100% offline & local file:// / content:// support) -->
   <script id="fp-widget-inline" data-site-key="sk_9g6a9ca8pmptxtsni">
@@ -950,6 +949,69 @@
     .fp-footer a { color: #8A8F98; text-decoration: none; transition: color 0.2s; }
     .fp-footer a:hover { color: ${CONFIG.primaryColor}; }
 
+    /* Dynamic Urgency Coupon Pill & Countdown Timer */
+    .fp-coupon-box {
+      background: linear-gradient(135deg, rgba(255,78,17,0.12) 0%, rgba(255,78,17,0.03) 100%);
+      border: 1px solid rgba(255,78,17,0.4);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .fp-code-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .fp-code-pill {
+      background: #161822;
+      border: 1px dashed #FF4E11;
+      color: #fff;
+      font-family: 'SF Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      user-select: all;
+    }
+    .fp-copy-btn {
+      background: #FF4E11;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .fp-copy-btn:hover {
+      background: #FF6633;
+      transform: translateY(-1px);
+    }
+    .fp-urgency-timer {
+      font-size: 12px;
+      color: #E5E7EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .fp-countdown-clock {
+      color: #FF4E11;
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     @media (max-width: 480px) {
       .fp-popup { width: calc(100vw - 40px); right: 0 !important; left: auto !important; transform: translateY(10px); border-radius: 16px; }
       .fp-popup.open { transform: translateY(0); }
@@ -1073,14 +1135,27 @@
     }
   }
 
-  // ─── COUNTER MESSAGE + LEAD CAPTURE ───
+  // ─── COUNTER MESSAGE + DYNAMIC COUPON + LEAD CAPTURE ───
+  let countdownTimerInterval = null;
+
   function showCounter(obj) {
     hasInteracted = true;
     logVote(obj.id);
 
-    const isLeadWorthy = obj.label.toLowerCase().includes('stock') || 
-                         obj.label.toLowerCase().includes('size') ||
-                         obj.label.toLowerCase().includes('price');
+    // Detect if this objection addresses discounts, promo codes, or pricing hesitation
+    const isCouponWorthy = /code:?\s*([A-Z0-9_-]+)/i.test(obj.counter_message) ||
+                           /code\s+([A-Z0-9_-]+)/i.test(obj.counter_message) ||
+                           /voucher\s+([A-Z0-9_-]+)/i.test(obj.counter_message) ||
+                           obj.label.toLowerCase().includes('price') ||
+                           obj.label.toLowerCase().includes('discount') ||
+                           obj.label.toLowerCase().includes('coupon') ||
+                           obj.label.toLowerCase().includes('cost') ||
+                           obj.counter_message.toLowerCase().includes('discount') ||
+                           obj.counter_message.toLowerCase().includes('coupon') ||
+                           obj.counter_message.toLowerCase().includes('% off') ||
+                           obj.counter_message.toLowerCase().includes('voucher');
+
+    const isLeadWorthy = !isCouponWorthy && (obj.label.toLowerCase().includes('stock') || obj.label.toLowerCase().includes('size'));
 
     let html = `
       <div class="fp-counter-box">
@@ -1089,7 +1164,76 @@
       </div>
     `;
 
-    if (CONFIG.leadCapture && isLeadWorthy) {
+    let dynamicCode = '';
+
+    if (isCouponWorthy) {
+      // 1. Extract base discount code if present, or fallback to SAVE10
+      let baseCode = "WELCOME10";
+      const codeMatch = obj.counter_message.match(/(?:code|voucher)[:\s]+([A-Z0-9_-]+)/i);
+      if (codeMatch && codeMatch[1]) {
+        baseCode = codeMatch[1].replace(/[^A-Z0-9_-]/gi, '').toUpperCase();
+      }
+
+      // 2. Anti-Scraping Dynamic Session Token (Honey/Coupert protection)
+      let sessionToken = '';
+      try {
+        sessionToken = sessionStorage.getItem('fp_coupon_token');
+        if (!sessionToken) {
+          sessionToken = Math.random().toString(36).substring(2, 6).toUpperCase();
+          sessionStorage.setItem('fp_coupon_token', sessionToken);
+        }
+      } catch (e) {
+        sessionToken = 'VIP1';
+      }
+      dynamicCode = `${baseCode}-${sessionToken}`;
+
+      // 3. 15-Minute Urgency Countdown Expiry
+      let expireTime = 0;
+      try {
+        const storedExp = sessionStorage.getItem('fp_coupon_expires');
+        if (storedExp && parseInt(storedExp, 10) > Date.now()) {
+          expireTime = parseInt(storedExp, 10);
+        } else {
+          expireTime = Date.now() + 15 * 60 * 1000;
+          sessionStorage.setItem('fp_coupon_expires', expireTime.toString());
+        }
+      } catch (e) {
+        expireTime = Date.now() + 15 * 60 * 1000;
+      }
+
+      html += `
+        <div class="fp-coupon-box">
+          <div style="font-size: 11px; font-weight: 700; color: #FF4E11; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+            <span>⚡</span> 1-Time Session Discount Unlocked
+          </div>
+          <div class="fp-code-row">
+            <div class="fp-code-pill" id="fp-code-display">${escapeHTML(dynamicCode)}</div>
+            <button type="button" id="fp-copy-btn" class="fp-copy-btn">
+              📋 Copy Code
+            </button>
+          </div>
+          <div class="fp-urgency-timer">
+            <span>⏳</span> Offer expires in: <span class="fp-countdown-clock" id="fp-countdown-text">14:59</span>
+          </div>
+          <a href="#" class="fp-cta-link" id="fp-claim-checkout" style="display: block; width: 100%; margin-top: 10px; box-sizing: border-box; text-align: center;">
+            🛒 Claim Discount & Finish Order →
+          </a>
+        </div>
+      `;
+
+      // Optional compact lead capture for SMS/Email copy
+      if (CONFIG.leadCapture) {
+        html += `
+          <div class="fp-lead-form" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+            <label style="font-size: 11px; color: #8A8F98;">📱 Want this code sent to your phone/email?</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" class="fp-input" id="fp-email" placeholder="Phone or email" style="margin-bottom: 0; padding: 8px 10px; font-size: 12px;" />
+              <button class="fp-submit" id="fp-lead-submit" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0; white-space: nowrap;">Send</button>
+            </div>
+          </div>
+        `;
+      }
+    } else if (CONFIG.leadCapture && isLeadWorthy) {
       html += `
         <div class="fp-lead-form">
           <label>📧 Get notified instantly</label>
@@ -1111,77 +1255,157 @@
 
     content.innerHTML = html;
 
+    // Attach Coupon Handlers
+    if (isCouponWorthy) {
+      window.__fpLastDynamicCode = dynamicCode;
+      const copyBtn = content.querySelector('#fp-copy-btn');
+      if (copyBtn) {
+        copyBtn.onclick = () => {
+          const fallbackCopy = (text) => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+          };
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(dynamicCode).catch(() => fallbackCopy(dynamicCode));
+          } else {
+            fallbackCopy(dynamicCode);
+          }
+
+          copyBtn.innerHTML = "✓ Copied!";
+          copyBtn.style.background = "#00E676";
+          copyBtn.style.color = "#000";
+          setTimeout(() => {
+            copyBtn.innerHTML = "📋 Copy Code";
+            copyBtn.style.background = "#FF4E11";
+            copyBtn.style.color = "#fff";
+          }, 2500);
+        };
+      }
+
+      const claimBtn = content.querySelector('#fp-claim-checkout');
+      if (claimBtn) {
+        claimBtn.onclick = (e) => {
+          e.preventDefault();
+          toggle(false);
+        };
+      }
+
+      // Live countdown ticker
+      const countdownEl = content.querySelector('#fp-countdown-text');
+      if (countdownEl) {
+        if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+        const expTime = parseInt(sessionStorage.getItem('fp_coupon_expires') || '0', 10);
+        
+        const tick = () => {
+          const remaining = Math.max(0, expTime - Date.now());
+          const mins = Math.floor(remaining / 60000);
+          const secs = Math.floor((remaining % 60000) / 1000);
+          countdownEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          if (remaining <= 0) {
+            countdownEl.innerText = "EXPIRED";
+            countdownEl.style.color = "#ef4444";
+            clearInterval(countdownTimerInterval);
+          }
+        };
+        tick();
+        countdownTimerInterval = setInterval(tick, 1000);
+      }
+    }
+
     const closeShoppingBtn = content.querySelector('#fp-close-shopping');
     if (closeShoppingBtn) {
       closeShoppingBtn.onclick = (e) => { e.preventDefault(); toggle(false); };
     }
 
-    if (CONFIG.leadCapture && isLeadWorthy) {
+    if (CONFIG.leadCapture && (isLeadWorthy || isCouponWorthy)) {
       const submitBtn = content.querySelector('#fp-lead-submit');
-      submitBtn.onclick = () => {
-        const email = content.querySelector('#fp-email').value.trim();
-        const phone = content.querySelector('#fp-phone').value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (submitBtn) {
+        submitBtn.onclick = () => {
+          const emailInput = content.querySelector('#fp-email');
+          const phoneInput = content.querySelector('#fp-phone');
+          const rawVal = emailInput ? emailInput.value.trim() : '';
+          const phoneVal = phoneInput ? phoneInput.value.trim() : '';
 
-        if (!email && !phone) {
-          const input = content.querySelector('#fp-email');
-          input.style.borderColor = '#ff5252';
-          input.style.boxShadow = '0 0 0 3px rgba(255,82,82,0.1)';
-          setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 2000);
-          return;
-        }
-        if (email && !validateEmail(email)) {
-          const input = content.querySelector('#fp-email');
-          input.style.borderColor = '#ff5252';
-          input.style.boxShadow = '0 0 0 3px rgba(255,82,82,0.1)';
-          input.value = '';
-          input.placeholder = 'Invalid email address';
-          setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; input.placeholder = 'your@email.com'; }, 2000);
-          return;
-        }
+          let email = '';
+          let phone = '';
 
-        if (phone && phone.length > 20) {
-          const input = content.querySelector('#fp-phone');
-          input.style.borderColor = '#ff5252';
-          setTimeout(() => { input.style.borderColor = ''; }, 2000);
-          return;
-        }
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Saving...';
-        post('leads', {
-          site_key: siteKey,
-          objection_id: obj.id,
-          email: email || null,
-          phone: phone || null,
-          session_hash: sessionHash,
-          page_url: window.location.href
-        }).then(ok => {
-          if (ok) {
-            content.innerHTML = `
-              <div class="fp-thanks">
-                <div class="fp-thanks-icon">✅</div>
-                <h4>You're on the list!</h4>
-                <p>We'll contact you as soon as this is resolved.</p>
-              </div>
-            `;
-          } else {
+          if (rawVal.includes('@')) {
+            email = rawVal;
+          } else if (rawVal) {
+            phone = rawVal;
+          }
+          if (phoneVal) phone = phoneVal;
+
+          if (!email && !phone) {
+            if (emailInput) {
+              emailInput.style.borderColor = '#ff5252';
+              emailInput.style.boxShadow = '0 0 0 3px rgba(255,82,82,0.1)';
+              setTimeout(() => { emailInput.style.borderColor = ''; emailInput.style.boxShadow = ''; }, 2000);
+            }
+            return;
+          }
+          if (email && !validateEmail(email)) {
+            if (emailInput) {
+              emailInput.style.borderColor = '#ff5252';
+              emailInput.style.boxShadow = '0 0 0 3px rgba(255,82,82,0.1)';
+              emailInput.value = '';
+              emailInput.placeholder = 'Invalid email';
+              setTimeout(() => { emailInput.style.borderColor = ''; emailInput.style.boxShadow = ''; emailInput.placeholder = 'Phone or email'; }, 2000);
+            }
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Saving...';
+          post('leads', {
+            site_key: siteKey,
+            objection_id: obj.id,
+            email: email || null,
+            phone: phone || null,
+            session_hash: sessionHash,
+            page_url: window.location.href
+          }).then(ok => {
+            if (ok) {
+              if (isCouponWorthy) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '✓ Sent!';
+                submitBtn.style.background = '#00E676';
+                submitBtn.style.color = '#000';
+              } else {
+                content.innerHTML = `
+                  <div class="fp-thanks">
+                    <div class="fp-thanks-icon">✅</div>
+                    <h4>You're on the list!</h4>
+                    <p>We'll contact you as soon as this is resolved.</p>
+                  </div>
+                `;
+              }
+            } else {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Retry';
+              let errNotice = content.querySelector('#fp-err-notice');
+              if (!errNotice) {
+                errNotice = document.createElement('div');
+                errNotice.id = 'fp-err-notice';
+                errNotice.style.cssText = 'color:#ff5252;font-size:12px;margin-top:8px;text-align:center;font-weight:500;';
+                submitBtn.parentNode.appendChild(errNotice);
+              }
+              errNotice.textContent = 'Connection issue. Please retry.';
+              setTimeout(() => { if (errNotice) errNotice.remove(); }, 4000);
+            }
+          }).catch(() => {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Retry';
-            let errNotice = content.querySelector('#fp-err-notice');
-            if (!errNotice) {
-              errNotice = document.createElement('div');
-              errNotice.id = 'fp-err-notice';
-              errNotice.style.cssText = 'color:#ff5252;font-size:12px;margin-top:8px;text-align:center;font-weight:500;';
-              submitBtn.parentNode.appendChild(errNotice);
-            }
-            errNotice.textContent = 'Connection issue. Please retry.';
-            setTimeout(() => { if (errNotice) errNotice.remove(); }, 4000);
-          }
-        }).catch(() => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Retry';
-        });
-      };
+          });
+        };
+      }
     }
   }
 
