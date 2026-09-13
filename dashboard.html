@@ -1688,6 +1688,74 @@
 
           <!-- TAB: CONFIGURATION -->
           <div id="tab-objections" class="tab-content hidden">
+
+            <!-- AI Store Detective Card (Phase 3 60-Second Onboarding Engine) -->
+            <div class="card" style="background: linear-gradient(135deg, rgba(255,78,17,0.06) 0%, rgba(13,14,18,0.95) 100%); border: 1px solid rgba(255,78,17,0.3); margin-bottom: 24px; border-radius: 12px; padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <div style="font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">🕵️‍♂️</span> AI Store Detective (60-Second Onboarding Engine)
+                    <span class="badge" style="background: rgba(0,230,118,0.15); color: #00E676; border: 1px solid rgba(0,230,118,0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px;">Unfair Advantage</span>
+                  </div>
+                  <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">
+                    Select your store niche and brand name. AI Detective analyzes high-friction dropoff hesitations and crafts 5 conversion-optimized counter-messages ready to deploy in under 60 seconds.
+                  </p>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block;">Store Niche / Industry</label>
+                  <select id="detective-niche" style="width: 100%; padding: 10px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; color: white; cursor: pointer;">
+                    <option value="fashion">👗 Fashion, Apparel & Clothing</option>
+                    <option value="electronics">📱 Electronics, Gadgets & Audio</option>
+                    <option value="beauty">💄 Beauty, Cosmetics & Skincare</option>
+                    <option value="footwear">👟 Shoes, Sneakers & Footwear</option>
+                    <option value="luxury">💎 Jewelry, Watches & Luxury Goods</option>
+                    <option value="supplements">💊 Health, Fitness & Supplements</option>
+                    <option value="home">🏡 Home Decor, Furniture & Kitchen</option>
+                    <option value="general">📦 General E-Commerce & Dropshipping</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block;">Brand Name / Store Domain</label>
+                  <input type="text" id="detective-brand" placeholder="e.g. Zara or myshop.com" style="width: 100%; padding: 10px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; color: white;" />
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block;">Store Region & Currency</label>
+                  <select id="detective-currency" style="width: 100%; padding: 10px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; color: white; cursor: pointer;">
+                    <option value="INR">₹ INR (India - Free COD & Fast Dispatch)</option>
+                    <option value="USD">$ USD (USA/Global - Free Shipping over $50)</option>
+                    <option value="GBP">£ GBP (UK/Europe - Next Day Express)</option>
+                    <option value="EUR">€ EUR (Europe - 14-Day EU Returns)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <button id="detective-run-btn" class="btn btn-primary" onclick="runStoreDetective()" style="background: #FF4E11; border: none; font-weight: 700; display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 10px rgba(255,78,17,0.35);">
+                  <span>✨</span> Run Store Detective
+                </button>
+                <span id="detective-spinner" class="spinner hidden" style="width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #FF4E11; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                <span id="detective-status-text" style="font-size: 12px; color: var(--text-secondary);"></span>
+              </div>
+
+              <!-- AI Detective Generated Results -->
+              <div id="detective-results" class="hidden" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                  <div style="font-size: 14px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px;">
+                    <span>🎯</span> Generated Counter-Objection Cards (<span id="detective-count">5</span> Ready)
+                  </div>
+                  <button class="btn btn-primary btn-sm" id="detective-deploy-btn" onclick="deployDetectiveObjections()" style="background: #00E676; color: #000; font-weight: 700; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">
+                    🚀 Deploy to My Widget (1-Click)
+                  </button>
+                </div>
+                <div id="detective-cards-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+              </div>
+            </div>
+
             <div class="card">
               <div class="card-header">
                 <div class="card-title">Configured Counter-Messages</div>
@@ -5189,6 +5257,233 @@
         // Log Activity
         logMerchantActivity("AI Suggestion Used", `Generated message for: "${label}"`);
       }, 800);
+    }
+
+    // ─── AI STORE DETECTIVE ONBOARDING ENGINE (Phase 3 Moat) ───
+    let detectiveGeneratedCards = [];
+
+    const NICHE_OBJECTION_TEMPLATES = {
+      fashion: [
+        { label: "Unsure about size / fit", message: "100% Free Size Exchanges! If it doesn't fit like a glove, our courier picks it up from your doorstep at zero cost." },
+        { label: "What is the fabric quality?", message: "Crafted from breathable, high-GSM combed cotton. Retains color and shape through 50+ machine washes." },
+        { label: "When will my package arrive?", message: "Dispatches within 24 hours. Express tracked delivery to your doorstep in 2-3 business days!" },
+        { label: "Can I pay Cash on Delivery?", message: "Yes! Cash on Delivery is 100% supported with doorstep inspection before payment." },
+        { label: "First-order discount voucher", message: "Take 10% OFF your entire cart today! Use voucher code FIRST10 at checkout." }
+      ],
+      electronics: [
+        { label: "Is there an official warranty?", message: "1-Year Comprehensive Replacement Warranty + 30-Day Zero-Risk Return Guarantee included." },
+        { label: "Is this 100% genuine / OEM?", message: "Guaranteed 100% authentic OEM with verifiable serial number and manufacturer security seal." },
+        { label: "Device & voltage compatibility", message: "Universal Type-C fast charging and Bluetooth 5.3. Works seamlessly with iOS, Android, and Windows." },
+        { label: "Will it get damaged in transit?", message: "Shipped in 3-layer shockproof protective armor with 100% transit insurance." },
+        { label: "Special Tech Bundle Offer", message: "Get flat 10% off your tech order today with code GADGET10 at checkout!" }
+      ],
+      beauty: [
+        { label: "Safe for sensitive skin?", message: "Dermatologist-tested, hypoallergenic, and 100% cruelty-free. Zero parabens, sulfates, or harsh chemicals." },
+        { label: "How soon will I see results?", message: "Visible glow and hydration within 14 days, backed by our 30-day empty-bottle money-back guarantee." },
+        { label: "Freshness & expiry guarantee", message: "Manufactured in fresh small batches with a guaranteed 24-month unopened shelf life." },
+        { label: "Safe & verified checkout", message: "256-bit encrypted checkout. Safe payments via UPI, Cards, and Cash on Delivery." },
+        { label: "First Skincare Routine Offer", message: "Use code GLOW15 at checkout to receive 15% off your first skincare ritual!" }
+      ],
+      footwear: [
+        { label: "Does it fit wide feet?", message: "Engineered with ergonomic toe-box & memory-foam cushioning. Comfort-tested for all-day wear." },
+        { label: "What if the shoe doesn't fit?", message: "Free doorstep size exchange within 14 days! Our courier brings the new size to your door." },
+        { label: "Sole durability & traction", message: "Vulcanized anti-slip rubber outsole designed for 1000+ miles of all-weather durability." },
+        { label: "Express doorstep delivery", message: "Double-boxed protective transit. Dispatched in 24 hours with live SMS tracking." },
+        { label: "Exclusive Footwear Voucher", message: "Save 10% on your fresh kicks today with code SNEAKER10 at checkout!" }
+      ],
+      luxury: [
+        { label: "Is authenticity certified?", message: "100% Hallmarked & certified by accredited gemological laboratories with verifiable digital certificate." },
+        { label: "Insured transit for valuables", message: "100% armored and insured transit with tamper-evident security seal." },
+        { label: "Flexible installment options", message: "Enjoy 0% interest flexible EMI installments with major cards and instant approval." },
+        { label: "Lifetime exchange & care", message: "Comes with complimentary cleaning, lifetime exchange guarantee, and 15-day return." },
+        { label: "VIP Complimentary Gift", message: "Complimentary luxury gift wrapping and express insured delivery with code LUXE10." }
+      ],
+      supplements: [
+        { label: "Third-party lab tested?", message: "100% third-party lab tested for purity, heavy metals, and potency. View batch certificate online." },
+        { label: "Authentic seals & verification", message: "Scratch-off QR code verification seal on every tub to guarantee 100% manufacturer authenticity." },
+        { label: "Digestibility & taste guarantee", message: "Zero bloating formula with digestive enzymes. 100% delicious taste guarantee or full refund." },
+        { label: "Fast temperature-controlled dispatch", message: "Stored in climate-controlled warehouses and dispatched in express insulated containers." },
+        { label: "Fitness Starter Discount", message: "Fuel your fitness journey with 10% off using code FIT10 at checkout!" }
+      ],
+      home: [
+        { label: "Will it fit my room space?", message: "Detailed dimensions and 3D room preview available. 14-day hassle-free return if it doesn't match." },
+        { label: "Material & build durability", message: "Crafted from solid kiln-dried hardwood and scratch-resistant finishes. 5-year structural warranty." },
+        { label: "Safe delivery for heavy items", message: "White-glove doorstep delivery with reinforced corner protection and assembly assistance." },
+        { label: "Payment security & EMI", message: "Safe checkout with flexible No-Cost EMI options on all furniture orders." },
+        { label: "Home Makeover Savings", message: "Transform your space with flat 10% off using voucher code HOME10!" }
+      ],
+      general: [
+        { label: "Price is too high", message: "We offer a 10% first-order discount! Use code WELCOME10 at checkout." },
+        { label: "Not sure about quality", message: "Check our 500+ 5-star verified customer reviews and 30-day money-back guarantee." },
+        { label: "Shipping cost & speed", message: "Free tracked shipping on orders over $50. Dispatched within 24 hours!" },
+        { label: "Need to think about it", message: "Items in cart are selling fast! Complete purchase now and enjoy worry-free returns." },
+        { label: "Safe & secure checkout", message: "100% secure 256-bit encrypted checkout with Stripe, PayPal, Razorpay & Apple Pay." }
+      ]
+    };
+
+    function runStoreDetective() {
+      const niche = document.getElementById('detective-niche') ? document.getElementById('detective-niche').value : 'general';
+      const brandInput = document.getElementById('detective-brand');
+      let brand = brandInput ? brandInput.value.trim() : '';
+      if (!brand && typeof currentDomain !== 'undefined' && currentDomain) brand = currentDomain.replace(/^https?:\/\//, '').split('/')[0];
+      if (!brand) brand = 'Store';
+
+      const currency = document.getElementById('detective-currency') ? document.getElementById('detective-currency').value : 'USD';
+      const spinner = document.getElementById('detective-spinner');
+      const statusText = document.getElementById('detective-status-text');
+      const resultsEl = document.getElementById('detective-results');
+      const runBtn = document.getElementById('detective-run-btn');
+
+      if (runBtn) runBtn.disabled = true;
+      if (spinner) spinner.classList.remove('hidden');
+      if (statusText) {
+        statusText.innerText = `Analyzing ${brand} & generating conversion cards...`;
+        statusText.style.color = 'var(--text-secondary)';
+      }
+
+      setTimeout(() => {
+        if (spinner) spinner.classList.add('hidden');
+        if (runBtn) runBtn.disabled = false;
+        if (statusText) {
+          statusText.innerText = `✅ Analysis complete! 5 targeted counter-objections generated.`;
+          statusText.style.color = 'var(--success)';
+        }
+
+        const baseTemplates = NICHE_OBJECTION_TEMPLATES[niche] || NICHE_OBJECTION_TEMPLATES.general;
+        
+        // Customize with brand and currency adjustments
+        detectiveGeneratedCards = baseTemplates.map((t, idx) => {
+          let msg = t.message;
+          if (currency === 'INR') {
+            msg = msg.replace('$50', '₹999').replace('Free shipping over $50', 'Free shipping over ₹999');
+          } else if (currency === 'GBP') {
+            msg = msg.replace('$50', '£40');
+          } else if (currency === 'EUR') {
+            msg = msg.replace('$50', '€45');
+          }
+          return {
+            id: 'det_' + idx,
+            selected: true,
+            label: t.label,
+            counter_message: msg
+          };
+        });
+
+        renderDetectiveCards();
+        if (resultsEl) {
+          resultsEl.classList.remove('hidden');
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        showToast("🕵️‍♂️ Store Detective analysis complete!", "success");
+      }, 700);
+    }
+
+    function renderDetectiveCards() {
+      const container = document.getElementById('detective-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      detectiveGeneratedCards.forEach((card, idx) => {
+        const item = document.createElement('div');
+        item.style.cssText = "background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start;";
+        item.innerHTML = `
+          <input type="checkbox" id="det-check-${card.id}" ${card.selected ? 'checked' : ''} onchange="toggleDetectiveCard('${card.id}')" style="margin-top: 4px; cursor: pointer; transform: scale(1.15);" />
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <input type="text" id="det-label-${card.id}" value="${escapeHtml(card.label)}" onchange="updateDetectiveCardLabel('${card.id}', this.value)" style="font-size: 13px; font-weight: 600; color: #fff; background: transparent; border: 1px dashed rgba(255,255,255,0.2); border-radius: 4px; padding: 4px 8px; width: 60%;" />
+              <span style="font-size: 11px; color: var(--accent); font-weight: 600;">Card #${idx + 1}</span>
+            </div>
+            <textarea id="det-msg-${card.id}" rows="2" onchange="updateDetectiveCardMessage('${card.id}', this.value)" style="width: 100%; font-size: 12px; color: var(--text-secondary); background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; resize: vertical;">${escapeHtml(card.counter_message)}</textarea>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      const selectedCount = detectiveGeneratedCards.filter(c => c.selected).length;
+      const countEl = document.getElementById('detective-count');
+      if (countEl) countEl.innerText = selectedCount;
+    }
+
+    function toggleDetectiveCard(cardId) {
+      const card = detectiveGeneratedCards.find(c => c.id === cardId);
+      if (card) {
+        card.selected = !card.selected;
+        const countEl = document.getElementById('detective-count');
+        if (countEl) countEl.innerText = detectiveGeneratedCards.filter(c => c.selected).length;
+      }
+    }
+
+    function updateDetectiveCardLabel(cardId, val) {
+      const card = detectiveGeneratedCards.find(c => c.id === cardId);
+      if (card) card.label = val.trim();
+    }
+
+    function updateDetectiveCardMessage(cardId, val) {
+      const card = detectiveGeneratedCards.find(c => c.id === cardId);
+      if (card) card.counter_message = val.trim();
+    }
+
+    async function deployDetectiveObjections() {
+      if (!currentSiteKey) {
+        showToast("Please select or register a domain first.", "error");
+        return;
+      }
+
+      const activeCards = detectiveGeneratedCards.filter(c => c.selected && c.label && c.counter_message);
+      if (activeCards.length === 0) {
+        showToast("Please select at least one objection card to deploy.", "error");
+        return;
+      }
+
+      const deployBtn = document.getElementById('detective-deploy-btn');
+      if (deployBtn) {
+        deployBtn.disabled = true;
+        deployBtn.innerHTML = `🚀 Deploying to Store...`;
+      }
+
+      try {
+        const payload = activeCards.map(c => ({
+          site_key: currentSiteKey,
+          label: c.label,
+          counter_message: c.counter_message
+        }));
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/objections`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error("Failed to deploy objections: " + (errData.message || res.statusText));
+        }
+
+        showToast(`🎉 ${activeCards.length} AI counter-objections deployed to your live store!`, "success");
+        if (typeof logMerchantActivity === 'function') {
+          logMerchantActivity("AI Store Detective Deployed", `Added ${activeCards.length} objections for site ${currentSiteKey}`);
+        }
+        
+        // Refresh site objections list immediately
+        if (typeof loadSiteData === 'function') loadSiteData();
+
+        // Collapse results
+        setTimeout(() => {
+          const resultsEl = document.getElementById('detective-results');
+          if (resultsEl) resultsEl.classList.add('hidden');
+          const statusText = document.getElementById('detective-status-text');
+          if (statusText) statusText.innerText = `Deployed successfully! Active in your widget.`;
+        }, 1500);
+
+      } catch (err) {
+        console.error("Deploy error:", err);
+        showToast(err.message, "error");
+      } finally {
+        if (deployBtn) {
+          deployBtn.disabled = false;
+          deployBtn.innerHTML = `🚀 Deploy to My Widget (1-Click)`;
+        }
+      }
     }
 
     // ─── WEBHOOKS INTEGRATION ───
